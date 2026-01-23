@@ -1,5 +1,6 @@
-import { generateFounderBrief } from '../src/core/engine/generateFounderBrief.js';
-import { sendBriefEmail } from '../src/services/email.js';
+import { generateFounderBrief } from '../src/core/engine/generateFounderBrief';
+import { sendBriefEmail } from '../src/services/email';
+import { saveBriefToDB } from '../src/services/db';
 
 export default async function handler(request: any, response: any) {
   console.log("--------------------------------------------------");
@@ -7,20 +8,21 @@ export default async function handler(request: any, response: any) {
   console.log("--------------------------------------------------\n");
 
   try {
-    // Basic security check (optional but recommended)
-    // const authHeader = request.headers['authorization'];
-    // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    //   return response.status(401).json({ success: false });
-    // }
-
     console.log("🔄 Generating Founder Brief...");
     const brief = await generateFounderBrief();
     
+    console.log("💾 Saving to Database...");
+    if (process.env.FOUNDER_EMAIL) {
+       await saveBriefToDB(brief, process.env.FOUNDER_EMAIL);
+    } else {
+       console.warn("Skipping DB save: FOUNDER_EMAIL not set");
+    }
+
     console.log("📨 Sending email...");
     await sendBriefEmail(brief);
     
     console.log("✅ Workflow completed.");
-    return response.status(200).json({ success: true, message: "Brief generated and sent." });
+    return response.status(200).json({ success: true, message: "Brief generated, saved, and sent." });
 
   } catch (error: any) {
     console.error("❌ Critical failure in weekly job:", error);

@@ -24,6 +24,8 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.91.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/nodemailer": "^7.0.5",
     "@types/react": "^19.2.9",
