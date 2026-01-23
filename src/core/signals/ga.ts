@@ -6,7 +6,22 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const propertyId = process.env.GA_PROPERTY_ID;
-const analyticsDataClient = new BetaAnalyticsDataClient();
+
+// Support both a file path and raw JSON string for credentials
+const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+let credentials = {};
+
+try {
+  if (credentialsJson && credentialsJson.startsWith('{')) {
+    credentials = JSON.parse(credentialsJson);
+  }
+} catch (e) {
+  console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS as JSON');
+}
+
+const analyticsDataClient = new BetaAnalyticsDataClient(
+  Object.keys(credentials).length > 0 ? { credentials } : undefined
+);
 
 export async function getGASignals(): Promise<Signal[]> {
   if (!propertyId) {
