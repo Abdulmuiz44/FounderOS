@@ -1,4 +1,4 @@
-import { Severity, Direction } from '../../types/signal.js';
+import { Severity, Direction } from '../../types/signal';
 
 interface DeltaResult {
   deltaPercent: number;

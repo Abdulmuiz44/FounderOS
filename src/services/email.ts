@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { FounderBrief } from '../types/brief.js';
+import { FounderBrief } from '../types/brief';
 import dotenv from 'dotenv';
 
 dotenv.config();

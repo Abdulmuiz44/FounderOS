@@ -1,4 +1,4 @@
-import { Signal } from '../../types/signal.js';
+import { Signal } from '../../types/signal';
 
 export function detectPatterns(signals: Signal[]): string[] {
   const patterns: string[] = [];

@@ -1,10 +1,10 @@
-import { getGASignals } from '../signals/ga.js';
-import { getHubSpotSignals } from '../signals/hubspot.js';
-import { getGitHubSignals } from '../signals/github.js';
-import { detectPatterns } from '../patterns/detectPatterns.js';
-import { generateInsightCandidates } from '../insights/generateInsightCandidates.js';
-import { callLLM } from '../../services/llm.js';
-import { FounderBrief } from '../../types/brief.js';
+import { getGASignals } from '../signals/ga';
+import { getHubSpotSignals } from '../signals/hubspot';
+import { getGitHubSignals } from '../signals/github';
+import { detectPatterns } from '../patterns/detectPatterns';
+import { generateInsightCandidates } from '../insights/generateInsightCandidates';
+import { callLLM } from '../../services/llm';
+import { FounderBrief } from '../../types/brief';
 
 export async function generateFounderBrief(): Promise<FounderBrief> {
   // a) Collect real signals (asynchronously)

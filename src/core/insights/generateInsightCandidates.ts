@@ -1,4 +1,4 @@
-import { InsightCandidate } from '../../types/insight.js';
+import { InsightCandidate } from '../../types/insight';
 
 export function generateInsightCandidates(patterns: string[]): InsightCandidate[] {
   return patterns.map(pattern => {

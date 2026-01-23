@@ -1,6 +1,6 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
-import { Signal } from '../../types/signal.js';
-import { computeDelta } from '../deltas/computeDelta.js';
+import { Signal } from '../../types/signal';
+import { computeDelta } from '../deltas/computeDelta';
 import dotenv from 'dotenv';
 
 dotenv.config();

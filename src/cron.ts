@@ -1,5 +1,5 @@
-import { generateFounderBrief } from './core/engine/generateFounderBrief.js';
-import { sendBriefEmail } from './services/email.js';
+import { generateFounderBrief } from './core/engine/generateFounderBrief';
+import { sendBriefEmail } from './services/email';
 
 async function runWeeklyJob() {
   console.log("--------------------------------------------------");

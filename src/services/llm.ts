@@ -1,5 +1,5 @@
-import { Signal } from '../types/signal.js';
-import { InsightCandidate } from '../types/insight.js';
+import { Signal } from '../types/signal';
+import { InsightCandidate } from '../types/insight';
 
 export const SYSTEM_PROMPT = `You are an experienced SaaS operator and founder advisor. 
 Analyze early-stage SaaS businesses using data from marketing, sales, and engineering.

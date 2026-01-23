@@ -1,7 +1,7 @@
-import { getGASignals } from './core/signals/ga.js';
-import { getHubSpotSignals } from './core/signals/hubspot.js';
-import { getGitHubSignals } from './core/signals/github.js';
-import { generateFounderBrief } from './core/engine/generateFounderBrief.js';
+import { getGASignals } from './core/signals/ga';
+import { getHubSpotSignals } from './core/signals/hubspot';
+import { getGitHubSignals } from './core/signals/github';
+import { generateFounderBrief } from './core/engine/generateFounderBrief';
 
 async function main() {
   console.log("--------------------------------------------------");
