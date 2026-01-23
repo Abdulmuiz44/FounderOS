@@ -42,14 +42,13 @@ export default function Dashboard() {
     setTheme(initialTheme);
     document.documentElement.setAttribute('data-theme', initialTheme);
 
-    // Auth & Approval Check
+    // Auth & Approval
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user || null;
       setUser(currentUser);
 
       if (currentUser) {
-        // Check approval
         const { data: approved } = await supabase
           .from('approved_users')
           .select('email')
@@ -71,11 +70,9 @@ export default function Dashboard() {
     };
 
     checkUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       checkUser();
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -102,8 +99,6 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
-    setBriefs([]);
-    setSelectedBrief(null);
     router.push('/');
   };
 
@@ -138,54 +133,47 @@ export default function Dashboard() {
 
   const getBriefSentiment = (summary: string) => {
     const text = summary.toLowerCase();
-    if (text.includes('growth') || text.includes('surge') || text.includes('opportunity')) return 'positive';
-    if (text.includes('risk') || text.includes('drop') || text.includes('decline') || text.includes('stall')) return 'concern';
+    if (text.includes('growth') || text.includes('surge')) return 'positive';
+    if (text.includes('risk') || text.includes('drop') || text.includes('stall')) return 'concern';
     return 'mixed';
   };
 
   const SentimentBadge = ({ type }: { type: string }) => {
     const styles = {
-      positive: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-      concern: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-      mixed: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+      positive: 'text-[var(--success-text)] bg-[var(--success-bg)]',
+      concern: 'text-[var(--warning-text)] bg-[var(--warning-bg)]',
+      mixed: 'text-[var(--foreground)] bg-[var(--border)]'
     };
-    const labels = { positive: 'Momentum', concern: 'Attention Needed', mixed: 'Stable' };
-    
+    const labels = { positive: 'Momentum', concern: 'Attention', mixed: 'Stable' };
     return (
-      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider ${styles[type as keyof typeof styles]}`}>
-        {labels[type as keyof typeof labels] || 'Update'}
+      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded tracking-wider ${styles[type as keyof typeof styles]}`}>
+        {labels[type as keyof typeof labels]}
       </span>
     );
   };
 
-  if (checkingApproval) {
-    return <div className="min-h-screen flex items-center justify-center bg-[var(--background)]"><Skeleton className="w-12 h-12 rounded-full" /></div>;
-  }
+  if (checkingApproval) return <div className="min-h-screen bg-[var(--background)]" />;
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">
-        <div className="max-w-sm w-full space-y-8 animate-fade-in">
-          <div className="text-center space-y-2">
-             <div className="mb-6 flex justify-center"><div className="w-10 h-10 bg-black dark:bg-white rounded-lg"></div></div>
-            <h1 className="text-2xl font-bold tracking-tight">Founder Log In</h1>
-            <p className="text-[var(--muted)] text-sm">Access your secure intelligence dashboard.</p>
+        <div className="max-w-xs w-full space-y-8 animate-fade-in text-center">
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold tracking-tight">Founder Log In</h1>
+            <p className="text-[var(--muted)] text-sm">Secure intelligence dashboard.</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="email"
               required
-              className="w-full px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] focus:ring-2 focus:ring-[var(--accent)] transition-all outline-none"
+              className="w-full px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] focus:ring-1 focus:ring-[var(--foreground)] transition-all outline-none text-center"
               placeholder="founder@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Button type="submit" className="w-full" isLoading={authLoading}>Send Magic Link</Button>
-            {authMessage && <p className="text-center text-sm text-[var(--muted)]">{authMessage}</p>}
+            <Button type="submit" className="w-full h-11" isLoading={authLoading}>Send Magic Link</Button>
+            {authMessage && <p className="text-sm text-[var(--muted)]">{authMessage}</p>}
           </form>
-          <div className="text-center">
-            <a href="/" className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]">Back to Home</a>
-          </div>
         </div>
       </div>
     );
@@ -195,177 +183,158 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--background)] text-center">
         <div className="max-w-md space-y-6 animate-fade-in">
-          <div className="text-4xl">🔒</div>
-          <h1 className="text-2xl font-bold">Private Beta Access</h1>
-          <p className="text-[var(--muted)] leading-relaxed">
-            FounderOS is currently invite-only to ensure quality and privacy for our early partners.
-            <br/><br/>
-            You are on the list as <strong>{user.email}</strong>. We will notify you when your access is enabled.
+          <h1 className="text-xl font-bold">Private Beta</h1>
+          <p className="text-[var(--muted)] leading-relaxed text-sm">
+            FounderOS is currently invite-only.<br/>
+            You are on the waitlist as <strong>{user.email}</strong>.
           </p>
-          <Button onClick={handleLogout} variant="secondary">Sign Out</Button>
+          <Button onClick={handleLogout} variant="ghost">Sign Out</Button>
         </div>
       </div>
     );
   }
 
-  // ... (Rest of the dashboard UI is same as before, just wrapped in the component)
-  // I will just paste the return block from the previous step but ensure it uses the new variables like `briefs` etc.
-  
   return (
     <div className="min-h-screen bg-[var(--background)] transition-colors duration-300">
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-10 md:py-16">
+        
         {/* Header */}
-        <header className="flex justify-between items-start mb-12">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-xl font-bold tracking-tight">FounderOS</h1>
-              <span className="text-[10px] font-bold bg-[var(--card)] border border-[var(--border)] px-1.5 py-0.5 rounded text-[var(--muted)] tracking-wider">BETA</span>
-            </div>
-            <p className="text-[var(--muted)] text-sm">Your weekly company intelligence briefing.</p>
+            <h1 className="text-xl font-bold tracking-tight mb-1">FounderOS</h1>
+            <p className="text-[var(--muted)] text-sm">Sunday Evening Intelligence</p>
           </div>
           
-          <div className="flex items-center gap-4">
-             <div className="hidden md:block text-right">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--muted)]">Next Automated Brief</p>
+          <div className="flex items-center gap-6">
+             <div className="text-right hidden md:block">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--muted)] mb-0.5">Next Briefing</p>
                 <p className="text-xs font-medium text-[var(--foreground)]">
                   {getNextBriefDate().toLocaleDateString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' })}
                 </p>
              </div>
              <div className="h-8 w-px bg-[var(--border)] hidden md:block"></div>
-            <button onClick={toggleTheme} className="p-2 rounded-full text-[var(--muted)] hover:bg-[var(--card)]">
+            <button onClick={toggleTheme} className="p-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
               {theme === 'dark' ? '☀️' : '🌙'}
             </button>
-            <button onClick={handleLogout} className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
+            <button onClick={handleLogout} className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
               Sign Out
             </button>
           </div>
         </header>
 
-        <main className="grid grid-cols-1 md:grid-cols-12 gap-12 animate-fade-in">
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-16 animate-fade-in">
           
-          {/* Sidebar Timeline */}
-          <aside className="md:col-span-3 space-y-8">
-            <div className="flex justify-between items-center md:hidden">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--muted)]">Brief History</h2>
+          {/* Timeline Sidebar */}
+          <aside className="lg:col-span-3 space-y-8">
+            <div className="flex items-center justify-between">
+               <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">History</span>
+               <button onClick={generateBrief} disabled={generating} className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] hover:opacity-60 transition-opacity">
+                 {generating ? '...' : '+ Generate'}
+               </button>
             </div>
-            
-            <div className="space-y-2">
-               <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Timeline</span>
-                  <Button 
-                    onClick={generateBrief} 
-                    isLoading={generating} 
-                    variant="ghost" 
-                    className="h-6 text-xs px-2 -mr-2"
-                  >
-                    + New
-                  </Button>
-               </div>
 
+            <div className="space-y-1">
               {loading ? (
-                <div className="space-y-3">
-                  <Skeleton className="w-full h-16" />
-                  <Skeleton className="w-full h-12" />
-                  <Skeleton className="w-full h-12" />
-                </div>
+                <div className="space-y-3 opacity-50"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>
               ) : briefs.length > 0 ? (
                 briefs.map((b) => (
                   <button
                     key={b.id}
                     onClick={() => setSelectedBrief(b)}
-                    className={`w-full text-left p-3 rounded-lg border transition-all duration-200 group ${
+                    className={`w-full text-left px-3 py-3 rounded-md transition-all duration-200 group ${
                       selectedBrief?.id === b.id
-                        ? 'bg-[var(--card)] border-[var(--border)] shadow-sm'
-                        : 'border-transparent hover:bg-[var(--card)] hover:border-[var(--border)] opacity-70 hover:opacity-100'
+                        ? 'bg-[var(--card)] shadow-sm'
+                        : 'hover:bg-[var(--card)] hover:opacity-100 opacity-60'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-xs font-medium text-[var(--muted)]">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-medium text-[var(--foreground)]">
                         {new Date(b.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
-                      {selectedBrief?.id === b.id && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>}
+                      {selectedBrief?.id === b.id && <span className="w-1 h-1 rounded-full bg-[var(--foreground)]"></span>}
                     </div>
-                    <p className={`text-sm font-medium line-clamp-2 ${selectedBrief?.id === b.id ? 'text-[var(--foreground)]' : 'text-[var(--muted)] group-hover:text-[var(--foreground)]'}`}>
-                      {getBriefSentiment(b.executive_summary) === 'positive' ? '🚀 Momentum' : getBriefSentiment(b.executive_summary) === 'concern' ? '⚠️ Attention' : '📊 Update'}
+                    <p className="text-xs text-[var(--muted)] line-clamp-1">
+                      {getBriefSentiment(b.executive_summary) === 'positive' ? 'Positive Signals' : 'Attention Needed'}
                     </p>
                   </button>
                 ))
               ) : (
-                 <div className="text-sm text-[var(--muted)] italic py-4">No briefs yet.</div>
+                 <div className="text-sm text-[var(--muted)] py-4">No briefs found.</div>
               )}
             </div>
           </aside>
 
-          {/* Main Content */}
-          <div className="md:col-span-9 min-h-[500px]">
+          {/* Main Brief Content */}
+          <div className="lg:col-span-9">
             {selectedBrief ? (
-              <div className="space-y-12 animate-fade-in">
+              <div className="space-y-16 max-w-3xl">
                 
-                {/* Meta Header */}
-                <div className="flex justify-between items-end border-b border-[var(--border)] pb-6">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                       <h2 className="text-2xl font-semibold text-[var(--foreground)]">Weekly Intelligence</h2>
-                       <SentimentBadge type={getBriefSentiment(selectedBrief.executive_summary)} />
-                    </div>
-                    <p className="text-sm text-[var(--muted)]">
-                      Generated {daysAgo(selectedBrief.created_at)} • Week of {new Date(selectedBrief.week_start_date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
-                    </p>
+                {/* Brief Header */}
+                <div className="border-b border-[var(--border)] pb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                     <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Weekly Brief</h2>
+                     <SentimentBadge type={getBriefSentiment(selectedBrief.executive_summary)} />
                   </div>
+                  <p className="text-sm text-[var(--muted)]">
+                    Generated {daysAgo(selectedBrief.created_at)} • Week of {new Date(selectedBrief.week_start_date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
                 </div>
 
-                {/* Content */}
-                <div className="space-y-10">
-                  <section>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-3">Executive Summary</h3>
-                    <p className="text-lg leading-relaxed text-[var(--foreground)]">
-                      {selectedBrief.executive_summary}
-                    </p>
-                  </section>
+                {/* Executive Summary */}
+                <section>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-4">Executive Summary</h3>
+                  <p className="text-xl leading-relaxed text-[var(--foreground)] font-normal">
+                    {selectedBrief.executive_summary}
+                  </p>
+                </section>
 
+                {/* Founder Verdict (Featured) */}
+                <section className="bg-[var(--card)] p-8 rounded-lg border border-[var(--border)] shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[var(--foreground)]"></div>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)] mb-4">Founder Verdict</h3>
+                  <p className="text-lg leading-relaxed text-[var(--foreground)] opacity-90">
+                    {selectedBrief.meaning}
+                  </p>
+                </section>
+
+                <div className="grid md:grid-cols-2 gap-12">
+                  {/* Observations */}
                   <section>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-3">Signals & Observations</h3>
-                    <ul className="space-y-3">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-4">Key Signals</h3>
+                    <ul className="space-y-4">
                       {selectedBrief.key_observations.map((obs, i) => (
-                        <li key={i} className="flex items-start">
-                          <span className="mr-3 text-[var(--muted)] mt-1.5 text-[10px]">•</span>
-                          <span className="text-[var(--foreground)] leading-relaxed opacity-90">{obs}</span>
+                        <li key={i} className="flex gap-3 text-sm text-[var(--foreground)] leading-relaxed border-l border-[var(--border)] pl-4">
+                          {obs}
                         </li>
                       ))}
                     </ul>
                   </section>
 
-                  <section className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-3">Strategic Implication</h3>
-                    <p className="text-base leading-relaxed text-[var(--foreground)]">
-                      {selectedBrief.meaning}
-                    </p>
-                  </section>
-
+                  {/* Focus */}
                   <section>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-5">Founder Focus</h3>
-                    <div className="grid gap-4">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-4">Priorities</h3>
+                    <div className="space-y-3">
                       {selectedBrief.founder_focus.map((focus, i) => (
-                        <div key={i} className="flex items-start p-4 rounded-lg border border-[var(--border)] bg-[var(--background)]">
-                          <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-[var(--card)] border border-[var(--border)] text-[var(--muted)] text-[10px] font-bold mr-4 mt-0.5">
+                        <div key={i} className="group flex items-start gap-3 p-3 -ml-3 rounded-md transition-colors hover:bg-[var(--card)]">
+                          <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-bold text-[var(--muted)] mt-0.5">
                             {i + 1}
                           </span>
-                          <span className="font-medium text-[var(--foreground)] text-sm">{focus}</span>
+                          <span className="text-sm font-medium text-[var(--foreground)]">{focus}</span>
                         </div>
                       ))}
                     </div>
                   </section>
                 </div>
+
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-[var(--card)] rounded-xl border border-[var(--border)] border-dashed opacity-70">
-                 <div className="mb-4 text-3xl opacity-50">✨</div>
-                 <h3 className="text-lg font-medium text-[var(--foreground)]">Welcome to FounderOS</h3>
-                 <p className="text-[var(--muted)] text-sm max-w-sm mt-2 mb-6">
-                   Your quiet weekly conversation with your business. Connect your data to generate your first intelligence briefing.
+              <div className="h-96 flex flex-col items-center justify-center text-center p-8 bg-[var(--card)] rounded-lg border border-[var(--border)] border-dashed opacity-50">
+                 <h3 className="text-lg font-medium text-[var(--foreground)]">Ready for Intelligence</h3>
+                 <p className="text-[var(--muted)] text-sm mt-2 mb-6">
+                   Generate your first Sunday briefing to begin.
                  </p>
                  <Button onClick={generateBrief} isLoading={generating}>
-                   Generate First Brief
+                   Generate Brief
                  </Button>
               </div>
             )}

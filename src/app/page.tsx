@@ -19,12 +19,8 @@ export default function Landing() {
       .from('waitlist')
       .insert([{ email, source: 'landing' }]);
 
-    if (error) {
-      if (error.code === '23505') { // Unique violation
-        setStatus('success'); // Treat as success
-      } else {
-        setStatus('error');
-      }
+    if (error && error.code !== '23505') {
+      setStatus('error');
     } else {
       setStatus('success');
     }
@@ -32,32 +28,32 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6 relative selection:bg-[var(--foreground)] selection:text-[var(--background)]">
       
       {/* Navigation */}
-      <nav className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center max-w-5xl mx-auto w-full">
+      <nav className="absolute top-0 left-0 right-0 p-8 flex justify-between items-center max-w-3xl mx-auto w-full">
         <span className="font-bold text-lg tracking-tight">FounderOS</span>
         <a href="/dashboard" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
           Log In
         </a>
       </nav>
 
-      <main className="max-w-xl mx-auto w-full space-y-16 text-center z-10">
+      <main className="max-w-xl mx-auto w-full space-y-20 text-center z-10">
         
         {/* Hero */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="space-y-6"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.15]">
             Your weekly company <br/> intelligence briefing.
           </h1>
-          <p className="text-xl text-[var(--muted)] font-light leading-relaxed max-w-md mx-auto">
+          <p className="text-xl text-[var(--muted)] font-normal leading-relaxed max-w-sm mx-auto">
             One calm summary. <br/>
             One clear direction. <br/>
-            Every Monday.
+            <span className="text-[var(--foreground)] font-medium">Every Sunday evening.</span>
           </p>
         </motion.div>
 
@@ -65,32 +61,32 @@ export default function Landing() {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="max-w-sm mx-auto w-full"
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="max-w-xs mx-auto w-full"
         >
           {status === 'success' ? (
-            <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 text-green-800 dark:text-green-300">
-              <p className="font-medium">You’re on the list.</p>
-              <p className="text-sm opacity-80 mt-1">We’ll invite founders gradually.</p>
+            <div className="p-4 rounded-md bg-[var(--success-bg)] text-[var(--success-text)] border border-[var(--success-bg)]">
+              <p className="font-medium text-sm">You’re on the list.</p>
+              <p className="text-xs opacity-80 mt-1">We invite founders gradually.</p>
             </div>
           ) : (
             <form onSubmit={handleJoinWaitlist} className="space-y-3">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="founder@company.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 text-center bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--accent)] transition-colors"
+                className="w-full px-4 py-3 text-center bg-[var(--card)] border border-[var(--border)] rounded-md text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--foreground)] transition-colors"
               />
               <Button 
                 type="submit" 
                 isLoading={status === 'loading'}
-                className="w-full py-3 text-base"
+                className="w-full h-12 text-base"
               >
-                Request Early Access
+                Request Access
               </Button>
-              {status === 'error' && <p className="text-sm text-red-500">Something went wrong. Please try again.</p>}
+              {status === 'error' && <p className="text-sm text-red-500">Something went wrong.</p>}
             </form>
           )}
         </motion.div>
@@ -99,18 +95,17 @@ export default function Landing() {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="space-y-4 pt-8"
+          transition={{ delay: 0.4, duration: 0.8 }}
+          className="space-y-6 pt-8 border-t border-[var(--border)] max-w-xs mx-auto"
         >
-          <p className="text-xs uppercase tracking-widest text-[var(--muted)] font-semibold">Planned Pricing</p>
-          <div className="flex justify-center gap-8 text-sm text-[var(--muted)]">
-            <div>
+          <div className="flex justify-between text-sm">
+            <div className="text-left">
               <span className="block text-[var(--foreground)] font-medium">$15/mo</span>
-              <span>Solo Founder</span>
+              <span className="text-[var(--muted)]">Solo Founder</span>
             </div>
-            <div>
+            <div className="text-right">
               <span className="block text-[var(--foreground)] font-medium">$29/mo</span>
-              <span>Growing Startup</span>
+              <span className="text-[var(--muted)]">Growing Startup</span>
             </div>
           </div>
         </motion.div>
@@ -118,9 +113,9 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="absolute bottom-6 text-center w-full">
-        <p className="text-xs text-[var(--muted)] opacity-60">
-          Free during private beta. Confidential by design.
+      <footer className="absolute bottom-8 text-center w-full">
+        <p className="text-[10px] uppercase tracking-widest text-[var(--muted)] opacity-60 font-medium">
+          Confidential by design
         </p>
       </footer>
     </div>
