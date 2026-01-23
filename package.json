@@ -1,0 +1,26 @@
+{
+  "name": "founderos",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@google-analytics/data": "^5.2.1",
+    "@hubspot/api-client": "^13.4.0",
+    "@types/node": "^22.10.7",
+    "dotenv": "^17.2.3",
+    "octokit": "^5.0.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@types/nodemailer": "^7.0.5",
+    "nodemailer": "^7.0.12"
+  }
+}
