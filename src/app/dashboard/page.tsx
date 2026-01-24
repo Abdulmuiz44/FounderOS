@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getNextBriefDate, daysAgo } from '@/utils/date';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FounderBrief {
   id: string;
@@ -31,18 +32,22 @@ export default function Dashboard() {
   const [authMessage, setAuthMessage] = useState('');
   const [theme, setTheme] = useState('light');
   
+  // Beta Onboarding States
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  
   const supabase = createClient();
   const router = useRouter();
 
   useEffect(() => {
-    // Theme
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
     setTheme(initialTheme);
     document.documentElement.setAttribute('data-theme', initialTheme);
 
-    // Auth & Approval
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user || null;
@@ -51,12 +56,15 @@ export default function Dashboard() {
       if (currentUser) {
         const { data: approved } = await supabase
           .from('approved_users')
-          .select('email')
+          .select('*')
           .eq('email', currentUser.email)
           .single();
         
         if (approved) {
           setIsApproved(true);
+          if (!approved.onboarding_completed) {
+            setShowWelcome(true);
+          }
           fetchBriefs(currentUser.id);
         } else {
           setIsApproved(false);
@@ -118,16 +126,49 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  const generateBrief = async () => {
+  const generateBrief = async (isFirstTime = false) => {
     setGenerating(true);
     try {
       const res = await fetch('/api/brief');
       if (!res.ok) throw new Error('Generation failed');
-      if (user) await fetchBriefs(user.id);
+      
+      if (user) {
+        await fetchBriefs(user.id);
+        
+        if (isFirstTime) {
+          await supabase.from('approved_users')
+            .update({ 
+              onboarding_completed: true,
+              first_brief_at: new Date().toISOString(),
+              total_briefs: 1
+            })
+            .eq('email', user.email);
+            
+          setShowWelcome(false);
+          setShowFeedback(true);
+        } else {
+           const { data: stats } = await supabase.from('approved_users').select('total_briefs').eq('email', user.email).single();
+           if (stats) {
+             await supabase.from('approved_users').update({ total_briefs: (stats.total_briefs || 0) + 1 }).eq('email', user.email);
+           }
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const submitFeedback = async () => {
+    if (!user || !feedbackText) return;
+    const { error } = await supabase.from('user_feedback').insert({
+      user_id: user.id,
+      feedback_text: feedbackText
+    });
+    if (!error) {
+      setFeedbackSubmitted(true);
+      setTimeout(() => setShowFeedback(false), 2000);
     }
   };
 
@@ -152,7 +193,7 @@ export default function Dashboard() {
     );
   };
 
-  if (checkingApproval) return <div className="min-h-screen bg-[var(--background)]" />;
+  if (checkingApproval) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center"><Skeleton className="w-12 h-12 rounded-full" /></div>;
 
   if (!user) {
     return (
@@ -183,9 +224,10 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--background)] text-center">
         <div className="max-w-md space-y-6 animate-fade-in">
-          <h1 className="text-xl font-bold">Private Beta</h1>
+          <div className="text-4xl mb-4">🔒</div>
+          <h1 className="text-xl font-bold">Invite Only</h1>
           <p className="text-[var(--muted)] leading-relaxed text-sm">
-            FounderOS is currently invite-only.<br/>
+            FounderOS is currently in private beta.<br/>
             You are on the waitlist as <strong>{user.email}</strong>.
           </p>
           <Button onClick={handleLogout} variant="ghost">Sign Out</Button>
@@ -195,9 +237,71 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--background)] transition-colors duration-300 relative">
+      
+      {/* Welcome Modal */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95 }} animate={{ scale: 1 }}
+              className="bg-[var(--card)] p-8 rounded-xl max-w-md w-full shadow-2xl border border-[var(--border)] text-center space-y-6"
+            >
+              <h2 className="text-2xl font-bold">Welcome to FounderOS Beta</h2>
+              <p className="text-[var(--muted)] leading-relaxed">
+                Your intelligence engine is ready. <br/>
+                Every Sunday at 6 PM UTC, you will receive a calm summary of your company's performance.
+              </p>
+              <div className="pt-4">
+                <Button onClick={() => generateBrief(true)} isLoading={generating} className="w-full h-12 text-base">
+                  Generate First Brief
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {showFeedback && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95 }} animate={{ scale: 1 }}
+              className="bg-[var(--card)] p-8 rounded-xl max-w-md w-full shadow-2xl border border-[var(--border)] space-y-4"
+            >
+              {feedbackSubmitted ? (
+                <div className="text-center py-8">
+                  <span className="text-4xl">✨</span>
+                  <p className="mt-4 font-medium">Thank you. Enjoy your Sunday.</p>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-lg font-bold text-center">First Impression?</h3>
+                  <textarea 
+                    className="w-full p-3 rounded-md bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] h-32 focus:outline-none focus:border-[var(--foreground)] resize-none"
+                    placeholder="Be honest..."
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                  />
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setShowFeedback(false)} className="flex-1">Skip</Button>
+                    <Button onClick={submitFeedback} className="flex-1">Send</Button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-6xl mx-auto px-6 py-10 md:py-16">
-        
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
           <div>
@@ -228,7 +332,7 @@ export default function Dashboard() {
           <aside className="lg:col-span-3 space-y-8">
             <div className="flex items-center justify-between">
                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">History</span>
-               <button onClick={generateBrief} disabled={generating} className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] hover:opacity-60 transition-opacity">
+               <button onClick={() => generateBrief(false)} disabled={generating} className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] hover:opacity-60 transition-opacity">
                  {generating ? '...' : '+ Generate'}
                </button>
             </div>
@@ -333,7 +437,7 @@ export default function Dashboard() {
                  <p className="text-[var(--muted)] text-sm mt-2 mb-6">
                    Generate your first Sunday briefing to begin.
                  </p>
-                 <Button onClick={generateBrief} isLoading={generating}>
+                 <Button onClick={() => generateBrief(false)} isLoading={generating}>
                    Generate Brief
                  </Button>
               </div>
