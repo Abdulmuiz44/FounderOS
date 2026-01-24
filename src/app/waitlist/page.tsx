@@ -72,24 +72,41 @@ export default function WaitlistPage() {
               <p className="text-xs opacity-80 mt-1">We’ll invite founders gradually.</p>
             </div>
           ) : (
-            <form onSubmit={handleJoinWaitlist} className="space-y-4">
-              <input
-                type="email"
-                placeholder="founder@company.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 text-center bg-[var(--card)] border border-[var(--border)] rounded-md text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--foreground)] transition-colors"
-              />
-              <Button 
-                type="submit" 
-                isLoading={status === 'loading'}
-                className="w-full h-12 text-base shadow-sm"
-              >
-                Join Waitlist
-              </Button>
-              {status === 'error' && <p className="text-sm text-red-500">Something went wrong. Please try again.</p>}
-            </form>
+            <>
+              <form onSubmit={handleJoinWaitlist} className="space-y-4">
+                <input
+                  type="email"
+                  placeholder="founder@company.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 text-center bg-[var(--card)] border border-[var(--border)] rounded-md text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--foreground)] transition-colors"
+                />
+                <Button 
+                  type="submit" 
+                  isLoading={status === 'loading'}
+                  className="w-full h-12 text-base shadow-sm"
+                >
+                  Join Waitlist
+                </Button>
+                {status === 'error' && <p className="text-sm text-red-500">Something went wrong. Please try again.</p>}
+              </form>
+
+              {/* Pricing Anchor */}
+              <div className="mt-12 space-y-4 pt-8 border-t border-[var(--border)]">
+                <h2 className="text-[10px] uppercase tracking-widest text-[var(--muted)] font-bold">Planned Pricing</h2>
+                <p className="text-xs text-[var(--muted)] leading-relaxed">
+                  FounderOS will launch with simple monthly pricing.
+                </p>
+                <div className="flex justify-between text-xs text-[var(--foreground)] font-medium max-w-[200px] mx-auto">
+                  <span>$15/mo — Solo</span>
+                  <span>$29/mo — Teams</span>
+                </div>
+                <p className="text-[10px] text-[var(--muted)] opacity-70 italic pt-2">
+                  Early beta users will receive priority access and discounted pricing.
+                </p>
+              </div>
+            </>
           )}
         </motion.div>
 
