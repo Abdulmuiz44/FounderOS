@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 
-export default function Landing() {
+export default function WaitlistPage() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const supabase = createClient();
@@ -17,9 +17,9 @@ export default function Landing() {
     
     const { error } = await supabase
       .from('waitlist')
-      .insert([{ email, source: 'landing' }]);
+      .insert([{ email, source: 'waitlist page' }]);
 
-    if (error && error.code !== '23505') {
+    if (error && error.code !== '23505') { // Ignore unique violation (already registered)
       setStatus('error');
     } else {
       setStatus('success');
@@ -30,34 +30,34 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6 relative selection:bg-[var(--foreground)] selection:text-[var(--background)]">
       
-      {/* Navigation */}
-      <nav className="absolute top-0 left-0 right-0 p-8 flex justify-between items-center max-w-3xl mx-auto w-full">
-        <span className="font-bold text-lg tracking-tight">FounderOS</span>
-        <a href="/dashboard" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-          Log In
+      {/* Minimal Header */}
+      <nav className="absolute top-0 left-0 right-0 p-8 flex justify-center">
+        <a href="/" className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity">
+          FounderOS
         </a>
       </nav>
 
-      <main className="max-w-xl mx-auto w-full space-y-20 text-center z-10">
+      <main className="max-w-md mx-auto w-full space-y-12 text-center z-10">
         
-        {/* Hero */}
+        {/* Hero Section */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-8"
+          className="space-y-6"
         >
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.15]">
-            Your weekly business <br/> intelligence briefing.
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
+            Request Early Access
           </h1>
-          <p className="text-xl text-[var(--muted)] font-normal leading-relaxed max-w-sm mx-auto">
-            One calm summary. <br/>
-            One clear direction. <br/>
-            <span className="text-[var(--foreground)] font-medium">Every Sunday evening.</span>
+          <p className="text-lg text-[var(--muted)] font-normal leading-relaxed">
+            FounderOS delivers your weekly <span className="text-[var(--foreground)]">business intelligence</span> briefing.
+          </p>
+          <p className="text-sm text-[var(--muted)] opacity-80 leading-relaxed font-light">
+            One calm summary. One clear focus.<br/>Every Sunday evening.
           </p>
         </motion.div>
 
-        {/* CTA / Waitlist */}
+        {/* Waitlist Form */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -65,12 +65,12 @@ export default function Landing() {
           className="max-w-xs mx-auto w-full"
         >
           {status === 'success' ? (
-            <div className="p-4 rounded-md bg-[var(--success-bg)] text-[var(--success-text)] border border-[var(--success-bg)]">
+            <div className="p-5 rounded-md bg-[var(--success-bg)] text-[var(--success-text)] border border-[var(--success-bg)] animate-fade-in">
               <p className="font-medium text-sm">You’re on the list.</p>
-              <p className="text-xs opacity-80 mt-1">We invite founders gradually.</p>
+              <p className="text-xs opacity-80 mt-1">We’ll invite founders gradually.</p>
             </div>
           ) : (
-            <form onSubmit={handleJoinWaitlist} className="space-y-3">
+            <form onSubmit={handleJoinWaitlist} className="space-y-4">
               <input
                 type="email"
                 placeholder="founder@company.com"
@@ -82,39 +82,32 @@ export default function Landing() {
               <Button 
                 type="submit" 
                 isLoading={status === 'loading'}
-                className="w-full h-12 text-base"
+                className="w-full h-12 text-base shadow-sm"
               >
-                Request Access
+                Join Waitlist
               </Button>
-              {status === 'error' && <p className="text-sm text-red-500">Something went wrong.</p>}
+              {status === 'error' && <p className="text-sm text-red-500">Something went wrong. Please try again.</p>}
             </form>
           )}
         </motion.div>
 
-        {/* Pricing Anchor */}
+        {/* Back Link */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.8 }}
-          className="space-y-6 pt-8 border-t border-[var(--border)] max-w-xs mx-auto"
+          className="pt-8"
         >
-          <div className="flex justify-between text-sm">
-            <div className="text-left">
-              <span className="block text-[var(--foreground)] font-medium">$15/mo</span>
-              <span className="text-[var(--muted)]">Solo Founder</span>
-            </div>
-            <div className="text-right">
-              <span className="block text-[var(--foreground)] font-medium">$29/mo</span>
-              <span className="text-[var(--muted)]">Growing Startup</span>
-            </div>
-          </div>
+          <a href="/" className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors border-b border-transparent hover:border-[var(--muted)] pb-0.5">
+            Learn more about FounderOS
+          </a>
         </motion.div>
 
       </main>
 
       {/* Footer */}
       <footer className="absolute bottom-8 text-center w-full">
-        <p className="text-[10px] uppercase tracking-widest text-[var(--muted)] opacity-60 font-medium">
+        <p className="text-[10px] uppercase tracking-widest text-[var(--muted)] opacity-50 font-medium">
           Confidential by design
         </p>
       </footer>
