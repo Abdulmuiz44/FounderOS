@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getNextBriefDate, daysAgo } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +31,6 @@ export default function Dashboard() {
   const [email, setEmail] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
-  const [theme, setTheme] = useState('light');
   
   // Beta Onboarding States
   const [showWelcome, setShowWelcome] = useState(false);
@@ -42,12 +42,6 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-    setTheme(initialTheme);
-    document.documentElement.setAttribute('data-theme', initialTheme);
-
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user || null;
@@ -83,13 +77,6 @@ export default function Dashboard() {
     });
     return () => subscription.unsubscribe();
   }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,9 +304,7 @@ export default function Dashboard() {
                 </p>
              </div>
              <div className="h-8 w-px bg-[var(--border)] hidden md:block"></div>
-            <button onClick={toggleTheme} className="p-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-              {theme === 'dark' ? '☀️' : '🌙'}
-            </button>
+            <ThemeToggle />
             <button onClick={handleLogout} className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
               Sign Out
             </button>

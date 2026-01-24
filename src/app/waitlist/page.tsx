@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export default function WaitlistPage() {
   const [email, setEmail] = useState('');
@@ -31,10 +32,11 @@ export default function WaitlistPage() {
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6 relative selection:bg-[var(--foreground)] selection:text-[var(--background)]">
       
       {/* Minimal Header */}
-      <nav className="absolute top-0 left-0 right-0 p-8 flex justify-center">
+      <nav className="absolute top-0 left-0 right-0 p-8 flex justify-between items-center max-w-3xl mx-auto w-full">
         <a href="/" className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity">
           FounderOS
         </a>
+        <ThemeToggle />
       </nav>
 
       <main className="max-w-md mx-auto w-full space-y-12 text-center z-10">

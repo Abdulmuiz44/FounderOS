@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+
 export default function Landing() {
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -21,7 +23,8 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-5xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-sm">
         <span className="font-bold text-lg tracking-tight">FounderOS</span>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
+          <ThemeToggle />
           <Link href="/dashboard" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
             Log In
           </Link>
