@@ -3,5 +3,6 @@
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 
 export default function Analytics() {
-  return <VercelAnalytics />;
+  // Explicitly ensuring it runs in production environments
+  return <VercelAnalytics mode={'production'} />;
 }
