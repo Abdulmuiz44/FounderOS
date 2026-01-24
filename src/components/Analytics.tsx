@@ -1,8 +1,7 @@
 'use client';
 
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 
 export default function Analytics() {
-  // Explicitly ensuring it runs in production environments
-  return <VercelAnalytics mode={'production'} />;
+  return <VercelAnalytics />;
 }
