@@ -29,7 +29,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Project, Log, BuilderPattern } from '@/types/schema_v2';
+import { Project, Log, BuilderPattern, BuilderInsight } from '@/types/schema_v2';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -38,6 +38,7 @@ export default function Dashboard() {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [logs, setLogs] = useState<Log[]>([]);
   const [patterns, setPatterns] = useState<BuilderPattern[]>([]);
+  const [insight, setInsight] = useState<BuilderInsight | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline' | 'patterns'>('logs');
   
@@ -79,6 +80,7 @@ export default function Dashboard() {
 
       await fetchProjects(session.user.id);
       fetchPatterns();
+      fetchInsight();
     };
     init();
   }, [router, supabase]);
@@ -87,6 +89,14 @@ export default function Dashboard() {
     const res = await fetch('/api/patterns');
     if (res.ok) {
       setPatterns(await res.json());
+    }
+  };
+
+  const fetchInsight = async () => {
+    const res = await fetch('/api/insights');
+    if (res.ok) {
+      const data = await res.json();
+      if (data) setInsight(data);
     }
   };
 
@@ -149,8 +159,10 @@ export default function Dashboard() {
       const newLog = await res.json();
       setLogs([newLog, ...logs]);
       setLogContent('');
-      // Refresh patterns silently
+      // Refresh patterns and insight
       fetchPatterns();
+      // setTimeout to allow insight generation to complete (since it's fire-and-forget in pattern API)
+      setTimeout(() => fetchInsight(), 1500);
     }
     setSavingLog(false);
   };
@@ -292,7 +304,26 @@ export default function Dashboard() {
 
             {/* Project Body */}
             <div className="flex-1 overflow-y-auto p-8">
-              <div className="max-w-4xl mx-auto">
+              <div className="max-w-4xl mx-auto space-y-8">
+                
+                {/* Builder Insight Section */}
+                {insight && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] p-6 rounded-xl shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4 text-purple-500" />
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]">Your Builder Insight</h3>
+                      <span className="text-[10px] text-[var(--muted)]">• Updated {new Date(insight.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p className="text-lg leading-relaxed font-medium text-[var(--foreground)] opacity-90">
+                      "{insight.insight_text}"
+                    </p>
+                  </motion.div>
+                )}
+
                 <AnimatePresence mode="wait">
                   {activeTab === 'logs' && (
                     <motion.div 

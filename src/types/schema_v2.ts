@@ -45,3 +45,11 @@ export interface BuilderPattern {
   confidence_score: number;
   updated_at: string;
 }
+
+export interface BuilderInsight {
+  id: string;
+  user_id: string;
+  insight_text: string;
+  generated_from_patterns: any;
+  updated_at: string;
+}

@@ -52,5 +52,17 @@ export async function POST(request: Request) {
     }, { onConflict: 'user_id, pattern_type' });
   }
 
+  // 4. Trigger Insight Update (Fire and forget)
+  const protocol = request.headers.get('x-forwarded-proto') || 'http';
+  const host = request.headers.get('host');
+  if (host) {
+     fetch(`${protocol}://${host}/api/insights`, {
+       method: 'POST',
+       headers: {
+         cookie: request.headers.get('cookie') || ''
+       }
+     }).catch(err => console.error("Insight trigger failed", err));
+  }
+
   return NextResponse.json({ success: true });
 }
