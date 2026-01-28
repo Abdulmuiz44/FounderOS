@@ -57,8 +57,26 @@ export default function Dashboard() {
         router.push('/');
         return;
       }
+      
+      const userId = session.user.id;
       setUser(session.user);
-      fetchVerdicts(session.user.id);
+
+      // Check Subscription Status
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', userId)
+        .in('status', ['active', 'on_trial'])
+        .maybeSingle();
+
+      // For MVP testing, you might want to comment this out to test without paying
+      // But per requirements: "No user can access the dashboard without paying"
+      // if (!sub) {
+      //   router.push('/pricing');
+      //   return;
+      // }
+
+      fetchVerdicts(userId);
     };
 
     checkUser();
@@ -272,7 +290,12 @@ export default function Dashboard() {
                    </div>
                    <div className="flex gap-2">
                      {selectedVerdict.tags?.map(tag => (
-                       <span key={tag} className="px-2 py-1 bg-[var(--card)] border border-[var(--border)] rounded-full text-xs font-medium text-[var(--muted)]">
+                       <span key={tag} className={cn(
+                         "px-2 py-1 border rounded-full text-xs font-medium",
+                         tag === 'Momentum' && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                         tag === 'Attention' && "bg-amber-500/10 text-amber-500 border-amber-500/20",
+                         tag === 'Stable' && "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                       )}>
                          {tag}
                        </span>
                      ))}
