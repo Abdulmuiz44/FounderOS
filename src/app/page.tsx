@@ -25,11 +25,11 @@ export default function Landing() {
         <span className="font-bold text-lg tracking-tight">FounderOS</span>
         <div className="flex items-center gap-4 md:gap-6">
           <ThemeToggle />
-          <Link href="/dashboard" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+          <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
             Log In
           </Link>
-          <Link href="/waitlist">
-            <Button variant="primary" className="hidden md:inline-flex h-9 text-xs">Join Waitlist</Button>
+          <Link href="/pricing">
+            <Button variant="primary" className="hidden md:inline-flex h-9 text-xs">Get Access</Button>
           </Link>
         </div>
       </nav>
@@ -44,78 +44,18 @@ export default function Landing() {
           className="text-center space-y-8"
         >
           <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-            FounderOS → An operating system for AI builders
+            FounderOS → The workspace for AI builders
           </motion.h1>
           <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-[var(--muted)] font-light leading-relaxed max-w-2xl mx-auto">
-            A calm system to think, build, ship, and improve AI products — without noise, hype, or burnout.
+            A calm, dedicated operating system to organize, build, and ship your AI projects.
           </motion.p>
-          <motion.div variants={fadeInUp} className="space-y-2 text-lg text-[var(--muted)] py-4">
-            <p>FounderOS is not advice.</p>
-            <p>It’s not motivation.</p>
-            <p>It’s a system — built for AI builders who are figuring things out by building.</p>
-          </motion.div>
           <motion.div variants={fadeInUp} className="pt-4">
-            <Link href="/waitlist">
+            <Link href="/pricing">
               <Button className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-xl transition-all">
-                Join the early AI builder waitlist
+                Start Building - $9/mo
               </Button>
             </Link>
           </motion.div>
-        </motion.section>
-
-        {/* Intro / Philosophy */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-10%" }}
-          transition={{ duration: 0.8 }}
-          className="max-w-xl mx-auto text-center space-y-6"
-        >
-          <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--muted)]">The Philosophy</h2>
-          <p className="text-2xl font-serif italic text-[var(--foreground)] leading-relaxed">
-            "AI builders don't need more charts. They need a system."
-          </p>
-          <p className="text-[var(--muted)] leading-relaxed">
-            FounderOS connects to your existing tools—Google Analytics, HubSpot, GitHub—and silently analyzes the noise. No dashboards to configure. No metrics to hunt down. Just a single, high-signal system for building.
-          </p>
-        </motion.section>
-
-        {/* Target Audience */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="grid md:grid-cols-2 gap-12 items-start pt-12 border-t border-[var(--border)]"
-        >
-          <div>
-            <h3 className="text-lg font-bold mb-2">Built for Builders</h3>
-            <p className="text-[var(--muted)] mb-6">
-              Designed for AI builders who value clarity over complexity.
-            </p>
-            <ul className="space-y-3">
-              {['AI Builders', 'Indie Hackers', 'Devs shipping AI'].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--foreground)]" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold mb-2">Solves the Noise</h3>
-            <p className="text-[var(--muted)] mb-6">
-              Stop drowning in dashboards.
-            </p>
-            <ul className="space-y-3">
-              {['Analysis paralysis', 'Missed growth signals', 'Unclear engineering velocity'].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm text-[var(--muted)]">
-                  <span className="text-[var(--foreground)] opacity-40">—</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
         </motion.section>
 
         {/* Benefits */}
@@ -124,49 +64,18 @@ export default function Landing() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="space-y-12 pt-12 border-t border-[var(--border)]"
+          className="grid gap-8"
         >
-          <div className="text-center max-w-lg mx-auto">
-            <h2 className="text-3xl font-bold mb-4">How it works</h2>
-            <p className="text-[var(--muted)]">
-              We replace your Monday morning anxiety with Sunday evening clarity.
-            </p>
-          </div>
-
-          <div className="grid gap-8">
             {[
-              { title: "Signal Detection", desc: "We track growth, conversion, and velocity signals across your entire stack." },
-              { title: "Pattern Matching", desc: "Our engine identifies mismatches—like high traffic but low conversion, or stalled engineering." },
-              { title: "Builder System", desc: "You get one clear system for where to focus your energy for the week." }
+              { title: "Project Organizer", desc: "Keep all your AI experiments, prompts, and code snippets in one focused place." },
+              { title: "AI Assistant", desc: "Built-in AI tools to help you unblock technical challenges and validate ideas." },
+              { title: "Momentum Tracking", desc: "Visualize your velocity. Know when to pivot and when to double down." }
             ].map((feature, i) => (
               <div key={i} className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)]">
                 <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
                 <p className="text-[var(--muted)] leading-relaxed">{feature.desc}</p>
               </div>
             ))}
-          </div>
-        </motion.section>
-
-        {/* Closing CTA */}
-        <motion.section 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center py-24 space-y-8"
-        >
-          <h2 className="text-4xl font-bold tracking-tight">Ready for clarity?</h2>
-          <p className="text-[var(--muted)]">
-            Join the private beta. We are inviting AI builders gradually.
-          </p>
-          <Link href="/waitlist">
-            <Button className="h-12 px-8 text-base">
-              Join the early AI builder waitlist
-            </Button>
-          </Link>
-          <p className="text-xs text-[var(--muted)] uppercase tracking-widest pt-4 opacity-60">
-            Limited Spots Available
-          </p>
         </motion.section>
 
       </main>

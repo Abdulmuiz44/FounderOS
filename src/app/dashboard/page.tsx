@@ -9,120 +9,96 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Activity, 
-  ArrowRight, 
-  History, 
   Plus, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle2 
+  Layout, 
+  Settings, 
+  FileText, 
+  MessageSquare, 
+  Clock, 
+  MoreVertical,
+  ChevronRight,
+  Folder,
+  LogOut,
+  Sparkles,
+  Save
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Types
-interface Verdict {
-  id: string;
-  week_start_date: string;
-  verdict_type: 'continue' | 'pivot' | 'simplify';
-  explanation: string;
-  focus_for_next_week: string;
-  experiment_suggestion: string;
-  tags: string[];
-}
+import { Project, ProjectLog } from '@/types/schema';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [verdicts, setVerdicts] = useState<Verdict[]>([]);
-  const [selectedVerdict, setSelectedVerdict] = useState<Verdict | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [showNewProject, setShowNewProject] = useState(false);
+  const [activeTab, setActiveTab] = useState<'workspace' | 'details' | 'timeline'>('workspace');
   
-  // Form State
-  const [formData, setFormData] = useState({
-    building: '',
-    audience: '',
-    summary: '',
-    blockers: '',
-    uncertainties: ''
-  });
-  const [generating, setGenerating] = useState(false);
+  // New Project Form
+  const [newProjectData, setNewProjectData] = useState({ name: '', description: '', audience: '' });
+  
+  // Workspace State
+  const [noteContent, setNoteContent] = useState('');
+  const [logs, setLogs] = useState<ProjectLog[]>([]);
 
   const supabase = createClient();
   const router = useRouter();
 
+  // 1. Auth & Subscription Check
   useEffect(() => {
-    const checkUser = async () => {
+    const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        router.push('/');
+        router.push('/login');
         return;
       }
       
-      const userId = session.user.id;
       setUser(session.user);
-
-      // Check Subscription Status
+      
+      // Strict Subscription Check
       const { data: sub } = await supabase
         .from('subscriptions')
         .select('status')
-        .eq('user_id', userId)
+        .eq('user_id', session.user.id)
         .in('status', ['active', 'on_trial'])
         .maybeSingle();
 
-      // For MVP testing, you might want to comment this out to test without paying
-      // But per requirements: "No user can access the dashboard without paying"
+      // Uncomment for production strictness
       // if (!sub) {
       //   router.push('/pricing');
       //   return;
       // }
 
-      fetchVerdicts(userId);
+      await fetchProjects(session.user.id);
     };
-
-    checkUser();
+    init();
   }, [router, supabase]);
 
-  const fetchVerdicts = async (userId: string) => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('verdicts')
-      .select('*')
-      .eq('user_id', userId)
-      .order('week_start_date', { ascending: false });
-
-    if (data && data.length > 0) {
-      setVerdicts(data);
-      setSelectedVerdict(data[0]);
-    } else {
-      setShowForm(true);
+  const fetchProjects = async (userId: string) => {
+    const res = await fetch('/api/projects');
+    if (res.ok) {
+      const data = await res.json();
+      setProjects(data);
+      if (data.length > 0) setActiveProject(data[0]);
+      else setShowNewProject(true);
     }
     setLoading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const createProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    setGenerating(true);
-
-    try {
-      const res = await fetch('/api/verdict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      
-      if (!res.ok) throw new Error('Failed to generate verdict');
-      
-      const newVerdict = await res.json();
-      setVerdicts([newVerdict, ...verdicts]);
-      setSelectedVerdict(newVerdict);
-      setShowForm(false);
-      // Reset form slightly or keep for reference? Resetting for next week.
-      setFormData({ building: '', audience: '', summary: '', blockers: '', uncertainties: '' });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to generate verdict. Please try again.');
-    } finally {
-      setGenerating(false);
+    if (!newProjectData.name) return;
+    
+    const res = await fetch('/api/projects', {
+      method: 'POST',
+      body: JSON.stringify(newProjectData)
+    });
+    
+    if (res.ok) {
+      const project = await res.json();
+      setProjects([project, ...projects]);
+      setActiveProject(project);
+      setShowNewProject(false);
+      setNewProjectData({ name: '', description: '', audience: '' });
     }
   };
 
@@ -131,242 +107,229 @@ export default function Dashboard() {
     router.push('/');
   };
 
+  // Mock AI Help
+  const handleAiAssist = () => {
+    const suggestions = [
+      "Based on your audience, try focusing on LinkedIn organic reach.",
+      "Your blocker seems technical. Have you considered using a pre-built library?",
+      "Simplify the MVP. Only build the core 'Happy Path' first."
+    ];
+    setNoteContent(prev => prev + '\n\n🤖 AI Suggestion: ' + suggestions[Math.floor(Math.random() * suggestions.length)]);
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[var(--background)]"><Skeleton className="w-12 h-12 rounded-full" /></div>;
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col">
-      {/* Header */}
-      <header className="border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-bold tracking-tight">FounderOS</span>
-            <span className="text-xs bg-[var(--card)] px-2 py-0.5 rounded border border-[var(--border)] text-[var(--muted)]">Beta</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Button variant="ghost" onClick={handleLogout} className="text-sm h-8">Sign Out</Button>
-          </div>
+    <div className="min-h-screen bg-[var(--background)] flex">
+      
+      {/* Sidebar */}
+      <aside className="w-64 border-r border-[var(--border)] bg-[var(--card)] flex flex-col hidden md:flex">
+        <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+          <span className="font-bold tracking-tight">FounderOS</span>
+          <ThemeToggle />
         </div>
-      </header>
-
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Sidebar History */}
-        <aside className="lg:col-span-3 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--muted)] flex items-center gap-2">
-              <History className="w-4 h-4" /> History
-            </h2>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => { setShowForm(true); setSelectedVerdict(null); }}
-              className="h-8 w-8 p-0 rounded-full"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {verdicts.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => { setSelectedVerdict(v); setShowForm(false); }}
-                className={cn(
-                  "w-full text-left p-3 rounded-lg border transition-all duration-200 group",
-                  selectedVerdict?.id === v.id 
-                    ? "bg-[var(--card)] border-[var(--foreground)] shadow-sm" 
-                    : "border-[var(--border)] hover:bg-[var(--card)] hover:border-[var(--border)] opacity-70 hover:opacity-100"
-                )}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium text-[var(--foreground)]">
-                    {new Date(v.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </span>
-                  <VerdictBadge type={v.verdict_type} mini />
-                </div>
-                <p className="text-[10px] text-[var(--muted)] line-clamp-1">
-                  {v.focus_for_next_week}
-                </p>
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Projects</h3>
+              <button onClick={() => setShowNewProject(true)} className="hover:bg-[var(--background)] p-1 rounded">
+                <Plus className="w-4 h-4" />
               </button>
-            ))}
-            {verdicts.length === 0 && !showForm && (
-              <p className="text-sm text-[var(--muted)]">No verdicts yet.</p>
-            )}
+            </div>
+            <div className="space-y-1">
+              {projects.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => { setActiveProject(p); setShowNewProject(false); }}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 transition-colors",
+                    activeProject?.id === p.id 
+                      ? "bg-[var(--background)] text-[var(--foreground)] font-medium" 
+                      : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--background)]/50"
+                  )}
+                >
+                  <Folder className="w-4 h-4" />
+                  <span className="truncate">{p.name}</span>
+                </button>
+              ))}
+              {projects.length === 0 && <p className="text-xs text-[var(--muted)]">No projects yet.</p>}
+            </div>
           </div>
-        </aside>
-
-        {/* Main Content */}
-        <div className="lg:col-span-9">
-          <AnimatePresence mode="wait">
-            {showForm ? (
-              <motion.div
-                key="form"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="max-w-2xl mx-auto"
-              >
-                <div className="mb-8">
-                  <h1 className="text-2xl font-bold mb-2">Weekly Check-in</h1>
-                  <p className="text-[var(--muted)]">Input your raw thoughts. AI will structure your focus.</p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">What are you building?</label>
-                      <input 
-                        className="w-full p-3 bg-[var(--card)] border border-[var(--border)] rounded-md focus:ring-1 focus:ring-[var(--foreground)] outline-none transition-all"
-                        placeholder="e.g. AI-powered CRM"
-                        value={formData.building}
-                        onChange={e => setFormData({...formData, building: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Who is it for?</label>
-                      <input 
-                        className="w-full p-3 bg-[var(--card)] border border-[var(--border)] rounded-md focus:ring-1 focus:ring-[var(--foreground)] outline-none transition-all"
-                        placeholder="e.g. Real Estate Agents"
-                        value={formData.audience}
-                        onChange={e => setFormData({...formData, audience: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Weekly Summary</label>
-                    <textarea 
-                      className="w-full p-3 h-32 bg-[var(--card)] border border-[var(--border)] rounded-md focus:ring-1 focus:ring-[var(--foreground)] outline-none transition-all resize-none"
-                      placeholder="What did you ship? What went well?"
-                      value={formData.summary}
-                      onChange={e => setFormData({...formData, summary: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-red-400">Current Blockers</label>
-                      <textarea 
-                        className="w-full p-3 h-24 bg-[var(--card)] border border-[var(--border)] rounded-md focus:ring-1 focus:ring-red-400/50 outline-none transition-all resize-none"
-                        placeholder="What's stopping you?"
-                        value={formData.blockers}
-                        onChange={e => setFormData({...formData, blockers: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-yellow-400">Uncertainties</label>
-                      <textarea 
-                        className="w-full p-3 h-24 bg-[var(--card)] border border-[var(--border)] rounded-md focus:ring-1 focus:ring-yellow-400/50 outline-none transition-all resize-none"
-                        placeholder="What are you unsure about?"
-                        value={formData.uncertainties}
-                        onChange={e => setFormData({...formData, uncertainties: e.target.value})}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex justify-end">
-                    <Button type="submit" isLoading={generating} className="h-12 px-8 text-base shadow-lg hover:shadow-xl">
-                      Generate Verdict <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </form>
-              </motion.div>
-            ) : selectedVerdict ? (
-              <motion.div
-                key="verdict"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="max-w-3xl mx-auto space-y-8"
-              >
-                <div className="flex items-center justify-between border-b border-[var(--border)] pb-6">
-                   <div>
-                     <p className="text-sm text-[var(--muted)] mb-1">Verdict for week of {new Date(selectedVerdict.week_start_date).toLocaleDateString()}</p>
-                     <VerdictBadge type={selectedVerdict.verdict_type} />
-                   </div>
-                   <div className="flex gap-2">
-                     {selectedVerdict.tags?.map(tag => (
-                       <span key={tag} className={cn(
-                         "px-2 py-1 border rounded-full text-xs font-medium",
-                         tag === 'Momentum' && "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-                         tag === 'Attention' && "bg-amber-500/10 text-amber-500 border-amber-500/20",
-                         tag === 'Stable' && "bg-slate-500/10 text-slate-500 border-slate-500/20"
-                       )}>
-                         {tag}
-                       </span>
-                     ))}
-                   </div>
-                </div>
-
-                <div className="space-y-6">
-                  <section>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-3">Reasoning</h3>
-                    <p className="text-lg leading-relaxed text-[var(--foreground)]">
-                      {selectedVerdict.explanation}
-                    </p>
-                  </section>
-
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <section className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-3 flex items-center gap-2">
-                        <Activity className="w-4 h-4" /> Focus
-                      </h3>
-                      <p className="text-base text-[var(--foreground)]">
-                        {selectedVerdict.focus_for_next_week}
-                      </p>
-                    </section>
-                    
-                    <section className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-3 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" /> Experiment
-                      </h3>
-                      <p className="text-base text-[var(--foreground)]">
-                        {selectedVerdict.experiment_suggestion}
-                      </p>
-                    </section>
-                  </div>
-                </div>
-
-              </motion.div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-[var(--muted)]">
-                Select a verdict or create a new one.
-              </div>
-            )}
-          </AnimatePresence>
         </div>
+
+        <div className="p-4 border-t border-[var(--border)]">
+          <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)]">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        {/* Mobile Header */}
+        <header className="md:hidden h-14 border-b border-[var(--border)] flex items-center justify-between px-4">
+           <span className="font-bold">FounderOS</span>
+           <button onClick={() => setShowNewProject(true)}><Plus className="w-5 h-5" /></button>
+        </header>
+
+        {showNewProject ? (
+          <div className="flex-1 flex items-center justify-center p-6 bg-[var(--background)]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md w-full bg-[var(--card)] p-8 rounded-xl border border-[var(--border)] shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold mb-6">Create New Project</h2>
+              <form onSubmit={createProject} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Project Name</label>
+                  <input 
+                    required
+                    value={newProjectData.name}
+                    onChange={e => setNewProjectData({...newProjectData, name: e.target.value})}
+                    className="w-full p-2.5 rounded-md bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-1 focus:ring-[var(--foreground)]"
+                    placeholder="My AI SaaS"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Target Audience</label>
+                  <input 
+                    value={newProjectData.audience}
+                    onChange={e => setNewProjectData({...newProjectData, audience: e.target.value})}
+                    className="w-full p-2.5 rounded-md bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-1 focus:ring-[var(--foreground)]"
+                    placeholder="e.g. Legal Tech"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button type="button" variant="ghost" onClick={() => setShowNewProject(false)}>Cancel</Button>
+                  <Button type="submit">Create Project</Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        ) : activeProject ? (
+          <>
+            {/* Project Header */}
+            <header className="h-16 border-b border-[var(--border)] px-8 flex items-center justify-between bg-[var(--background)]/80 backdrop-blur-sm z-10">
+              <div>
+                <h1 className="text-xl font-bold flex items-center gap-2">
+                  {activeProject.name} 
+                  <span className="text-xs font-normal text-[var(--muted)] px-2 py-0.5 rounded-full border border-[var(--border)]">Active</span>
+                </h1>
+              </div>
+              <div className="flex items-center gap-4">
+                 <div className="flex bg-[var(--card)] rounded-lg p-1 border border-[var(--border)]">
+                    {['workspace', 'details', 'timeline'].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab as any)}
+                        className={cn(
+                          "px-4 py-1.5 text-xs font-medium rounded-md transition-all capitalize",
+                          activeTab === tab ? "bg-[var(--foreground)] text-[var(--background)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                        )}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+            </header>
+
+            {/* Project Body */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <div className="max-w-4xl mx-auto">
+                <AnimatePresence mode="wait">
+                  {activeTab === 'workspace' && (
+                    <motion.div 
+                      key="workspace"
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                      className="space-y-6"
+                    >
+                      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm flex flex-col h-[60vh]">
+                        <div className="p-3 border-b border-[var(--border)] flex items-center justify-between bg-[var(--background)]/50 rounded-t-xl">
+                          <span className="text-xs font-medium text-[var(--muted)] flex items-center gap-2">
+                            <FileText className="w-4 h-4" /> Scratchpad
+                          </span>
+                          <div className="flex gap-2">
+                             <Button size="sm" variant="ghost" onClick={handleAiAssist} className="h-7 text-xs gap-1">
+                               <Sparkles className="w-3 h-3 text-purple-500" /> Ask AI
+                             </Button>
+                             <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
+                               <Save className="w-3 h-3" /> Save
+                             </Button>
+                          </div>
+                        </div>
+                        <textarea 
+                          className="flex-1 p-6 bg-transparent resize-none outline-none font-mono text-sm leading-relaxed"
+                          placeholder="Start typing your ideas, snippets, or blockers here..."
+                          value={noteContent}
+                          onChange={(e) => setNoteContent(e.target.value)}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === 'details' && (
+                    <motion.div 
+                      key="details"
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      className="grid gap-6"
+                    >
+                      <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                        <h3 className="text-sm font-bold mb-4">Project Overview</h3>
+                        <div className="space-y-4">
+                           <div>
+                             <label className="text-xs text-[var(--muted)] uppercase tracking-wider">Description</label>
+                             <p className="mt-1 text-sm">{activeProject.description || 'No description added.'}</p>
+                           </div>
+                           <div>
+                             <label className="text-xs text-[var(--muted)] uppercase tracking-wider">Audience</label>
+                             <p className="mt-1 text-sm">{activeProject.audience || 'No audience defined.'}</p>
+                           </div>
+                        </div>
+                      </div>
+                      <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                        <h3 className="text-sm font-bold mb-4">Current Context</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                           <div>
+                             <label className="text-xs text-red-400 uppercase tracking-wider">Blockers</label>
+                             <p className="mt-1 text-sm opacity-80">{activeProject.current_blockers || 'None reported.'}</p>
+                           </div>
+                           <div>
+                             <label className="text-xs text-yellow-400 uppercase tracking-wider">Uncertainties</label>
+                             <p className="mt-1 text-sm opacity-80">{activeProject.uncertainties || 'None reported.'}</p>
+                           </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === 'timeline' && (
+                    <motion.div 
+                       key="timeline"
+                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                       className="text-center py-12 text-[var(--muted)]"
+                    >
+                       <Clock className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                       <p>Timeline logic to be implemented.</p>
+                       <p className="text-xs mt-2">Will track project milestones and AI verdicts.</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-[var(--muted)]">
+             <div className="text-center">
+               <Folder className="w-16 h-16 mx-auto mb-4 opacity-20" />
+               <p>Select a project or create a new one.</p>
+             </div>
+          </div>
+        )}
       </main>
     </div>
-  );
-}
-
-function VerdictBadge({ type, mini }: { type: string, mini?: boolean }) {
-  const styles = {
-    continue: 'bg-green-500/10 text-green-500 border-green-500/20',
-    pivot: 'bg-red-500/10 text-red-500 border-red-500/20',
-    simplify: 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-  };
-  
-  const icons = {
-    continue: CheckCircle2,
-    pivot: AlertTriangle,
-    simplify: TrendingUp
-  };
-
-  const Icon = icons[type as keyof typeof icons] || Activity;
-
-  return (
-    <span className={cn(
-      "inline-flex items-center gap-1.5 font-bold uppercase tracking-wider border rounded-full",
-      styles[type as keyof typeof styles] || styles.simplify,
-      mini ? "text-[10px] px-2 py-0.5" : "text-sm px-4 py-1.5"
-    )}>
-      {!mini && <Icon className="w-4 h-4" />}
-      {type}
-    </span>
   );
 }

@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   // Protected routes
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!user) {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
     
     // Optional: Check for subscription status here if needed strictly
