@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Twitter, Github } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -8,7 +9,7 @@ export function Footer() {
         <div className="col-span-2 md:col-span-1">
           <Link href="/" className="font-bold text-lg tracking-tight mb-4 block">FounderOS</Link>
           <p className="text-xs text-[var(--muted)] leading-relaxed">
-            The operating system for AI builders. Track patterns, insights, and drift.
+            The operating system for AI builders.
           </p>
         </div>
         <div>
@@ -22,8 +23,8 @@ export function Footer() {
         <div>
           <h4 className="font-bold text-xs uppercase tracking-wider text-[var(--muted)] mb-4">Resources</h4>
           <ul className="space-y-2 text-sm">
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Manifesto (Soon)</span></li>
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Blog (Soon)</span></li>
+            <li><span className="text-[var(--muted)] cursor-not-allowed">Manifesto</span></li>
+            <li><span className="text-[var(--muted)] cursor-not-allowed">Blog</span></li>
           </ul>
         </div>
         <div>
@@ -31,6 +32,7 @@ export function Footer() {
           <ul className="space-y-2 text-sm">
             <li><span className="text-[var(--muted)] cursor-not-allowed">Privacy</span></li>
             <li><span className="text-[var(--muted)] cursor-not-allowed">Terms</span></li>
+            <li><span className="text-[var(--muted)] cursor-not-allowed">Contact</span></li>
           </ul>
         </div>
       </div>
@@ -38,7 +40,12 @@ export function Footer() {
         <p className="text-xs text-[var(--muted)]">
           &copy; {new Date().getFullYear()} FounderOS. Confidential by design.
         </p>
-        <ThemeToggle />
+        <div className="flex items-center gap-4">
+           <Link href="https://twitter.com" target="_blank" className="text-[var(--muted)] hover:text-[var(--foreground)]"><Twitter className="w-4 h-4" /></Link>
+           <Link href="https://github.com" target="_blank" className="text-[var(--muted)] hover:text-[var(--foreground)]"><Github className="w-4 h-4" /></Link>
+           <div className="w-px h-4 bg-[var(--border)]"></div>
+           <ThemeToggle />
+        </div>
       </div>
     </footer>
   );
