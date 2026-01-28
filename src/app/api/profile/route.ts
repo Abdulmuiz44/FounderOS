@@ -56,5 +56,17 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // 4. Trigger Drift Analysis (Fire and forget)
+  const protocol = request.headers.get('x-forwarded-proto') || 'http';
+  const host = request.headers.get('host');
+  if (host) {
+     fetch(`${protocol}://${host}/api/drift`, {
+       method: 'POST',
+       headers: {
+         cookie: request.headers.get('cookie') || ''
+       }
+     }).catch(err => console.error("Drift trigger failed", err));
+  }
+
   return NextResponse.json(data);
 }

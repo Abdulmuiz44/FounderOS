@@ -29,7 +29,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Project, Log, BuilderPattern, BuilderInsight, BuilderOSProfile } from '@/types/schema_v2';
+import { Project, Log, BuilderPattern, BuilderInsight, BuilderOSProfile, BuilderOSDrift } from '@/types/schema_v2';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [patterns, setPatterns] = useState<BuilderPattern[]>([]);
   const [insight, setInsight] = useState<BuilderInsight | null>(null);
   const [profile, setProfile] = useState<BuilderOSProfile | null>(null);
+  const [drift, setDrift] = useState<BuilderOSDrift | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline' | 'patterns'>('logs');
   
@@ -83,6 +84,7 @@ export default function Dashboard() {
       fetchPatterns();
       fetchInsight();
       fetchProfile();
+      fetchDrift();
     };
     init();
   }, [router, supabase]);
@@ -107,6 +109,14 @@ export default function Dashboard() {
     if (res.ok) {
       const data = await res.json();
       if (data) setProfile(data);
+    }
+  };
+
+  const fetchDrift = async () => {
+    const res = await fetch('/api/drift');
+    if (res.ok) {
+      const data = await res.json();
+      if (data) setDrift(data);
     }
   };
 
@@ -175,6 +185,7 @@ export default function Dashboard() {
       setTimeout(() => {
         fetchInsight();
         fetchProfile();
+        fetchDrift();
       }, 2000);
     }
     setSavingLog(false);
@@ -320,7 +331,7 @@ export default function Dashboard() {
               <div className="max-w-4xl mx-auto space-y-8">
                 
                 {/* Builder Insight & Profile Section */}
-                {(insight || profile) && (
+                {(insight || profile || drift) && (
                   <div className="grid gap-6">
                     {insight && (
                       <motion.div 
@@ -362,6 +373,29 @@ export default function Dashboard() {
                             <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Dominant Pattern</h4>
                             <p className="text-sm font-bold text-blue-400 truncate" title={profile.dominant_pattern}>{profile.dominant_pattern}</p>
                          </div>
+                      </motion.div>
+                    )}
+
+                    {drift && drift.severity !== 'stable' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-lg flex items-center justify-between"
+                      >
+                         <div>
+                            <div className="flex items-center gap-2 mb-1">
+                               <Activity className="w-3 h-3 text-[var(--muted)]" />
+                               <h4 className="text-[10px] uppercase font-bold text-[var(--muted)]">System Drift</h4>
+                            </div>
+                            <p className="text-sm text-[var(--foreground)]">{drift.summary}</p>
+                         </div>
+                         <span className={cn(
+                           "text-[10px] uppercase font-bold px-2 py-0.5 rounded border",
+                           drift.severity === 'major shift' ? "border-purple-500/30 text-purple-500" : "border-yellow-500/30 text-yellow-500"
+                         )}>
+                           {drift.severity}
+                         </span>
                       </motion.div>
                     )}
                   </div>

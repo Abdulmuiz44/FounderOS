@@ -64,3 +64,11 @@ export interface BuilderOSProfile {
   summary_label: string;
   updated_at: string;
 }
+
+export interface BuilderOSDrift {
+  id: string;
+  user_id: string;
+  summary: string;
+  severity: 'stable' | 'minor shift' | 'major shift';
+  created_at: string;
+}
