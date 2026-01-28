@@ -35,3 +35,13 @@ export interface AiSummary {
   summary_text: string;
   created_at: string;
 }
+
+export interface BuilderPattern {
+  id: string;
+  user_id: string;
+  pattern_type: 'momentum' | 'focus' | 'execution' | 'friction';
+  pattern_label: string;
+  explanation: string;
+  confidence_score: number;
+  updated_at: string;
+}

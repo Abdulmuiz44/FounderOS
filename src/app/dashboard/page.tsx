@@ -22,10 +22,14 @@ import {
   Sparkles,
   Save,
   PenTool,
-  History
+  History,
+  Activity,
+  Zap,
+  Target,
+  AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Project, Log } from '@/types/schema_v2';
+import { Project, Log, BuilderPattern } from '@/types/schema_v2';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,8 +37,9 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [logs, setLogs] = useState<Log[]>([]);
+  const [patterns, setPatterns] = useState<BuilderPattern[]>([]);
   const [showNewProject, setShowNewProject] = useState(false);
-  const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline'>('logs');
+  const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline' | 'patterns'>('logs');
   
   // New Project Form
   const [newProjectData, setNewProjectData] = useState({ name: '', description: '', audience: '' });
@@ -73,9 +78,17 @@ export default function Dashboard() {
       // }
 
       await fetchProjects(session.user.id);
+      fetchPatterns();
     };
     init();
   }, [router, supabase]);
+
+  const fetchPatterns = async () => {
+    const res = await fetch('/api/patterns');
+    if (res.ok) {
+      setPatterns(await res.json());
+    }
+  };
 
   const fetchProjects = async (userId: string) => {
     const res = await fetch('/api/projects');
@@ -136,6 +149,8 @@ export default function Dashboard() {
       const newLog = await res.json();
       setLogs([newLog, ...logs]);
       setLogContent('');
+      // Refresh patterns silently
+      fetchPatterns();
     }
     setSavingLog(false);
   };
@@ -143,6 +158,16 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
+  };
+
+  const getPatternIcon = (type: string) => {
+    switch (type) {
+      case 'momentum': return <Zap className="w-5 h-5 text-yellow-500" />;
+      case 'focus': return <Target className="w-5 h-5 text-blue-500" />;
+      case 'friction': return <AlertTriangle className="w-5 h-5 text-red-500" />;
+      case 'execution': return <Activity className="w-5 h-5 text-green-500" />;
+      default: return <Sparkles className="w-5 h-5" />;
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[var(--background)]"><Skeleton className="w-12 h-12 rounded-full" /></div>;
@@ -249,7 +274,7 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center gap-4">
                  <div className="flex bg-[var(--card)] rounded-lg p-1 border border-[var(--border)]">
-                    {['logs', 'timeline', 'details'].map((tab) => (
+                    {['logs', 'timeline', 'patterns', 'details'].map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -335,6 +360,46 @@ export default function Dashboard() {
                         ))}
                         {logs.length === 0 && <p className="text-sm text-[var(--muted)] pl-2">No logs yet. Start tracking.</p>}
                       </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === 'patterns' && (
+                    <motion.div 
+                      key="patterns"
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      className="grid md:grid-cols-2 gap-6"
+                    >
+                       <div className="md:col-span-2 mb-4">
+                         <h2 className="text-xl font-bold">Builder Patterns</h2>
+                         <p className="text-[var(--muted)] text-sm">Patterns detected from your activity stream.</p>
+                       </div>
+                       
+                       {patterns.length > 0 ? patterns.map(p => (
+                         <div key={p.id} className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)] hover:border-[var(--foreground)] transition-colors">
+                            <div className="flex items-start justify-between mb-4">
+                               <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-[var(--background)] rounded-lg border border-[var(--border)]">
+                                     {getPatternIcon(p.pattern_type)}
+                                  </div>
+                                  <div>
+                                     <h3 className="font-bold text-sm capitalize">{p.pattern_label}</h3>
+                                     <p className="text-xs text-[var(--muted)] capitalize">{p.pattern_type} Pattern</p>
+                                  </div>
+                               </div>
+                               <span className="text-[10px] font-mono text-[var(--muted)] border border-[var(--border)] px-1.5 py-0.5 rounded">
+                                 {Math.round(p.confidence_score * 100)}% Conf
+                               </span>
+                            </div>
+                            <p className="text-sm leading-relaxed opacity-90">
+                              {p.explanation}
+                            </p>
+                         </div>
+                       )) : (
+                         <div className="md:col-span-2 text-center py-12 border border-[var(--border)] rounded-xl border-dashed">
+                            <Sparkles className="w-8 h-8 mx-auto mb-2 text-[var(--muted)] opacity-50" />
+                            <p className="text-sm text-[var(--muted)]">Not enough data to detect patterns yet.<br/>Keep logging your progress.</p>
+                         </div>
+                       )}
                     </motion.div>
                   )}
 
