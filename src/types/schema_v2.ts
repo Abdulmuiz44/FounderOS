@@ -53,3 +53,14 @@ export interface BuilderInsight {
   generated_from_patterns: any;
   updated_at: string;
 }
+
+export interface BuilderOSProfile {
+  id: string;
+  user_id: string;
+  builder_mode: string;
+  dominant_pattern: string;
+  execution_style: string;
+  friction_type: string;
+  summary_label: string;
+  updated_at: string;
+}

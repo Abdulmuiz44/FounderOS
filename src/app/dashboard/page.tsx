@@ -29,7 +29,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Project, Log, BuilderPattern, BuilderInsight } from '@/types/schema_v2';
+import { Project, Log, BuilderPattern, BuilderInsight, BuilderOSProfile } from '@/types/schema_v2';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [patterns, setPatterns] = useState<BuilderPattern[]>([]);
   const [insight, setInsight] = useState<BuilderInsight | null>(null);
+  const [profile, setProfile] = useState<BuilderOSProfile | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline' | 'patterns'>('logs');
   
@@ -81,6 +82,7 @@ export default function Dashboard() {
       await fetchProjects(session.user.id);
       fetchPatterns();
       fetchInsight();
+      fetchProfile();
     };
     init();
   }, [router, supabase]);
@@ -97,6 +99,14 @@ export default function Dashboard() {
     if (res.ok) {
       const data = await res.json();
       if (data) setInsight(data);
+    }
+  };
+
+  const fetchProfile = async () => {
+    const res = await fetch('/api/profile');
+    if (res.ok) {
+      const data = await res.json();
+      if (data) setProfile(data);
     }
   };
 
@@ -159,10 +169,13 @@ export default function Dashboard() {
       const newLog = await res.json();
       setLogs([newLog, ...logs]);
       setLogContent('');
-      // Refresh patterns and insight
+      // Refresh patterns, insight, and profile
       fetchPatterns();
-      // setTimeout to allow insight generation to complete (since it's fire-and-forget in pattern API)
-      setTimeout(() => fetchInsight(), 1500);
+      // setTimeout to allow async generation
+      setTimeout(() => {
+        fetchInsight();
+        fetchProfile();
+      }, 2000);
     }
     setSavingLog(false);
   };
@@ -306,22 +319,52 @@ export default function Dashboard() {
             <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-4xl mx-auto space-y-8">
                 
-                {/* Builder Insight Section */}
-                {insight && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] p-6 rounded-xl shadow-sm"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-4 h-4 text-purple-500" />
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]">Your Builder Insight</h3>
-                      <span className="text-[10px] text-[var(--muted)]">• Updated {new Date(insight.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                    <p className="text-lg leading-relaxed font-medium text-[var(--foreground)] opacity-90">
-                      "{insight.insight_text}"
-                    </p>
-                  </motion.div>
+                {/* Builder Insight & Profile Section */}
+                {(insight || profile) && (
+                  <div className="grid gap-6">
+                    {insight && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] p-6 rounded-xl shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <Sparkles className="w-4 h-4 text-purple-500" />
+                          <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]">Your Builder Insight</h3>
+                          <span className="text-[10px] text-[var(--muted)]">• Updated {new Date(insight.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <p className="text-lg leading-relaxed font-medium text-[var(--foreground)] opacity-90">
+                          "{insight.insight_text}"
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {profile && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                      >
+                         <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
+                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Builder Mode</h4>
+                            <p className="text-sm font-bold text-[var(--foreground)]">{profile.builder_mode}</p>
+                         </div>
+                         <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
+                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Execution Style</h4>
+                            <p className="text-sm font-bold text-[var(--foreground)]">{profile.execution_style}</p>
+                         </div>
+                         <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
+                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Constraint</h4>
+                            <p className="text-sm font-bold text-red-400">{profile.friction_type}</p>
+                         </div>
+                         <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
+                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Dominant Pattern</h4>
+                            <p className="text-sm font-bold text-blue-400 truncate" title={profile.dominant_pattern}>{profile.dominant_pattern}</p>
+                         </div>
+                      </motion.div>
+                    )}
+                  </div>
                 )}
 
                 <AnimatePresence mode="wait">
