@@ -27,7 +27,7 @@ export default function SignUp() {
     
     setLoading(false);
     if (error) setMessage('Unable to send magic link. Please try again.');
-    else setMessage('Check your email! We sent a magic link to get started.');
+    else setMessage('Check your email! We sent a secure authentication link.');
   };
 
   return (
@@ -35,7 +35,7 @@ export default function SignUp() {
       <div className="max-w-xs w-full space-y-8 animate-fade-in text-center">
         <div className="space-y-2">
           <Link href="/" className="font-bold text-xl tracking-tight block mb-8">FounderOS</Link>
-          <h1 className="text-xl font-bold tracking-tight">Create your account</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Create your workspace</h1>
           <p className="text-[var(--muted)] text-sm">Join the operating system for builders.</p>
         </div>
         <form onSubmit={handleSignUp} className="space-y-4">
@@ -48,10 +48,14 @@ export default function SignUp() {
             onChange={(e) => setEmail(e.target.value)}
           />
           <Button type="submit" className="w-full h-11" isLoading={loading}>Send Magic Link</Button>
-          {message && <p className="text-sm text-[var(--muted)]">{message}</p>}
+          {message && (
+            <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-md text-sm text-[var(--muted)]">
+               {message}
+            </div>
+          )}
         </form>
         <p className="text-xs text-[var(--muted)]">
-          Already have an account? <Link href="/login" className="underline">Log in</Link>
+          Already have an account? <Link href="/login" className="underline hover:text-[var(--foreground)]">Log in</Link>
         </p>
       </div>
     </div>
