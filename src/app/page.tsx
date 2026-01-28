@@ -29,7 +29,7 @@ export default function Landing() {
             Log In
           </Link>
           <Link href="/waitlist">
-            <Button variant="primary" className="hidden md:inline-flex h-9 text-xs">Request Access</Button>
+            <Button variant="primary" className="hidden md:inline-flex h-9 text-xs">Join Waitlist</Button>
           </Link>
         </div>
       </nav>
@@ -43,18 +43,21 @@ export default function Landing() {
           variants={stagger}
           className="text-center space-y-8"
         >
-          <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1]">
-            Your weekly <br/> business intelligence.
+          <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
+            FounderOS → An operating system for AI builders
           </motion.h1>
-          <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-[var(--muted)] font-light leading-relaxed max-w-lg mx-auto">
-            One calm summary. <br/>
-            One clear focus. <br/>
-            <span className="text-[var(--foreground)] font-medium">Every Sunday evening.</span>
+          <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-[var(--muted)] font-light leading-relaxed max-w-2xl mx-auto">
+            A calm system to think, build, ship, and improve AI products — without noise, hype, or burnout.
           </motion.p>
+          <motion.div variants={fadeInUp} className="space-y-2 text-lg text-[var(--muted)] py-4">
+            <p>FounderOS is not advice.</p>
+            <p>It’s not motivation.</p>
+            <p>It’s a system — built for AI builders who are figuring things out by building.</p>
+          </motion.div>
           <motion.div variants={fadeInUp} className="pt-4">
             <Link href="/waitlist">
               <Button className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-xl transition-all">
-                Request Early Access
+                Join the early AI builder waitlist
               </Button>
             </Link>
           </motion.div>
@@ -70,10 +73,10 @@ export default function Landing() {
         >
           <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--muted)]">The Philosophy</h2>
           <p className="text-2xl font-serif italic text-[var(--foreground)] leading-relaxed">
-            "Founders don't need more charts. They need a verdict."
+            "AI builders don't need more charts. They need a system."
           </p>
           <p className="text-[var(--muted)] leading-relaxed">
-            FounderOS connects to your existing tools—Google Analytics, HubSpot, GitHub—and silently analyzes the noise. No dashboards to configure. No metrics to hunt down. Just a single, high-signal briefing waiting for you before the week begins.
+            FounderOS connects to your existing tools—Google Analytics, HubSpot, GitHub—and silently analyzes the noise. No dashboards to configure. No metrics to hunt down. Just a single, high-signal system for building.
           </p>
         </motion.section>
 
@@ -86,12 +89,12 @@ export default function Landing() {
           className="grid md:grid-cols-2 gap-12 items-start pt-12 border-t border-[var(--border)]"
         >
           <div>
-            <h3 className="text-lg font-bold mb-2">Built for Operators</h3>
+            <h3 className="text-lg font-bold mb-2">Built for Builders</h3>
             <p className="text-[var(--muted)] mb-6">
-              Designed for SaaS founders who value clarity over complexity.
+              Designed for AI builders who value clarity over complexity.
             </p>
             <ul className="space-y-3">
-              {['Bootstrapped Founders', 'Early-Stage CEOs', 'Product Leaders'].map((item) => (
+              {['AI Builders', 'Indie Hackers', 'Devs shipping AI'].map((item) => (
                 <li key={item} className="flex items-center gap-3 text-sm font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-[var(--foreground)]" />
                   {item}
@@ -134,7 +137,7 @@ export default function Landing() {
             {[
               { title: "Signal Detection", desc: "We track growth, conversion, and velocity signals across your entire stack." },
               { title: "Pattern Matching", desc: "Our engine identifies mismatches—like high traffic but low conversion, or stalled engineering." },
-              { title: "Founder Verdict", desc: "You get one clear recommendation on where to focus your energy for the week." }
+              { title: "Builder System", desc: "You get one clear system for where to focus your energy for the week." }
             ].map((feature, i) => (
               <div key={i} className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)]">
                 <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
@@ -154,11 +157,11 @@ export default function Landing() {
         >
           <h2 className="text-4xl font-bold tracking-tight">Ready for clarity?</h2>
           <p className="text-[var(--muted)]">
-            Join the private beta. We are inviting founders gradually.
+            Join the private beta. We are inviting AI builders gradually.
           </p>
           <Link href="/waitlist">
             <Button className="h-12 px-8 text-base">
-              Join the Waitlist
+              Join the early AI builder waitlist
             </Button>
           </Link>
           <p className="text-xs text-[var(--muted)] uppercase tracking-widest pt-4 opacity-60">

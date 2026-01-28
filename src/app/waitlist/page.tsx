@@ -51,13 +51,13 @@ export default function WaitlistPage() {
             className="space-y-6"
           >
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
-              Request Early Access
+              Join the early AI builder waitlist
             </h1>
             <p className="text-lg text-[var(--muted)] font-normal leading-relaxed">
-              FounderOS delivers your weekly <span className="text-[var(--foreground)]">business intelligence</span> briefing.
+              FounderOS is an <span className="text-[var(--foreground)]">operating system</span> for AI builders.
             </p>
             <p className="text-sm text-[var(--muted)] opacity-80 leading-relaxed font-light">
-              One calm summary. One clear focus.<br/>Every Sunday evening.
+              A calm system to think, build, ship, and improve AI products.
             </p>
           </motion.div>
 
@@ -70,14 +70,14 @@ export default function WaitlistPage() {
                 className="p-5 rounded-md bg-[var(--success-bg)] text-[var(--success-text)] border border-[var(--success-bg)]"
               >
                 <p className="font-medium text-sm">You’re on the list.</p>
-                <p className="text-xs opacity-80 mt-1">We’ll invite founders gradually.</p>
+                <p className="text-xs opacity-80 mt-1">We’ll invite AI builders gradually.</p>
               </motion.div>
             ) : (
               <div className="space-y-10">
                 <form onSubmit={handleJoinWaitlist} className="space-y-4">
                   <input
                     type="email"
-                    placeholder="founder@company.com"
+                    placeholder="builder@project.ai"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -86,9 +86,9 @@ export default function WaitlistPage() {
                   <Button 
                     type="submit" 
                     isLoading={status === 'loading'}
-                    className="w-full h-12 text-base shadow-sm"
+                    className="w-full h-12 text-sm shadow-sm"
                   >
-                    Join Waitlist
+                    Join the early AI builder waitlist
                   </Button>
                   {status === 'error' && <p className="text-sm text-red-500">Something went wrong. Please try again.</p>}
                 </form>

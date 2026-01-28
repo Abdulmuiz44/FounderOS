@@ -187,15 +187,15 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">
         <div className="max-w-xs w-full space-y-8 animate-fade-in text-center">
           <div className="space-y-2">
-            <h1 className="text-xl font-bold tracking-tight">Founder Log In</h1>
-            <p className="text-[var(--muted)] text-sm">Secure intelligence dashboard.</p>
+            <h1 className="text-xl font-bold tracking-tight">Builder Log In</h1>
+            <p className="text-[var(--muted)] text-sm">Secure building system.</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="email"
               required
               className="w-full px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] focus:ring-1 focus:ring-[var(--foreground)] transition-all outline-none text-center"
-              placeholder="founder@company.com"
+              placeholder="builder@project.ai"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -215,6 +215,7 @@ export default function Dashboard() {
           <h1 className="text-xl font-bold">Invite Only</h1>
           <p className="text-[var(--muted)] leading-relaxed text-sm">
             FounderOS is currently in private beta.<br/>
+            We are inviting AI builders gradually. <br/>
             You are on the waitlist as <strong>{user.email}</strong>.
           </p>
           <Button onClick={handleLogout} variant="ghost">Sign Out</Button>
@@ -239,8 +240,8 @@ export default function Dashboard() {
             >
               <h2 className="text-2xl font-bold">Welcome to FounderOS Beta</h2>
               <p className="text-[var(--muted)] leading-relaxed">
-                Your intelligence engine is ready. <br/>
-                Every Sunday at 6 PM UTC, you will receive a calm summary of your company's performance.
+                Your building system is ready. <br/>
+                Every Sunday at 6 PM UTC, you will receive a calm system for building.
               </p>
               <div className="pt-4">
                 <Button onClick={() => generateBrief(true)} isLoading={generating} className="w-full h-12 text-base">
@@ -293,12 +294,12 @@ export default function Dashboard() {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
           <div>
             <h1 className="text-xl font-bold tracking-tight mb-1">FounderOS</h1>
-            <p className="text-[var(--muted)] text-sm">Sunday Evening Intelligence</p>
+            <p className="text-[var(--muted)] text-sm">System for building</p>
           </div>
           
           <div className="flex items-center gap-6">
              <div className="text-right hidden md:block">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--muted)] mb-0.5">Next Briefing</p>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--muted)] mb-0.5">Next Update</p>
                 <p className="text-xs font-medium text-[var(--foreground)]">
                   {getNextBriefDate().toLocaleDateString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' })}
                 </p>
@@ -348,7 +349,7 @@ export default function Dashboard() {
                   </button>
                 ))
               ) : (
-                 <div className="text-sm text-[var(--muted)] py-4">No briefs found.</div>
+                 <div className="text-sm text-[var(--muted)] py-4">No updates found.</div>
               )}
             </div>
           </aside>
@@ -361,7 +362,7 @@ export default function Dashboard() {
                 {/* Brief Header */}
                 <div className="border-b border-[var(--border)] pb-8">
                   <div className="flex items-center gap-3 mb-2">
-                     <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Weekly Brief</h2>
+                     <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Weekly Update</h2>
                      <SentimentBadge type={getBriefSentiment(selectedBrief.executive_summary)} />
                   </div>
                   <p className="text-sm text-[var(--muted)]">
@@ -377,10 +378,10 @@ export default function Dashboard() {
                   </p>
                 </section>
 
-                {/* Founder Verdict (Featured) */}
+                {/* Builder Verdict (Featured) */}
                 <section className="bg-[var(--card)] p-8 rounded-lg border border-[var(--border)] shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[var(--foreground)]"></div>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)] mb-4">Founder Verdict</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)] mb-4">Builder Verdict</h3>
                   <p className="text-lg leading-relaxed text-[var(--foreground)] opacity-90">
                     {selectedBrief.meaning}
                   </p>
@@ -418,12 +419,12 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="h-96 flex flex-col items-center justify-center text-center p-8 bg-[var(--card)] rounded-lg border border-[var(--border)] border-dashed opacity-50">
-                 <h3 className="text-lg font-medium text-[var(--foreground)]">Ready for Intelligence</h3>
+                 <h3 className="text-lg font-medium text-[var(--foreground)]">Ready for Building</h3>
                  <p className="text-[var(--muted)] text-sm mt-2 mb-6">
-                   Generate your first Sunday briefing to begin.
+                   Generate your first Sunday update to begin.
                  </p>
                  <Button onClick={() => generateBrief(false)} isLoading={generating}>
-                   Generate Brief
+                   Generate Update
                  </Button>
               </div>
             )}

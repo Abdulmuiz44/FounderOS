@@ -4,7 +4,7 @@ import Analytics from '@/components/Analytics';
 
 export const metadata: Metadata = {
   title: 'FounderOS',
-  description: 'Automated Founder Brief',
+  description: 'An operating system for AI builders',
 };
 
 export default function RootLayout({
