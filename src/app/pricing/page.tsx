@@ -8,24 +8,24 @@ import Link from 'next/link';
 export default function PricingPage() {
   const plans = [
     {
-      name: "Builder",
+      name: "Starter",
       price: "9",
       features: [
-        "Unlimited Projects",
-        "AI Workspace Tools",
-        "Momentum Tracking",
-        "Community Access"
+        "Up to 3 Projects",
+        "Unlimited Builder Logs",
+        "Timeline History",
+        "Basic AI Summaries"
       ],
       link: "https://store.lemonsqueezy.com/checkout/buy/..." // Replace with actual link
     },
     {
       name: "Pro",
-      price: "29",
+      price: "19",
       features: [
-        "Everything in Builder",
-        "Priority AI Access",
-        "Advanced Analytics",
-        "1-on-1 Strategy Call"
+        "Unlimited Projects",
+        "Advanced AI Summaries",
+        "Data Export (CSV/JSON)",
+        "Priority Support"
       ],
       link: "https://store.lemonsqueezy.com/checkout/buy/..."
     }
@@ -35,14 +35,14 @@ export default function PricingPage() {
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6">
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-5xl mx-auto w-full z-50">
         <Link href="/" className="font-bold text-lg tracking-tight">FounderOS</Link>
-        <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
-          Log In
-        </Link>
+        <div className="flex items-center gap-4">
+           <span className="text-sm text-[var(--muted)]">Logged in as builder</span>
+        </div>
       </nav>
 
       <div className="text-center mb-16 mt-20">
-        <h1 className="text-4xl font-bold mb-4">Simple Pricing</h1>
-        <p className="text-[var(--muted)]">Invest in your shipping velocity.</p>
+        <h1 className="text-4xl font-bold mb-4">Choose your workspace</h1>
+        <p className="text-[var(--muted)]">FounderOS is a paid tool for serious builders.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full">
@@ -78,7 +78,7 @@ export default function PricingPage() {
               className="block"
             >
               <Button className="w-full h-12 text-base">
-                Subscribe
+                Subscribe & Enter Workspace
               </Button>
             </a>
           </motion.div>
@@ -86,7 +86,7 @@ export default function PricingPage() {
       </div>
       
       <p className="text-xs text-center text-[var(--muted)] mt-12 opacity-60">
-        Secure payment via LemonSqueezy. Cancel anytime from your dashboard.
+        Secure payment via LemonSqueezy. Cancel anytime.
       </p>
     </div>
   );

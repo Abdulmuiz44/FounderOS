@@ -15,30 +15,34 @@ import {
   FileText, 
   MessageSquare, 
   Clock, 
-  MoreVertical,
+  MoreVertical, 
   ChevronRight,
   Folder,
   LogOut,
   Sparkles,
-  Save
+  Save,
+  PenTool,
+  History
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Project, ProjectLog } from '@/types/schema';
+import { Project, Log } from '@/types/schema_v2';
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [logs, setLogs] = useState<Log[]>([]);
   const [showNewProject, setShowNewProject] = useState(false);
-  const [activeTab, setActiveTab] = useState<'workspace' | 'details' | 'timeline'>('workspace');
+  const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline'>('logs');
   
   // New Project Form
   const [newProjectData, setNewProjectData] = useState({ name: '', description: '', audience: '' });
   
-  // Workspace State
-  const [noteContent, setNoteContent] = useState('');
-  const [logs, setLogs] = useState<ProjectLog[]>([]);
+  // Log Input
+  const [logContent, setLogContent] = useState('');
+  const [logType, setLogType] = useState<'update' | 'learning' | 'blocker'>('update');
+  const [savingLog, setSavingLog] = useState(false);
 
   const supabase = createClient();
   const router = useRouter();
@@ -78,10 +82,22 @@ export default function Dashboard() {
     if (res.ok) {
       const data = await res.json();
       setProjects(data);
-      if (data.length > 0) setActiveProject(data[0]);
-      else setShowNewProject(true);
+      if (data.length > 0) {
+        setActiveProject(data[0]);
+        fetchLogs(data[0].id);
+      } else {
+        setShowNewProject(true);
+      }
     }
     setLoading(false);
+  };
+
+  const fetchLogs = async (projectId: string) => {
+    const res = await fetch(`/api/logs?project_id=${projectId}`);
+    if (res.ok) {
+      const data = await res.json();
+      setLogs(data);
+    }
   };
 
   const createProject = async (e: React.FormEvent) => {
@@ -99,22 +115,34 @@ export default function Dashboard() {
       setActiveProject(project);
       setShowNewProject(false);
       setNewProjectData({ name: '', description: '', audience: '' });
+      setLogs([]); // New project has no logs
     }
+  };
+
+  const submitLog = async () => {
+    if (!logContent.trim() || !activeProject) return;
+    setSavingLog(true);
+
+    const res = await fetch('/api/logs', {
+      method: 'POST',
+      body: JSON.stringify({
+        project_id: activeProject.id,
+        content: logContent,
+        log_type: logType
+      })
+    });
+
+    if (res.ok) {
+      const newLog = await res.json();
+      setLogs([newLog, ...logs]);
+      setLogContent('');
+    }
+    setSavingLog(false);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
-  };
-
-  // Mock AI Help
-  const handleAiAssist = () => {
-    const suggestions = [
-      "Based on your audience, try focusing on LinkedIn organic reach.",
-      "Your blocker seems technical. Have you considered using a pre-built library?",
-      "Simplify the MVP. Only build the core 'Happy Path' first."
-    ];
-    setNoteContent(prev => prev + '\n\n🤖 AI Suggestion: ' + suggestions[Math.floor(Math.random() * suggestions.length)]);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[var(--background)]"><Skeleton className="w-12 h-12 rounded-full" /></div>;
@@ -141,7 +169,7 @@ export default function Dashboard() {
               {projects.map(p => (
                 <button
                   key={p.id}
-                  onClick={() => { setActiveProject(p); setShowNewProject(false); }}
+                  onClick={() => { setActiveProject(p); fetchLogs(p.id); setShowNewProject(false); }}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 transition-colors",
                     activeProject?.id === p.id 
@@ -194,12 +222,12 @@ export default function Dashboard() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Target Audience</label>
+                  <label className="block text-sm font-medium mb-1">Goal</label>
                   <input 
-                    value={newProjectData.audience}
-                    onChange={e => setNewProjectData({...newProjectData, audience: e.target.value})}
+                    value={newProjectData.description}
+                    onChange={e => setNewProjectData({...newProjectData, description: e.target.value})}
                     className="w-full p-2.5 rounded-md bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-1 focus:ring-[var(--foreground)]"
-                    placeholder="e.g. Legal Tech"
+                    placeholder="Validate MVP in 2 weeks"
                   />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
@@ -216,12 +244,12 @@ export default function Dashboard() {
               <div>
                 <h1 className="text-xl font-bold flex items-center gap-2">
                   {activeProject.name} 
-                  <span className="text-xs font-normal text-[var(--muted)] px-2 py-0.5 rounded-full border border-[var(--border)]">Active</span>
                 </h1>
+                <p className="text-xs text-[var(--muted)]">{activeProject.current_goal || 'No goal set'}</p>
               </div>
               <div className="flex items-center gap-4">
                  <div className="flex bg-[var(--card)] rounded-lg p-1 border border-[var(--border)]">
-                    {['workspace', 'details', 'timeline'].map((tab) => (
+                    {['logs', 'timeline', 'details'].map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -241,81 +269,97 @@ export default function Dashboard() {
             <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-4xl mx-auto">
                 <AnimatePresence mode="wait">
-                  {activeTab === 'workspace' && (
+                  {activeTab === 'logs' && (
                     <motion.div 
-                      key="workspace"
+                      key="logs"
                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                      className="space-y-6"
+                      className="space-y-8"
                     >
-                      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm flex flex-col h-[60vh]">
+                      {/* Log Input */}
+                      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm">
                         <div className="p-3 border-b border-[var(--border)] flex items-center justify-between bg-[var(--background)]/50 rounded-t-xl">
-                          <span className="text-xs font-medium text-[var(--muted)] flex items-center gap-2">
-                            <FileText className="w-4 h-4" /> Scratchpad
-                          </span>
-                          <div className="flex gap-2">
-                             <Button size="sm" variant="ghost" onClick={handleAiAssist} className="h-7 text-xs gap-1">
-                               <Sparkles className="w-3 h-3 text-purple-500" /> Ask AI
-                             </Button>
-                             <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
-                               <Save className="w-3 h-3" /> Save
-                             </Button>
-                          </div>
+                           <div className="flex gap-2">
+                              {['update', 'learning', 'blocker'].map(t => (
+                                <button
+                                  key={t}
+                                  onClick={() => setLogType(t as any)}
+                                  className={cn(
+                                    "px-3 py-1 text-xs rounded-full border capitalize transition-all",
+                                    logType === t 
+                                      ? "bg-[var(--foreground)] text-[var(--background)] border-[var(--foreground)]" 
+                                      : "border-[var(--border)] text-[var(--muted)] hover:border-[var(--foreground)]"
+                                  )}
+                                >
+                                  {t}
+                                </button>
+                              ))}
+                           </div>
+                           <Button size="sm" onClick={submitLog} isLoading={savingLog} className="h-7 text-xs">
+                             Log Entry
+                           </Button>
                         </div>
                         <textarea 
-                          className="flex-1 p-6 bg-transparent resize-none outline-none font-mono text-sm leading-relaxed"
-                          placeholder="Start typing your ideas, snippets, or blockers here..."
-                          value={noteContent}
-                          onChange={(e) => setNoteContent(e.target.value)}
+                          className="w-full p-6 bg-transparent resize-none outline-none font-mono text-sm leading-relaxed min-h-[120px]"
+                          placeholder="What did you work on? What did you learn?"
+                          value={logContent}
+                          onChange={(e) => setLogContent(e.target.value)}
                         />
                       </div>
-                    </motion.div>
-                  )}
 
-                  {activeTab === 'details' && (
-                    <motion.div 
-                      key="details"
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      className="grid gap-6"
-                    >
-                      <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
-                        <h3 className="text-sm font-bold mb-4">Project Overview</h3>
-                        <div className="space-y-4">
-                           <div>
-                             <label className="text-xs text-[var(--muted)] uppercase tracking-wider">Description</label>
-                             <p className="mt-1 text-sm">{activeProject.description || 'No description added.'}</p>
-                           </div>
-                           <div>
-                             <label className="text-xs text-[var(--muted)] uppercase tracking-wider">Audience</label>
-                             <p className="mt-1 text-sm">{activeProject.audience || 'No audience defined.'}</p>
-                           </div>
-                        </div>
-                      </div>
-                      <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
-                        <h3 className="text-sm font-bold mb-4">Current Context</h3>
-                        <div className="grid md:grid-cols-2 gap-6">
-                           <div>
-                             <label className="text-xs text-red-400 uppercase tracking-wider">Blockers</label>
-                             <p className="mt-1 text-sm opacity-80">{activeProject.current_blockers || 'None reported.'}</p>
-                           </div>
-                           <div>
-                             <label className="text-xs text-yellow-400 uppercase tracking-wider">Uncertainties</label>
-                             <p className="mt-1 text-sm opacity-80">{activeProject.uncertainties || 'None reported.'}</p>
-                           </div>
-                        </div>
+                      {/* Log Stream */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Recent Logs</h3>
+                        {logs.map(log => (
+                          <div key={log.id} className="group relative pl-8 pb-8 border-l border-[var(--border)] last:border-0 last:pb-0">
+                             <div className={cn(
+                               "absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full border border-[var(--background)]",
+                               log.log_type === 'blocker' ? "bg-red-400" : log.log_type === 'learning' ? "bg-blue-400" : "bg-[var(--foreground)]"
+                             )}></div>
+                             <div className="flex items-center gap-2 mb-1">
+                               <span className="text-xs font-mono text-[var(--muted)]">
+                                 {new Date(log.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                               </span>
+                               <span className={cn(
+                                 "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border",
+                                 log.log_type === 'blocker' ? "border-red-400/30 text-red-400" : 
+                                 log.log_type === 'learning' ? "border-blue-400/30 text-blue-400" : 
+                                 "border-[var(--border)] text-[var(--muted)]"
+                               )}>
+                                 {log.log_type}
+                               </span>
+                             </div>
+                             <div className="text-sm leading-relaxed whitespace-pre-wrap text-[var(--foreground)]">
+                               {log.content}
+                             </div>
+                          </div>
+                        ))}
+                        {logs.length === 0 && <p className="text-sm text-[var(--muted)] pl-2">No logs yet. Start tracking.</p>}
                       </div>
                     </motion.div>
                   )}
 
                   {activeTab === 'timeline' && (
-                    <motion.div 
-                       key="timeline"
-                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                       className="text-center py-12 text-[var(--muted)]"
-                    >
-                       <Clock className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                       <p>Timeline logic to be implemented.</p>
-                       <p className="text-xs mt-2">Will track project milestones and AI verdicts.</p>
-                    </motion.div>
+                     <div className="text-center py-20 opacity-50">
+                        <History className="w-12 h-12 mx-auto mb-4" />
+                        <p>Timeline visualization coming soon.</p>
+                     </div>
+                  )}
+
+                  {activeTab === 'details' && (
+                    <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)] space-y-4">
+                       <div>
+                         <label className="text-xs text-[var(--muted)] uppercase">Project Name</label>
+                         <p className="font-medium">{activeProject.name}</p>
+                       </div>
+                       <div>
+                         <label className="text-xs text-[var(--muted)] uppercase">Target Audience</label>
+                         <p className="font-medium">{activeProject.audience || 'None'}</p>
+                       </div>
+                       <div>
+                         <label className="text-xs text-[var(--muted)] uppercase">Current Goal</label>
+                         <p className="font-medium">{activeProject.current_goal || 'None'}</p>
+                       </div>
+                    </div>
                   )}
                 </AnimatePresence>
               </div>

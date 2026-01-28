@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Check } from 'lucide-react';
 
 export default function Landing() {
   const fadeInUp = {
@@ -23,13 +23,13 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-5xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-sm">
         <span className="font-bold text-lg tracking-tight">FounderOS</span>
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
             Log In
           </Link>
-          <Link href="/pricing">
-            <Button variant="primary" className="hidden md:inline-flex h-9 text-xs">Get Access</Button>
+          <Link href="/signup">
+            <Button variant="primary" className="hidden md:inline-flex h-9 text-xs">Get Started</Button>
           </Link>
         </div>
       </nav>
@@ -44,38 +44,60 @@ export default function Landing() {
           className="text-center space-y-8"
         >
           <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-            FounderOS → The workspace for AI builders
+            The operating system for AI builders
           </motion.h1>
           <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-[var(--muted)] font-light leading-relaxed max-w-2xl mx-auto">
-            A calm, dedicated operating system to organize, build, and ship your AI projects.
+            A private, persistent workspace to think, build, and track your AI projects.
+            Stop losing context. Start building momentum.
           </motion.p>
-          <motion.div variants={fadeInUp} className="pt-4">
-            <Link href="/pricing">
+          <motion.div variants={fadeInUp} className="pt-8">
+            <Link href="/signup">
               <Button className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-xl transition-all">
-                Start Building - $9/mo
+                Start Your Workspace
               </Button>
             </Link>
+            <p className="text-xs text-[var(--muted)] mt-4">
+              Join 500+ builders shipping daily.
+            </p>
           </motion.div>
         </motion.section>
 
-        {/* Benefits */}
+        {/* How it works */}
         <motion.section 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="grid gap-8"
+          className="space-y-12 pt-12 border-t border-[var(--border)]"
         >
-            {[
-              { title: "Project Organizer", desc: "Keep all your AI experiments, prompts, and code snippets in one focused place." },
-              { title: "AI Assistant", desc: "Built-in AI tools to help you unblock technical challenges and validate ideas." },
-              { title: "Momentum Tracking", desc: "Visualize your velocity. Know when to pivot and when to double down." }
-            ].map((feature, i) => (
-              <div key={i} className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)]">
-                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                <p className="text-[var(--muted)] leading-relaxed">{feature.desc}</p>
-              </div>
-            ))}
+          <div className="text-center max-w-lg mx-auto">
+             <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-2">The System</h2>
+             <p className="text-2xl font-bold">How FounderOS works</p>
+          </div>
+
+          <div className="grid gap-6">
+            <div className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)] flex items-start gap-4">
+               <div className="bg-[var(--background)] p-2 rounded border border-[var(--border)] text-sm font-bold">01</div>
+               <div>
+                 <h3 className="text-lg font-bold mb-2">Create Projects</h3>
+                 <p className="text-[var(--muted)]">Define your goal, audience, and open questions. Keep the context clear.</p>
+               </div>
+            </div>
+            <div className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)] flex items-start gap-4">
+               <div className="bg-[var(--background)] p-2 rounded border border-[var(--border)] text-sm font-bold">02</div>
+               <div>
+                 <h3 className="text-lg font-bold mb-2">Log Progress</h3>
+                 <p className="text-[var(--muted)]">Capture what you learned, what blocked you, and what changed. Every single day.</p>
+               </div>
+            </div>
+            <div className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)] flex items-start gap-4">
+               <div className="bg-[var(--background)] p-2 rounded border border-[var(--border)] text-sm font-bold">03</div>
+               <div>
+                 <h3 className="text-lg font-bold mb-2">Build Momentum</h3>
+                 <p className="text-[var(--muted)]">Review your timeline. Spot patterns. Use AI summaries to unstuck yourself.</p>
+               </div>
+            </div>
+          </div>
         </motion.section>
 
       </main>
