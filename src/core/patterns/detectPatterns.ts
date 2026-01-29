@@ -7,19 +7,19 @@ export function detectPatterns(signals: Signal[]): string[] {
   const sessions = getSignal('sessions');
   const conversion = getSignal('signup_conversion_rate');
   if (sessions?.direction === 'up' && conversion?.direction === 'down') {
-    patterns.push('traffic_up_conversion_down');
+    patterns.push('attention_without_direction');
   }
 
   const leads = getSignal('leads_created');
   const deals = getSignal('deals_closed');
   if (leads?.direction === 'up' && (deals?.direction === 'flat' || deals?.direction === 'down')) {
-    patterns.push('leads_up_revenue_flat');
+    patterns.push('planning_loop');
   }
 
   const commits = getSignal('commits');
   const prs = getSignal('pull_requests');
   if (commits?.direction === 'down' && prs?.direction === 'down') {
-    patterns.push('engineering_velocity_drop');
+    patterns.push('momentum_decay');
   }
 
   return patterns;

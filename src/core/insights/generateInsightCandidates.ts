@@ -3,24 +3,24 @@ import { InsightCandidate } from '../../types/insight';
 export function generateInsightCandidates(patterns: string[]): InsightCandidate[] {
   return patterns.map(pattern => {
     switch (pattern) {
-      case 'traffic_up_conversion_down':
+      case 'attention_without_direction':
         return {
           type: 'pattern_match',
-          description: 'Traffic is increasing but conversion is dropping, suggesting onboarding or activation friction.',
+          description: 'You are attracting eyeballs but failing to convert interest into users. This represents "Attention without Direction"—a common builder trap.',
           confidence: 'high',
           relatedMetrics: ['sessions', 'signup_conversion_rate']
         };
-      case 'leads_up_revenue_flat':
+      case 'planning_loop':
         return {
           type: 'pattern_match',
-          description: 'Leads are up but revenue (deals) is flat, indicating a sales or qualification bottleneck.',
+          description: 'Top-of-funnel activity is high but meaningful output (deals/milestones) is flat. You might be stuck in a "Planning Loop."',
           confidence: 'medium',
           relatedMetrics: ['leads_created', 'deals_closed']
         };
-      case 'engineering_velocity_drop':
+      case 'momentum_decay':
         return {
           type: 'pattern_match',
-          description: 'Significant drop in commits and PRs signals slowed product iteration.',
+          description: 'A significant drop in commits and ship-velocity indicates "Momentum Decay." Chaos is likely increasing.',
           confidence: 'high',
           relatedMetrics: ['commits', 'pull_requests']
         };

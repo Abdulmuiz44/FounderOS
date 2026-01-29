@@ -1,11 +1,11 @@
 import { getGASignals } from './core/signals/ga';
 import { getHubSpotSignals } from './core/signals/hubspot';
 import { getGitHubSignals } from './core/signals/github';
-import { generateFounderBrief } from './core/engine/generateFounderBrief';
+import { generateBuilderBrief } from './core/engine/generateBuilderBrief';
 
 async function main() {
   console.log("--------------------------------------------------");
-  console.log("  FounderOS v1.0 - Automated Advisor (Live Data)  ");
+  console.log("  FounderOS v1.0 - The OS for AI Builders       ");
   console.log("--------------------------------------------------\n");
 
   try {
@@ -28,14 +28,14 @@ async function main() {
     })));
     console.log("\n");
 
-    const brief = await generateFounderBrief();
+    const brief = await generateBuilderBrief();
 
     console.log("📄 EXECUTIVE SUMMARY");
     console.log(brief.executiveSummary);
     console.log("\n");
 
     console.log("🔍 KEY OBSERVATIONS");
-    brief.keyObservations.forEach(obs => console.log(`• ${obs}`));
+    brief.keyObservations.forEach((obs: string) => console.log(`• ${obs}`));
     console.log("\n");
 
     console.log("🧠 WHAT THIS LIKELY MEANS");
@@ -43,7 +43,7 @@ async function main() {
     console.log("\n");
 
     console.log("🎯 FOUNDER FOCUS (NEXT 7 DAYS)");
-    brief.founderFocus.forEach((focus, i) => console.log(`${i + 1}. ${focus}`));
+    brief.founderFocus.forEach((focus: string, i: number) => console.log(`${i + 1}. ${focus}`));
     console.log("\n");
 
   } catch (error) {

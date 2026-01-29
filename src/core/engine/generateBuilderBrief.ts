@@ -4,9 +4,9 @@ import { getGitHubSignals } from '../signals/github';
 import { detectPatterns } from '../patterns/detectPatterns';
 import { generateInsightCandidates } from '../insights/generateInsightCandidates';
 import { callLLM } from '../../services/llm';
-import { FounderBrief } from '../../types/brief';
+import { BuilderBrief } from '../../types/brief';
 
-export async function generateFounderBrief(): Promise<FounderBrief> {
+export async function generateBuilderBrief(): Promise<BuilderBrief> {
   // a) Collect real signals (asynchronously)
   const signals = [
     ...(await getGASignals()),
@@ -27,13 +27,13 @@ export async function generateFounderBrief(): Promise<FounderBrief> {
     insights
   });
 
-  // e) Parse the raw markdown response into FounderBrief object
+  // e) Parse the raw markdown response into BuilderBrief object
   return parseBrief(rawResponse);
 }
 
-function parseBrief(raw: string): FounderBrief {
+function parseBrief(raw: string): BuilderBrief {
   const sections = raw.split('# ').filter(s => s.trim().length > 0);
-  
+
   let executiveSummary = '';
   let keyObservations: string[] = [];
   let meaning = '';

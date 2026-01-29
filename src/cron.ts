@@ -1,4 +1,5 @@
-import { generateFounderBrief } from './core/engine/generateFounderBrief';
+/// <reference types="node" />
+import { generateBuilderBrief } from './core/engine/generateBuilderBrief';
 import { sendBriefEmail } from './services/email';
 
 async function runWeeklyJob() {
@@ -7,8 +8,8 @@ async function runWeeklyJob() {
   console.log("--------------------------------------------------\n");
 
   try {
-    console.log("🔄 Generating Founder Brief...");
-    const brief = await generateFounderBrief();
+    console.log("🔄 Generating Builder Brief...");
+    const brief = await generateBuilderBrief();
     console.log("✅ Brief generated successfully.");
 
     console.log("📨 Sending email...");

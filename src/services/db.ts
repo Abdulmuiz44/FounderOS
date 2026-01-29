@@ -1,15 +1,16 @@
+/// <reference types="node" />
 import { createClient } from '@supabase/supabase-js';
-import { FounderBrief } from '../types/brief';
+import { BuilderBrief } from '../types/brief';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function saveBriefForUser(brief: FounderBrief, userId: string) {
+export async function saveBriefForUser(brief: BuilderBrief, userId: string) {
   const today = new Date();
   const day = today.getDay();
-  const diff = today.getDate() - day + (day === 0 ? -6 : 1); 
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
   const weekStartDate = new Date(today.setDate(diff)).toISOString().split('T')[0];
 
   const { error } = await supabase
@@ -29,9 +30,9 @@ export async function saveBriefForUser(brief: FounderBrief, userId: string) {
   if (error) console.error("Error saving brief:", error);
 }
 
-export async function saveBriefToDB(brief: FounderBrief, email: string) {
+export async function saveBriefToDB(brief: BuilderBrief, email: string) {
   const { data: users, error } = await supabase.auth.admin.listUsers();
   if (error || !users.users) return;
-  const user = users.users.find(u => u.email === email);
+  const user = users.users.find((u: any) => u.email === email);
   if (user) await saveBriefForUser(brief, user.id);
 }

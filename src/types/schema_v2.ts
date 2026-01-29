@@ -72,3 +72,24 @@ export interface BuilderOSDrift {
   severity: 'stable' | 'minor shift' | 'major shift';
   created_at: string;
 }
+
+// Chatter Ratio: Measures AI interaction vs actual execution
+export interface ChatterMetrics {
+  id: string;
+  user_id: string;
+  project_id?: string;
+  ai_interaction_minutes: number;  // Time spent prompting/chatting with AI
+  execution_minutes: number;       // Time spent actually building (commits, deploys)
+  chatter_ratio: number;           // ai_interaction / (ai_interaction + execution)
+  model_used?: string;             // e.g., 'gpt-4o', 'claude-3.5', 'gemini-2.0'
+  session_date: string;
+  created_at: string;
+}
+
+// Builder Mode derived from chatter patterns
+export type BuilderModeType =
+  | 'deep_flow'           // Low chatter, high execution
+  | 'balanced_building'   // Healthy mix
+  | 'planning_loop'       // High chatter, low execution
+  | 'momentum_decay'      // Declining execution over time
+  | 'attention_scatter';  // Switching between many projects/models

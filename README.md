@@ -1,6 +1,6 @@
 # FounderOS
 
-Automated SaaS Founder Brief and Intelligence Engine.
+The operating system for AI builders to track, analyze, and optimize every project. Stop building in chaos.
 
 ## Vercel Deployment Instructions
 

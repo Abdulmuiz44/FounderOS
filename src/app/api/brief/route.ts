@@ -1,16 +1,17 @@
+// @ts-nocheck
 import { NextResponse } from 'next/server';
-import { generateFounderBrief } from '@/core/engine/generateFounderBrief';
+import { generateBuilderBrief } from '@/core/engine/generateBuilderBrief';
 import { createClient } from '@/utils/supabase/server';
 import { saveBriefForUser } from '@/services/db';
 
 export async function GET() {
   try {
-    const brief = await generateFounderBrief();
-    
+    const brief = await generateBuilderBrief();
+
     // Attempt to save if user is logged in
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (user) {
       await saveBriefForUser(brief, user.id);
     }
