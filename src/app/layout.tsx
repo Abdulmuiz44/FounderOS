@@ -1,6 +1,6 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Analytics } from '@/components/Analytics';
+import Analytics from '@/components/Analytics';
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
 
