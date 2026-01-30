@@ -1,17 +1,6 @@
 -- Users table is handled by auth.users in Supabase
 
--- Subscriptions table
-create table if not exists public.subscriptions (
-  id uuid not null default gen_random_uuid (),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  lemon_squeezy_id text unique,
-  order_id text,
-  plan text not null, -- 'starter' or 'pro'
-  status text not null, -- 'active', 'cancelled', 'expired', 'on_trial'
-  renews_at timestamp with time zone,
-  created_at timestamp with time zone not null default now(),
-  constraint subscriptions_user_key unique (user_id)
-);
+-- Subscriptions table definition removed in favor of 20260130_create_subscriptions.sql
 
 -- Projects table
 create table if not exists public.projects (
@@ -50,13 +39,13 @@ create table if not exists public.ai_summaries (
 );
 
 -- RLS
-alter table public.subscriptions enable row level security;
+-- alter table public.subscriptions enable row level security; -- Removed
 alter table public.projects enable row level security;
 alter table public.logs enable row level security;
 alter table public.ai_summaries enable row level security;
 
 -- Policies
-create policy "Users view own subscription" on public.subscriptions for select using (auth.uid() = user_id);
+-- create policy "Users view own subscription" on public.subscriptions for select using (auth.uid() = user_id);
 create policy "Users view own projects" on public.projects for select using (auth.uid() = user_id);
 create policy "Users insert own projects" on public.projects for insert with check (auth.uid() = user_id);
 create policy "Users update own projects" on public.projects for update using (auth.uid() = user_id);
