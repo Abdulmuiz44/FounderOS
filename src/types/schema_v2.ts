@@ -1,9 +1,16 @@
 export interface Subscription {
   id: string;
   user_id: string;
-  plan: 'starter' | 'pro';
-  status: 'active' | 'cancelled' | 'expired' | 'on_trial';
+  lemon_subscription_id?: string;
+  customer_id?: string;
+  variant_id?: string;
+  plan_name: 'Starter' | 'Pro' | null;
+  status: 'active' | 'past_due' | 'unpaid' | 'cancelled' | 'expired' | 'on_trial' | 'paused';
   renews_at?: string;
+  ends_at?: string;
+  update_payment_method_url?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Project {
