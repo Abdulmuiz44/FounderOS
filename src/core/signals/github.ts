@@ -22,13 +22,13 @@ export async function getGitHubSignals(): Promise<Signal[]> {
 
     // Fetch Commits
     const commits = await octokit.rest.repos.listCommits({ owner, repo, since: fourteenDaysAgo });
-    const currentCommits = commits.data.filter(c => c.commit.author?.date && new Date(c.commit.author.date) > new Date(sevenDaysAgo)).length;
-    const previousCommits = commits.data.filter(c => c.commit.author?.date && new Date(c.commit.author.date) <= new Date(sevenDaysAgo)).length;
+    const currentCommits = commits.data.filter((c: any) => c.commit.author?.date && new Date(c.commit.author.date) > new Date(sevenDaysAgo)).length;
+    const previousCommits = commits.data.filter((c: any) => c.commit.author?.date && new Date(c.commit.author.date) <= new Date(sevenDaysAgo)).length;
 
     // Fetch PRs
     const prs = await octokit.rest.pulls.list({ owner, repo, state: 'all', sort: 'created', direction: 'desc' });
-    const currentPRs = prs.data.filter(p => new Date(p.created_at) > new Date(sevenDaysAgo)).length;
-    const previousPRs = prs.data.filter(p => new Date(p.created_at) > new Date(fourteenDaysAgo) && new Date(p.created_at) <= new Date(sevenDaysAgo)).length;
+    const currentPRs = prs.data.filter((p: any) => new Date(p.created_at) > new Date(sevenDaysAgo)).length;
+    const previousPRs = prs.data.filter((p: any) => new Date(p.created_at) > new Date(fourteenDaysAgo) && new Date(p.created_at) <= new Date(sevenDaysAgo)).length;
 
     const currC = currentCommits || 10;
     const prevC = previousCommits || 50;

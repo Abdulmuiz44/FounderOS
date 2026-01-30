@@ -1,0 +1,21 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/brief/route": "app/api/brief/route.js",
+  "/api/chatter/route": "app/api/chatter/route.js",
+  "/api/drift/route": "app/api/drift/route.js",
+  "/api/insights/route": "app/api/insights/route.js",
+  "/api/logs/route": "app/api/logs/route.js",
+  "/api/patterns/route": "app/api/patterns/route.js",
+  "/api/profile/route": "app/api/profile/route.js",
+  "/api/projects/[id]/route": "app/api/projects/[id]/route.js",
+  "/api/projects/route": "app/api/projects/route.js",
+  "/api/verdict/route": "app/api/verdict/route.js",
+  "/api/webhook/lemonsqueezy/route": "app/api/webhook/lemonsqueezy/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/pricing/page": "app/pricing/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/waitlist/page": "app/waitlist/page.js"
+}
