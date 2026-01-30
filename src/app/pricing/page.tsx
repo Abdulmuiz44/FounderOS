@@ -1,16 +1,51 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
-import { Check, Shield, Zap } from 'lucide-react';
+import { Check, Shield, Zap, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function PricingPage() {
+  const [loading, setLoading] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleCheckout = async (variantId: string, planName: string) => {
+    try {
+      setLoading(planName);
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ variantId }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Checkout error:', data.error);
+        alert('Failed to start checkout. Please try again.');
+        setLoading(null);
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('An error occurred. Please try again.');
+      setLoading(null);
+    }
+  };
+
   const plans = [
     {
       name: "Starter",
+      id: "starter",
       price: "12",
       description: "For solo builders just starting.",
+      variantId: process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_STARTER,
       features: [
         "Up to 3 Active Projects",
         "Unlimited Builder Logs",
@@ -18,13 +53,14 @@ export default function PricingPage() {
         "Timeline History"
       ],
       cta: "Start Building",
-      link: "https://store.lemonsqueezy.com/checkout/buy/..." // Replace with actual link
     },
     {
       name: "Pro",
+      id: "pro",
       price: "29",
       description: "For serious builders shipping daily.",
       popular: true,
+      variantId: process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_PRO,
       features: [
         "Unlimited Projects",
         "Advanced AI Insights",
@@ -33,7 +69,6 @@ export default function PricingPage() {
         "Data Export (CSV/JSON)"
       ],
       cta: "Get Full Access",
-      link: "https://store.lemonsqueezy.com/checkout/buy/..."
     }
   ];
 
@@ -42,9 +77,9 @@ export default function PricingPage() {
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-5xl mx-auto w-full z-50">
         <Link href="/" className="font-bold text-lg tracking-tight">FounderOS</Link>
         <div className="flex items-center gap-4">
-           <span className="text-xs font-medium bg-[var(--card)] px-3 py-1 rounded-full border border-[var(--border)] text-[var(--muted)]">
-             Secure Checkout
-           </span>
+          <span className="text-xs font-medium bg-[var(--card)] px-3 py-1 rounded-full border border-[var(--border)] text-[var(--muted)]">
+            Secure Checkout
+          </span>
         </div>
       </nav>
 
@@ -57,7 +92,7 @@ export default function PricingPage() {
 
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full">
         {plans.map((plan, i) => (
-          <motion.div 
+          <motion.div
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -88,20 +123,28 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            <a 
-              href={plan.link}
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block"
+            <Button
+              className={`w-full h-12 text-base ${plan.popular ? 'shadow-lg hover:shadow-xl' : ''}`}
+              variant={plan.popular ? 'primary' : 'secondary'}
+              onClick={() => {
+                if (plan.variantId) {
+                  handleCheckout(plan.variantId, plan.name);
+                } else {
+                  alert('Checkout not configured for this plan yet.');
+                }
+              }}
+              disabled={loading === plan.name}
             >
-              <Button className={`w-full h-12 text-base ${plan.popular ? 'shadow-lg hover:shadow-xl' : ''}`} variant={plan.popular ? 'primary' : 'secondary'}>
-                {plan.cta}
-              </Button>
-            </a>
+              {loading === plan.name ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                plan.cta
+              )}
+            </Button>
           </motion.div>
         ))}
       </div>
-      
+
       <div className="flex items-center gap-6 mt-12 text-xs text-[var(--muted)] opacity-60">
         <span className="flex items-center gap-2"><Shield className="w-3 h-3" /> Secure Payment</span>
         <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Instant Access</span>

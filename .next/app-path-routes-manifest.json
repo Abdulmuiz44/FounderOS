@@ -1,0 +1,21 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/brief/route": "/api/brief",
+  "/api/chatter/route": "/api/chatter",
+  "/api/drift/route": "/api/drift",
+  "/api/insights/route": "/api/insights",
+  "/api/logs/route": "/api/logs",
+  "/api/patterns/route": "/api/patterns",
+  "/api/profile/route": "/api/profile",
+  "/api/projects/[id]/route": "/api/projects/[id]",
+  "/api/projects/route": "/api/projects",
+  "/api/verdict/route": "/api/verdict",
+  "/api/webhook/lemonsqueezy/route": "/api/webhook/lemonsqueezy",
+  "/dashboard/page": "/dashboard",
+  "/login/page": "/login",
+  "/page": "/",
+  "/pricing/page": "/pricing",
+  "/signup/page": "/signup",
+  "/waitlist/page": "/waitlist"
+}
