@@ -1,6 +1,6 @@
 
 -- Create verdicts table
-create table public.verdicts (
+create table if not exists public.verdicts (
   id uuid not null default gen_random_uuid (),
   user_id uuid not null references auth.users (id) on delete cascade,
   week_start_date date not null,
@@ -21,9 +21,11 @@ alter table public.verdicts enable row level security;
 -- alter table public.subscriptions enable row level security; -- Removed
 
 -- Policies for Verdicts
+drop policy if exists "Users can view their own verdicts" on public.verdicts;
 create policy "Users can view their own verdicts" on public.verdicts
   for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own verdicts" on public.verdicts;
 create policy "Users can insert their own verdicts" on public.verdicts
   for insert with check (auth.uid() = user_id);
 

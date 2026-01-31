@@ -6,7 +6,7 @@ add column if not exists total_briefs int default 0,
 add column if not exists onboarding_completed boolean default false;
 
 -- Create feedback table
-create table public.user_feedback (
+create table if not exists public.user_feedback (
   id uuid not null default gen_random_uuid (),
   user_id uuid not null references auth.users (id) on delete cascade,
   feedback_text text not null,
@@ -17,11 +17,14 @@ create table public.user_feedback (
 -- RLS for feedback
 alter table public.user_feedback enable row level security;
 
+-- Policies
+drop policy if exists "Users can insert their own feedback" on public.user_feedback;
 create policy "Users can insert their own feedback" on public.user_feedback
   for insert
   with check (auth.uid() = user_id);
 
 -- Update RLS for approved_users to allow updates (for onboarding stats)
+drop policy if exists "Users can update their own stats" on public.approved_users;
 create policy "Users can update their own stats" on public.approved_users
   for update
   using (email = (select email from auth.users where id = auth.uid()));

@@ -1,5 +1,5 @@
 -- Create waitlist table
-create table public.waitlist (
+create table if not exists public.waitlist (
   id uuid not null default gen_random_uuid (),
   email text not null unique,
   source text default 'landing',
@@ -8,7 +8,7 @@ create table public.waitlist (
 );
 
 -- Create approved users table
-create table public.approved_users (
+create table if not exists public.approved_users (
   email text not null primary key,
   created_at timestamp with time zone not null default now()
 );
@@ -19,11 +19,13 @@ alter table public.approved_users enable row level security;
 
 -- Policies
 -- Allow anyone to insert into waitlist (public access for signup)
+drop policy if exists "Anyone can join waitlist" on public.waitlist;
 create policy "Anyone can join waitlist" on public.waitlist
   for insert
   with check (true);
 
--- Allow authenticated users to read approved_users (to check their own status)
+-- Allow authenticated users to check their own status
+drop policy if exists "Users can check approval status" on public.approved_users;
 create policy "Users can check approval status" on public.approved_users
   for select
   using (true);

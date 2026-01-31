@@ -46,15 +46,28 @@ alter table public.ai_summaries enable row level security;
 
 -- Policies
 -- create policy "Users view own subscription" on public.subscriptions for select using (auth.uid() = user_id);
+drop policy if exists "Users view own projects" on public.projects;
 create policy "Users view own projects" on public.projects for select using (auth.uid() = user_id);
+
+drop policy if exists "Users insert own projects" on public.projects;
 create policy "Users insert own projects" on public.projects for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users update own projects" on public.projects;
 create policy "Users update own projects" on public.projects for update using (auth.uid() = user_id);
+
+drop policy if exists "Users delete own projects" on public.projects;
 create policy "Users delete own projects" on public.projects for delete using (auth.uid() = user_id);
 
+drop policy if exists "Users view own logs" on public.logs;
 create policy "Users view own logs" on public.logs for select using (auth.uid() = user_id);
+
+drop policy if exists "Users insert own logs" on public.logs;
 create policy "Users insert own logs" on public.logs for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users delete own logs" on public.logs;
 create policy "Users delete own logs" on public.logs for delete using (auth.uid() = user_id);
 
+drop policy if exists "Users view own summaries" on public.ai_summaries;
 create policy "Users view own summaries" on public.ai_summaries for select using (
   exists (select 1 from public.logs where id = ai_summaries.log_id and user_id = auth.uid()) 
   or 

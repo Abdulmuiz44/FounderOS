@@ -22,14 +22,17 @@ ON chatter_metrics(user_id, session_date DESC);
 -- RLS Policies
 ALTER TABLE chatter_metrics ENABLE ROW LEVEL SECURITY;
 
+drop policy if exists "Users can view their own chatter metrics" on chatter_metrics;
 CREATE POLICY "Users can view their own chatter metrics"
 ON chatter_metrics FOR SELECT
 USING (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own chatter metrics" on chatter_metrics;
 CREATE POLICY "Users can insert their own chatter metrics"
 ON chatter_metrics FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own chatter metrics" on chatter_metrics;
 CREATE POLICY "Users can update their own chatter metrics"
 ON chatter_metrics FOR UPDATE
 USING (auth.uid() = user_id);

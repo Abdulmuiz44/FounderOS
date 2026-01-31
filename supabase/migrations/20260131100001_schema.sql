@@ -1,5 +1,5 @@
 -- Create the table for briefs
-create table public.founder_briefs (
+create table if not exists public.founder_briefs (
   id uuid not null default gen_random_uuid (),
   user_id uuid not null references auth.users (id) on delete cascade,
   week_start_date date not null,
@@ -16,10 +16,13 @@ create table public.founder_briefs (
 alter table public.founder_briefs enable row level security;
 
 -- Create policies
+-- Create policies (Idempotent)
+drop policy if exists "Users can view their own briefs" on public.founder_briefs;
 create policy "Users can view their own briefs" on public.founder_briefs
   for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert/update their own briefs" on public.founder_briefs;
 create policy "Users can insert/update their own briefs" on public.founder_briefs
   for all
   using (auth.uid() = user_id);

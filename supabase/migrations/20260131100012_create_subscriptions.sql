@@ -14,6 +14,22 @@ create table if not exists public.subscriptions (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Ensure columns exist (in case table was created by older schema)
+do $$
+begin
+  alter table public.subscriptions add column if not exists lemon_subscription_id text unique;
+  alter table public.subscriptions add column if not exists customer_id text;
+  alter table public.subscriptions add column if not exists variant_id text;
+  alter table public.subscriptions add column if not exists plan_name text;
+  alter table public.subscriptions add column if not exists ends_at timestamp with time zone;
+  alter table public.subscriptions add column if not exists update_payment_method_url text;
+  
+  -- Ensure columns from older schemas are compatible or present if needed
+  -- (e.g. lemon_squeezy_id vs lemon_subscription_id - we use lemon_subscription_id)
+exception
+  when others then null;
+end $$;
+
 -- Enable RLS
 alter table public.subscriptions enable row level security;
 
@@ -38,5 +54,5 @@ create index if not exists idx_subscriptions_status on public.subscriptions(stat
 -- (Assuming application logic or another mechanism handles updated_at, but good to have)
 create extension if not exists moddatetime schema extensions;
 
-create trigger handle_updated_at before update on public.subscriptions
-  for each row execute procedure moddatetime (updated_at);
+create or replace trigger handle_updated_at before update on public.subscriptions
+  for each row execute procedure extensions.moddatetime (updated_at);
