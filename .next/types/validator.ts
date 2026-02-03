@@ -101,6 +101,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/api/auth/[...nextauth]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/auth/[...nextauth]">> = Specific
+  const handler = {} as typeof import("../../src/app/api/auth/[...nextauth]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/api/brief/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/brief">> = Specific
@@ -114,6 +123,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/chatter">> = Specific
   const handler = {} as typeof import("../../src/app/api/chatter/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/checkout/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/checkout">> = Specific
+  const handler = {} as typeof import("../../src/app/api/checkout/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
@@ -182,6 +200,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/api/register/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/register">> = Specific
+  const handler = {} as typeof import("../../src/app/api/register/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/api/verdict/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/verdict">> = Specific
@@ -195,6 +222,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/webhook/lemonsqueezy">> = Specific
   const handler = {} as typeof import("../../src/app/api/webhook/lemonsqueezy/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/webhooks/lemonsqueezy/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/webhooks/lemonsqueezy">> = Specific
+  const handler = {} as typeof import("../../src/app/api/webhooks/lemonsqueezy/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/auth/callback/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/auth/callback">> = Specific
+  const handler = {} as typeof import("../../src/app/auth/callback/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,7 +12,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -20,31 +19,32 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (result?.error) {
+        setError("Invalid email or password");
+        setLoading(false);
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
       setLoading(false);
-    } else {
-      router.push('/dashboard');
     }
   };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      setError(error.message);
+    try {
+      await signIn('google', { callbackUrl: '/dashboard' });
+    } catch (error) {
+      setError("An error occurred with Google login");
       setGoogleLoading(false);
     }
   };

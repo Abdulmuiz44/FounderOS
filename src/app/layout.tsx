@@ -3,6 +3,7 @@ import './globals.css';
 import Analytics from '@/components/Analytics';
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
+import { Providers } from '@/components/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -36,8 +37,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body>
-        {children}
-        <Analytics />
+        <Providers>
+          {children}
+          <Analytics />
+        </Providers>
       </body>
     </html>
   );

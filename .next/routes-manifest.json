@@ -22,6 +22,14 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/auth/[...nextauth]",
+      "regex": "^/api/auth/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPnextauth": "nxtPnextauth"
+      },
+      "namedRegex": "^/api/auth/(?<nxtPnextauth>.+?)(?:/)?$"
+    },
+    {
       "page": "/api/projects/[id]",
       "regex": "^/api/projects/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -62,6 +70,12 @@
       "namedRegex": "^/api/chatter(?:/)?$"
     },
     {
+      "page": "/api/checkout",
+      "regex": "^/api/checkout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/checkout(?:/)?$"
+    },
+    {
       "page": "/api/drift",
       "regex": "^/api/drift(?:/)?$",
       "routeKeys": {},
@@ -98,6 +112,12 @@
       "namedRegex": "^/api/projects(?:/)?$"
     },
     {
+      "page": "/api/register",
+      "regex": "^/api/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/register(?:/)?$"
+    },
+    {
       "page": "/api/verdict",
       "regex": "^/api/verdict(?:/)?$",
       "routeKeys": {},
@@ -108,6 +128,18 @@
       "regex": "^/api/webhook/lemonsqueezy(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/webhook/lemonsqueezy(?:/)?$"
+    },
+    {
+      "page": "/api/webhooks/lemonsqueezy",
+      "regex": "^/api/webhooks/lemonsqueezy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/webhooks/lemonsqueezy(?:/)?$"
+    },
+    {
+      "page": "/auth/callback",
+      "regex": "^/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback(?:/)?$"
     },
     {
       "page": "/dashboard",

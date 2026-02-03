@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -12,30 +13,43 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const supabase = createClient();
+  const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      // 1. Register the user via API
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, fullName }),
+      });
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      setSuccess(true);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // 2. Automatically sign in
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+        setLoading(false);
+      } else {
+        router.push('/dashboard');
+      }
+
+    } catch (err: any) {
+      setError(err.message);
       setLoading(false);
     }
   };
@@ -43,41 +57,15 @@ export default function SignUp() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      setError(error.message);
+    try {
+      await signIn('google', { callbackUrl: '/dashboard' });
+    } catch (error) {
+      setError("An error occurred with Google login");
       setGoogleLoading(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">
-        <div className="max-w-md w-full text-center space-y-6 animate-fade-in">
-          <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
-            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13h2l2 2 4-4h6m-6 0l4-4" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold">Check your email</h2>
-          <p className="text-[var(--muted)]">
-            We've sent a confirmation link to <span className="font-bold text-[var(--foreground)]">{email}</span>.
-            <br />Please verify your email to access your workspace.
-          </p>
-          <Button variant="secondary" onClick={() => setSuccess(false)}>
-            Back to Sign In
-          </Button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">
