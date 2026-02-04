@@ -57,11 +57,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         })
     ],
-    // Adapter disabled for JWT strategy - Credentials provider doesn't work well with adapters
-    // adapter: SupabaseAdapter({
-    //     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    //     secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    // }),
+    // Adapter enabled for user persistence (OAuth)
+    adapter: SupabaseAdapter({
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    }),
     callbacks: {
         async session({ session, token }) {
             if (token && session.user) {
