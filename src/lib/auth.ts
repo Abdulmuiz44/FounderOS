@@ -4,8 +4,10 @@ import Credentials from "next-auth/providers/credentials"
 import { SupabaseAdapter } from "@auth/supabase-adapter"
 import { compare } from "bcryptjs"
 import { createClient } from "@supabase/supabase-js"
+import { authConfig } from "./auth.config"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    ...authConfig,
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID,
@@ -62,26 +64,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
         secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     }),
-    callbacks: {
-        async session({ session, token }) {
-            if (token && session.user) {
-                // @ts-ignore
-                session.user.id = token.sub
-            }
-            return session
-        },
-        async jwt({ token, user }) {
-            if (user) {
-                token.sub = user.id
-            }
-            return token
-        }
-    },
-    session: {
-        strategy: "jwt",
-    },
-    pages: {
-        signIn: '/login',
-    },
     debug: true,
 })
