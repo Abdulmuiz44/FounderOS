@@ -59,10 +59,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         })
     ],
-    // Adapter enabled for user persistence (OAuth)
-    adapter: SupabaseAdapter({
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    }),
+    // Adapter temporarily disabled for debugging "Bad Request"
+    // adapter: SupabaseAdapter({
+    //     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    //     secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    // }),
     debug: true,
 })
