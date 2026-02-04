@@ -1,15 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { Check, Shield, Zap, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
   const router = useRouter();
+  const supabase = createClient();
+
+  // Check if user already has an active subscription
+  useEffect(() => {
+    const checkSubscription = async () => {
+      const res = await fetch('/api/auth/session');
+      const session = await res.json();
+
+      if (session?.user?.id) {
+        const { data: sub } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', session.user.id)
+          .in('status', ['active', 'on_trial'])
+          .maybeSingle();
+
+        if (sub) {
+          // User already has subscription, go to dashboard
+          router.push('/dashboard');
+          return;
+        }
+      }
+      setCheckingSubscription(false);
+    };
+    checkSubscription();
+  }, [router, supabase]);
 
   const handleCheckout = async (variantId: string, planName: string) => {
     try {
@@ -52,7 +80,8 @@ export default function PricingPage() {
         "Basic Pattern Detection",
         "Timeline History"
       ],
-      cta: "Start Building",
+      cta: "Start 7-Day Free Trial",
+      trialNote: "No charge for 7 days",
     },
     {
       name: "Pro",
@@ -68,9 +97,19 @@ export default function PricingPage() {
         "Full OS Profile Analysis",
         "Data Export (CSV/JSON)"
       ],
-      cta: "Get Full Access",
+      cta: "Start 7-Day Free Trial",
+      trialNote: "No charge for 7 days",
     }
   ];
+
+  // Show loading while checking subscription
+  if (checkingSubscription) {
+    return (
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--muted)]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6">
@@ -108,7 +147,11 @@ export default function PricingPage() {
             <div className="text-center mb-8">
               <h2 className="text-xl font-bold mb-2">{plan.name}</h2>
               <p className="text-xs text-[var(--muted)] mb-6">{plan.description}</p>
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-2 mb-4">
+                <span className="text-sm font-medium text-green-500">7 days free</span>
+              </div>
               <div className="flex justify-center items-baseline gap-1">
+                <span className="text-sm text-[var(--muted)]">then</span>
                 <span className="text-4xl font-bold">${plan.price}</span>
                 <span className="text-[var(--muted)]">/mo</span>
               </div>
@@ -141,13 +184,21 @@ export default function PricingPage() {
                 plan.cta
               )}
             </Button>
+            <p className="text-xs text-center text-[var(--muted)] mt-3">
+              {plan.trialNote} • Cancel anytime
+            </p>
           </motion.div>
         ))}
       </div>
 
-      <div className="flex items-center gap-6 mt-12 text-xs text-[var(--muted)] opacity-60">
-        <span className="flex items-center gap-2"><Shield className="w-3 h-3" /> Secure Payment</span>
-        <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Instant Access</span>
+      <div className="flex flex-col items-center gap-4 mt-12">
+        <div className="flex items-center gap-6 text-xs text-[var(--muted)] opacity-60">
+          <span className="flex items-center gap-2"><Shield className="w-3 h-3" /> Secure Payment</span>
+          <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Instant Access</span>
+        </div>
+        <p className="text-xs text-[var(--muted)] opacity-50 text-center max-w-md">
+          Try FounderOS free for 7 days. Your card won't be charged until the trial ends. Cancel anytime before to avoid charges.
+        </p>
       </div>
     </div>
   );

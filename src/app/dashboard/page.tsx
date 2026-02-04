@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signOut } from 'next-auth/react';
 import {
   Plus,
   Layout,
@@ -35,7 +36,7 @@ import { ChatterRatioCard } from '@/components/dashboard/ChatterRatioCard';
 import { SubscriptionModal } from '@/components/dashboard/SubscriptionModal';
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
@@ -45,11 +46,17 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<BuilderOSProfile | null>(null);
   const [drift, setDrift] = useState<BuilderOSDrift | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
-  const [activeTab, setActiveTab] = useState<'logs' | 'details' | 'timeline' | 'patterns'>('logs');
+  const [activeTab, setActiveTab] = useState<'logs' | 'insights' | 'timeline' | 'patterns' | 'details'>('logs');
   const [showSubscription, setShowSubscription] = useState(false);
 
   // New Project Form
-  const [newProjectData, setNewProjectData] = useState({ name: '', description: '', audience: '' });
+  const [newProjectData, setNewProjectData] = useState({
+    name: '',
+    description: '',
+    audience: '',
+    current_blockers: '',
+    uncertainties: ''
+  });
 
   // Log Input
   const [logContent, setLogContent] = useState('');
@@ -62,8 +69,11 @@ export default function Dashboard() {
   // 1. Auth & Subscription Check
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Use NextAuth session instead of Supabase auth
+      const res = await fetch('/api/auth/session');
+      const session = await res.json();
+
+      if (!session?.user) {
         router.push('/login');
         return;
       }
@@ -78,11 +88,11 @@ export default function Dashboard() {
         .in('status', ['active', 'on_trial'])
         .maybeSingle();
 
-      // Uncomment for production strictness
-      // if (!sub) {
-      //   router.push('/pricing');
-      //   return;
-      // }
+      // Strict Subscription Check - redirect to pricing if no active subscription
+      if (!sub) {
+        router.push('/pricing');
+        return;
+      }
 
       await fetchProjects(session.user.id);
       fetchPatterns();
@@ -161,7 +171,7 @@ export default function Dashboard() {
       setProjects([project, ...projects]);
       setActiveProject(project);
       setShowNewProject(false);
-      setNewProjectData({ name: '', description: '', audience: '' });
+      setNewProjectData({ name: '', description: '', audience: '', current_blockers: '', uncertainties: '' });
       setLogs([]); // New project has no logs
     }
   };
@@ -196,8 +206,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
+    await signOut({ callbackUrl: '/' });
   };
 
   const getPatternIcon = (type: string) => {
@@ -274,35 +283,71 @@ export default function Dashboard() {
 
         {
           showNewProject ? (
-            <div className="flex-1 flex items-center justify-center p-6 bg-[var(--background)]" >
+            <div className="flex-1 flex items-start justify-center p-6 bg-[var(--background)] overflow-y-auto" >
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="max-w-md w-full bg-[var(--card)] p-8 rounded-xl border border-[var(--border)] shadow-2xl"
+                className="max-w-lg w-full bg-[var(--card)] p-8 rounded-xl border border-[var(--border)] shadow-2xl my-8"
               >
-                <h2 className="text-2xl font-bold mb-6">Create New Project</h2>
-                <form onSubmit={createProject} className="space-y-4">
+                <h2 className="text-2xl font-bold mb-2">Create New Project</h2>
+                <p className="text-sm text-[var(--muted)] mb-6">Tell us about what you're building so we can track your progress.</p>
+                <form onSubmit={createProject} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Project Name</label>
+                    <label className="block text-sm font-medium mb-1">Project Name <span className="text-red-400">*</span></label>
                     <input
                       required
                       value={newProjectData.name}
                       onChange={e => setNewProjectData({ ...newProjectData, name: e.target.value })}
-                      className="w-full p-2.5 rounded-md bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-1 focus:ring-[var(--foreground)]"
-                      placeholder="My AI SaaS"
+                      className="w-full p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                      placeholder="e.g., My AI SaaS, Side Project"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Goal</label>
+                    <label className="block text-sm font-medium mb-1">Current Goal <span className="text-red-400">*</span></label>
                     <input
+                      required
                       value={newProjectData.description}
                       onChange={e => setNewProjectData({ ...newProjectData, description: e.target.value })}
-                      className="w-full p-2.5 rounded-md bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-1 focus:ring-[var(--foreground)]"
-                      placeholder="Validate MVP in 2 weeks"
+                      className="w-full p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                      placeholder="e.g., Launch MVP in 2 weeks, Get 10 paying users"
+                    />
+                    <p className="text-xs text-[var(--muted)] mt-1">What are you trying to achieve with this project right now?</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Target Audience</label>
+                    <input
+                      value={newProjectData.audience}
+                      onChange={e => setNewProjectData({ ...newProjectData, audience: e.target.value })}
+                      className="w-full p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                      placeholder="e.g., Solo founders, Small agencies, Developers"
                     />
                   </div>
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="ghost" onClick={() => setShowNewProject(false)}>Cancel</Button>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Current Blockers</label>
+                    <textarea
+                      value={newProjectData.current_blockers || ''}
+                      onChange={e => setNewProjectData({ ...newProjectData, current_blockers: e.target.value })}
+                      className="w-full p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all resize-none"
+                      rows={2}
+                      placeholder="e.g., Payment integration, Marketing copy, Landing page"
+                    />
+                    <p className="text-xs text-[var(--muted)] mt-1">What's currently slowing you down or blocking progress?</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Key Uncertainties</label>
+                    <textarea
+                      value={newProjectData.uncertainties || ''}
+                      onChange={e => setNewProjectData({ ...newProjectData, uncertainties: e.target.value })}
+                      className="w-full p-3 rounded-lg bg-[var(--background)] border border-[var(--border)] outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all resize-none"
+                      rows={2}
+                      placeholder="e.g., Will users pay? Is the market big enough?"
+                    />
+                    <p className="text-xs text-[var(--muted)] mt-1">What questions do you need to answer to move forward?</p>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border)]">
+                    {projects.length > 0 && (
+                      <Button type="button" variant="ghost" onClick={() => setShowNewProject(false)}>Cancel</Button>
+                    )}
                     <Button type="submit">Create Project</Button>
                   </div>
                 </form>
@@ -320,7 +365,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex bg-[var(--card)] rounded-lg p-1 border border-[var(--border)]">
-                    {['logs', 'timeline', 'patterns', 'details'].map((tab) => (
+                    {['logs', 'insights', 'timeline', 'patterns', 'details'].map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -340,80 +385,197 @@ export default function Dashboard() {
               <div className="flex-1 overflow-y-auto p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
 
-                  {/* Builder Insight & Profile Section */}
-                  {(insight || profile || drift) && (
-                    <div className="grid gap-6">
-                      {/* Chatter Ratio Card - The Killer Feature */}
-                      <ChatterRatioCard />
-                      {insight && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] p-6 rounded-xl shadow-sm"
-                        >
-                          <div className="flex items-center gap-2 mb-3">
-                            <Sparkles className="w-4 h-4 text-purple-500" />
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]">Your Builder Insight</h3>
-                            <span className="text-[10px] text-[var(--muted)]">• Updated {new Date(insight.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                          <p className="text-lg leading-relaxed font-medium text-[var(--foreground)] opacity-90">
-                            "{insight.insight_text}"
-                          </p>
-                        </motion.div>
-                      )}
-
-                      {profile && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.1 }}
-                          className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                        >
-                          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Builder Mode</h4>
-                            <p className="text-sm font-bold text-[var(--foreground)]">{profile.builder_mode}</p>
-                          </div>
-                          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Execution Style</h4>
-                            <p className="text-sm font-bold text-[var(--foreground)]">{profile.execution_style}</p>
-                          </div>
-                          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Constraint</h4>
-                            <p className="text-sm font-bold text-red-400">{profile.friction_type}</p>
-                          </div>
-                          <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-                            <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Dominant Pattern</h4>
-                            <p className="text-sm font-bold text-blue-400 truncate" title={profile.dominant_pattern}>{profile.dominant_pattern}</p>
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {drift && drift.severity !== 'stable' && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                          className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-lg flex items-center justify-between"
-                        >
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <Activity className="w-3 h-3 text-[var(--muted)]" />
-                              <h4 className="text-[10px] uppercase font-bold text-[var(--muted)]">System Drift</h4>
-                            </div>
-                            <p className="text-sm text-[var(--foreground)]">{drift.summary}</p>
-                          </div>
-                          <span className={cn(
-                            "text-[10px] uppercase font-bold px-2 py-0.5 rounded border",
-                            drift.severity === 'major shift' ? "border-purple-500/30 text-purple-500" : "border-yellow-500/30 text-yellow-500"
-                          )}>
-                            {drift.severity}
-                          </span>
-                        </motion.div>
-                      )}
-                    </div>
-                  )}
-
                   <AnimatePresence mode="wait">
+                    {/* INSIGHTS TAB */}
+                    {activeTab === 'insights' && (
+                      <motion.div
+                        key="insights"
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                        className="space-y-6"
+                      >
+                        {/* Quick Stats Row */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {/* Logging Streak */}
+                          <div className="bg-gradient-to-br from-orange-500/10 to-yellow-500/10 p-4 rounded-xl border border-orange-500/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Zap className="w-4 h-4 text-orange-500" />
+                              <span className="text-xs text-[var(--muted)] uppercase font-bold">Streak</span>
+                            </div>
+                            <p className="text-3xl font-bold text-orange-500">
+                              {(() => {
+                                // Calculate streak
+                                const today = new Date().toISOString().split('T')[0];
+                                let streak = 0;
+                                const dates = [...new Set(logs.map(l => l.created_at.split('T')[0]))].sort().reverse();
+                                for (let i = 0; i < dates.length; i++) {
+                                  const expectedDate = new Date();
+                                  expectedDate.setDate(expectedDate.getDate() - i);
+                                  if (dates[i] === expectedDate.toISOString().split('T')[0]) {
+                                    streak++;
+                                  } else break;
+                                }
+                                return streak;
+                              })()}
+                            </p>
+                            <p className="text-xs text-[var(--muted)]">days in a row</p>
+                          </div>
+
+                          {/* Productivity Score */}
+                          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-4 rounded-xl border border-green-500/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Target className="w-4 h-4 text-green-500" />
+                              <span className="text-xs text-[var(--muted)] uppercase font-bold">Productivity</span>
+                            </div>
+                            <p className="text-3xl font-bold text-green-500">
+                              {logs.length > 0 ? Math.round((logs.filter(l => l.log_type === 'update').length / logs.length) * 100) : 0}%
+                            </p>
+                            <p className="text-xs text-[var(--muted)]">updates vs total</p>
+                          </div>
+
+                          {/* Total Logs */}
+                          <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-4 rounded-xl border border-blue-500/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <FileText className="w-4 h-4 text-blue-500" />
+                              <span className="text-xs text-[var(--muted)] uppercase font-bold">Total Logs</span>
+                            </div>
+                            <p className="text-3xl font-bold text-blue-500">{logs.length}</p>
+                            <p className="text-xs text-[var(--muted)]">entries recorded</p>
+                          </div>
+
+                          {/* Blockers Resolved */}
+                          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-4 rounded-xl border border-purple-500/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertTriangle className="w-4 h-4 text-purple-500" />
+                              <span className="text-xs text-[var(--muted)] uppercase font-bold">Blockers</span>
+                            </div>
+                            <p className="text-3xl font-bold text-purple-500">
+                              {logs.filter(l => l.log_type === 'blocker').length}
+                            </p>
+                            <p className="text-xs text-[var(--muted)]">identified</p>
+                          </div>
+                        </div>
+
+                        {/* Chatter Ratio Card */}
+                        <ChatterRatioCard />
+
+                        {/* Log Type Breakdown */}
+                        <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                          <h3 className="text-sm font-bold mb-4">Log Type Breakdown</h3>
+                          <div className="space-y-3">
+                            {['update', 'learning', 'blocker'].map(type => {
+                              const count = logs.filter(l => l.log_type === type).length;
+                              const percentage = logs.length > 0 ? (count / logs.length) * 100 : 0;
+                              const colors = {
+                                update: 'bg-green-500',
+                                learning: 'bg-blue-500',
+                                blocker: 'bg-red-500'
+                              };
+                              return (
+                                <div key={type} className="space-y-1">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="capitalize font-medium">{type}s</span>
+                                    <span className="text-[var(--muted)]">{count} ({Math.round(percentage)}%)</span>
+                                  </div>
+                                  <div className="w-full h-2 bg-[var(--background)] rounded-full overflow-hidden">
+                                    <motion.div
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${percentage}%` }}
+                                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                                      className={`h-full rounded-full ${colors[type as keyof typeof colors]}`}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Builder Insight */}
+                        {insight && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] p-6 rounded-xl shadow-sm"
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <Sparkles className="w-4 h-4 text-purple-500" />
+                              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]">AI Builder Insight</h3>
+                              <span className="text-[10px] text-[var(--muted)]">• Updated {new Date(insight.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p className="text-lg leading-relaxed font-medium text-[var(--foreground)] opacity-90">
+                              "{insight.insight_text}"
+                            </p>
+                          </motion.div>
+                        )}
+
+                        {/* Builder Profile Grid */}
+                        {profile && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                          >
+                            <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                              <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Builder Mode</h4>
+                              <p className="text-sm font-bold text-[var(--foreground)] capitalize">{profile.builder_mode?.replace('_', ' ')}</p>
+                            </div>
+                            <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                              <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Execution Style</h4>
+                              <p className="text-sm font-bold text-[var(--foreground)] capitalize">{profile.execution_style?.replace('_', ' ')}</p>
+                            </div>
+                            <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                              <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Constraint</h4>
+                              <p className="text-sm font-bold text-red-400 capitalize">{profile.friction_type?.replace('_', ' ')}</p>
+                            </div>
+                            <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                              <h4 className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Dominant Pattern</h4>
+                              <p className="text-sm font-bold text-blue-400 truncate capitalize" title={profile.dominant_pattern}>{profile.dominant_pattern?.replace('_', ' ')}</p>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* System Drift Alert */}
+                        {drift && drift.severity !== 'stable' && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-xl flex items-center justify-between"
+                          >
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Activity className="w-3 h-3 text-[var(--muted)]" />
+                                <h4 className="text-[10px] uppercase font-bold text-[var(--muted)]">System Drift Detected</h4>
+                              </div>
+                              <p className="text-sm text-[var(--foreground)]">{drift.summary}</p>
+                            </div>
+                            <span className={cn(
+                              "text-[10px] uppercase font-bold px-2 py-0.5 rounded border",
+                              drift.severity === 'major shift' ? "border-purple-500/30 text-purple-500" : "border-yellow-500/30 text-yellow-500"
+                            )}>
+                              {drift.severity}
+                            </span>
+                          </motion.div>
+                        )}
+
+                        {/* Empty State */}
+                        {logs.length === 0 && (
+                          <div className="text-center py-12 border border-dashed border-[var(--border)] rounded-xl">
+                            <Sparkles className="w-8 h-8 mx-auto mb-3 text-[var(--muted)] opacity-50" />
+                            <p className="text-[var(--muted)]">Start logging your progress to see insights!</p>
+                            <button
+                              onClick={() => setActiveTab('logs')}
+                              className="mt-4 text-sm font-medium text-[var(--foreground)] underline underline-offset-4"
+                            >
+                              Go to Logs →
+                            </button>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+
+
                     {activeTab === 'logs' && (
                       <motion.div
                         key="logs"
@@ -524,10 +686,134 @@ export default function Dashboard() {
                     )}
 
                     {activeTab === 'timeline' && (
-                      <div className="text-center py-20 opacity-50">
-                        <History className="w-12 h-12 mx-auto mb-4" />
-                        <p>Timeline visualization coming soon.</p>
-                      </div>
+                      <motion.div
+                        key="timeline"
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        className="space-y-6"
+                      >
+                        {/* Timeline Header with Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                            <p className="text-xs text-[var(--muted)] uppercase mb-1">Total Logs</p>
+                            <p className="text-2xl font-bold">{logs.length}</p>
+                          </div>
+                          <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                            <p className="text-xs text-[var(--muted)] uppercase mb-1">Updates</p>
+                            <p className="text-2xl font-bold text-green-500">{logs.filter(l => l.log_type === 'update').length}</p>
+                          </div>
+                          <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                            <p className="text-xs text-[var(--muted)] uppercase mb-1">Learnings</p>
+                            <p className="text-2xl font-bold text-blue-500">{logs.filter(l => l.log_type === 'learning').length}</p>
+                          </div>
+                          <div className="bg-[var(--card)] p-4 rounded-xl border border-[var(--border)]">
+                            <p className="text-xs text-[var(--muted)] uppercase mb-1">Blockers</p>
+                            <p className="text-2xl font-bold text-red-500">{logs.filter(l => l.log_type === 'blocker').length}</p>
+                          </div>
+                        </div>
+
+                        {/* Activity Heat Map (Last 7 Days) */}
+                        <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                          <h3 className="text-sm font-bold mb-4">Activity - Last 7 Days</h3>
+                          <div className="flex gap-2 justify-between">
+                            {Array.from({ length: 7 }, (_, i) => {
+                              const date = new Date();
+                              date.setDate(date.getDate() - (6 - i));
+                              const dateStr = date.toISOString().split('T')[0];
+                              const dayLogs = logs.filter(l => l.created_at.split('T')[0] === dateStr);
+                              const count = dayLogs.length;
+                              const intensity = count === 0 ? 'bg-[var(--background)]' :
+                                count < 2 ? 'bg-green-500/30' :
+                                  count < 4 ? 'bg-green-500/50' :
+                                    count < 6 ? 'bg-green-500/70' : 'bg-green-500';
+                              return (
+                                <div key={i} className="flex-1 text-center">
+                                  <div className={`h-12 rounded-lg ${intensity} border border-[var(--border)] flex items-center justify-center`}>
+                                    <span className="text-xs font-bold">{count}</span>
+                                  </div>
+                                  <p className="text-[10px] text-[var(--muted)] mt-1">
+                                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Visual Timeline */}
+                        <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                          <h3 className="text-sm font-bold mb-6">Log Timeline</h3>
+                          <div className="relative">
+                            {/* Center Line */}
+                            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-[var(--border)]"></div>
+
+                            {logs.length > 0 ? (
+                              <div className="space-y-4">
+                                {logs.slice(0, 15).map((log, idx) => {
+                                  const isUpdate = log.log_type === 'update';
+                                  const isLearning = log.log_type === 'learning';
+                                  const isBlocker = log.log_type === 'blocker';
+
+                                  return (
+                                    <motion.div
+                                      key={log.id}
+                                      initial={{ opacity: 0, x: -20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: idx * 0.05 }}
+                                      className="relative pl-10"
+                                    >
+                                      {/* Node */}
+                                      <div className={cn(
+                                        "absolute left-2.5 top-2 w-3 h-3 rounded-full border-2 border-[var(--background)]",
+                                        isUpdate ? "bg-green-500" :
+                                          isLearning ? "bg-blue-500" :
+                                            isBlocker ? "bg-red-500" : "bg-[var(--muted)]"
+                                      )}></div>
+
+                                      <div className={cn(
+                                        "p-4 rounded-lg border transition-all hover:border-[var(--foreground)]/30",
+                                        isBlocker ? "bg-red-500/5 border-red-500/20" :
+                                          isLearning ? "bg-blue-500/5 border-blue-500/20" :
+                                            "bg-[var(--background)] border-[var(--border)]"
+                                      )}>
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className={cn(
+                                            "text-[10px] uppercase font-bold px-2 py-0.5 rounded-full",
+                                            isUpdate ? "bg-green-500/20 text-green-500" :
+                                              isLearning ? "bg-blue-500/20 text-blue-500" :
+                                                "bg-red-500/20 text-red-500"
+                                          )}>
+                                            {log.log_type}
+                                          </span>
+                                          <span className="text-[10px] text-[var(--muted)] font-mono">
+                                            {new Date(log.created_at).toLocaleString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </span>
+                                        </div>
+                                        <p className="text-sm leading-relaxed line-clamp-2">{log.content}</p>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-center py-12 pl-10">
+                                <History className="w-8 h-8 mx-auto mb-2 text-[var(--muted)] opacity-50" />
+                                <p className="text-sm text-[var(--muted)]">No activity yet. Start logging!</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {logs.length > 15 && (
+                            <p className="text-center text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
+                              Showing 15 of {logs.length} logs. Switch to Logs tab for full list.
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
                     )}
 
                     {activeTab === 'details' && (

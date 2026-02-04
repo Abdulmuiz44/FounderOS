@@ -36,6 +36,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 if (!user || !user.password_hash) return null
 
+                // Check if email is verified
+                // Note: supabase-adapter might store it as "emailVerified" (timestamp) or we might have inconsistent casing
+                // Let's check loosely.
+                if (!user.emailVerified && !user["emailVerified"]) {
+                    console.log("Email verification failed for:", email, user);
+                    throw new Error("Email not verified")
+                }
+
                 const isValid = await compare(password, user.password_hash)
 
                 if (!isValid) return null
@@ -49,10 +57,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         })
     ],
-    adapter: SupabaseAdapter({
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    }),
+    // Adapter disabled for JWT strategy - Credentials provider doesn't work well with adapters
+    // adapter: SupabaseAdapter({
+    //     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    //     secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    // }),
     callbacks: {
         async session({ session, token }) {
             if (token && session.user) {
@@ -73,5 +82,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     pages: {
         signIn: '/login',
-    }
+    },
+    debug: true,
 })

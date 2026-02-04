@@ -13,6 +13,8 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -34,7 +36,14 @@ export default function SignUp() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // 2. Automatically sign in
+
+      // 2. Automatically sign in (ONLY if not requiring verification)
+      if (data.requireVerification) {
+        setSuccess(true);
+        setLoading(false);
+        return;
+      }
+
       const result = await signIn('credentials', {
         email,
         password,
@@ -66,6 +75,30 @@ export default function SignUp() {
   };
 
 
+
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">
+        <div className="max-w-md w-full text-center space-y-6 animate-fade-in">
+          <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
+            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13h2l2 2 4-4h6m-6 0l4-4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold">Check your email</h2>
+          <p className="text-[var(--muted)]">
+            We've sent a verification link to <span className="font-bold text-[var(--foreground)]">{email}</span>.
+            <br />Please verify your email to log in.
+          </p>
+          <Button variant="secondary" onClick={() => router.push('/login')}>
+            Back to Log In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">

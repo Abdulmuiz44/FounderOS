@@ -1,15 +1,23 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { auth } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
+
+// Use service role client for database operations
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', session.user.id)
     .order('updated_at', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -17,9 +25,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const body = await request.json();
   const { name, description, audience, current_blockers, uncertainties } = body;
@@ -27,7 +36,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('projects')
     .insert({
-      user_id: user.id,
+      user_id: session.user.id,
       name,
       description,
       audience,
@@ -40,3 +49,4 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
+

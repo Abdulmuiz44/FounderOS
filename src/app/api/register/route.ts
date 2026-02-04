@@ -29,6 +29,7 @@ export async function POST(req: Request) {
             password_hash: passwordHash,
             name: fullName,
             full_name: fullName,
+            // emailVerified: new Date().toISOString(), 
         })
 
         if (error) {
@@ -36,7 +37,16 @@ export async function POST(req: Request) {
             throw error
         }
 
-        return NextResponse.json({ success: true })
+        // Trigger verification email
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        // Fire and forget
+        fetch(`${appUrl}/api/auth/send-verification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        }).catch(err => console.error("Failed to trigger verification email:", err));
+
+        return NextResponse.json({ success: true, requireVerification: true })
 
     } catch (e: any) {
         console.error("Registration error:", e)

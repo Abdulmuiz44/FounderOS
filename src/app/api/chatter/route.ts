@@ -1,7 +1,14 @@
 // @ts-nocheck
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { auth } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 import { ChatterMetrics, BuilderModeType } from '@/types/schema_v2';
+
+// Use service role client for database operations
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Calculate builder mode based on chatter ratio
 function calculateBuilderMode(ratio: number, recentTrend: number): BuilderModeType {
@@ -15,10 +22,8 @@ function calculateBuilderMode(ratio: number, recentTrend: number): BuilderModeTy
 // GET: Fetch chatter metrics for current user
 export async function GET() {
     try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
+        const session = await auth();
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -29,26 +34,48 @@ export async function GET() {
         const { data: metrics, error } = await supabase
             .from('chatter_metrics')
             .select('*')
-            .eq('user_id', user.id)
+            .eq('user_id', session.user.id)
             .gte('session_date', sevenDaysAgo.toISOString().split('T')[0])
             .order('session_date', { ascending: false });
 
         if (error) {
             console.error('Error fetching chatter metrics:', error);
-            // Return mock data for demo purposes
-            return NextResponse.json({
-                current_ratio: 0.45,
-                weekly_average: 0.42,
-                builder_mode: 'balanced_building',
-                trend: 'stable',
-                ai_minutes_today: 45,
-                execution_minutes_today: 55,
-                top_model: 'claude-3.5',
-                warning: null
-            });
         }
 
         if (!metrics || metrics.length === 0) {
+            // Calculate from logs instead
+            const { data: logs } = await supabase
+                .from('logs')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (logs && logs.length > 0) {
+                // Calculate metrics from logs
+                const updateLogs = logs.filter((l: any) => l.log_type === 'update');
+                const blockerLogs = logs.filter((l: any) => l.log_type === 'blocker');
+                const learningLogs = logs.filter((l: any) => l.log_type === 'learning');
+
+                // Execution = updates shipped, AI time = time spent learning/researching
+                const executionScore = updateLogs.length;
+                const totalLogs = logs.length;
+                const chatterRatio = totalLogs > 0 ? (learningLogs.length) / totalLogs : 0;
+
+                const builderMode = calculateBuilderMode(chatterRatio, 0);
+
+                return NextResponse.json({
+                    current_ratio: Math.round(chatterRatio * 100) / 100,
+                    weekly_average: Math.round(chatterRatio * 100) / 100,
+                    builder_mode: builderMode,
+                    trend: 'stable',
+                    ai_minutes_today: learningLogs.length * 15, // Estimate
+                    execution_minutes_today: updateLogs.length * 30, // Estimate
+                    top_model: null,
+                    warning: chatterRatio >= 0.7 ? 'You are in a Planning Loop. Consider shipping something.' : null
+                });
+            }
+
             // Return starter data for new users
             return NextResponse.json({
                 current_ratio: 0,
@@ -63,8 +90,8 @@ export async function GET() {
         }
 
         // Calculate aggregates
-        const totalAiMinutes = metrics.reduce((sum, m) => sum + (m.ai_interaction_minutes || 0), 0);
-        const totalExecMinutes = metrics.reduce((sum, m) => sum + (m.execution_minutes || 0), 0);
+        const totalAiMinutes = metrics.reduce((sum: number, m: any) => sum + (m.ai_interaction_minutes || 0), 0);
+        const totalExecMinutes = metrics.reduce((sum: number, m: any) => sum + (m.execution_minutes || 0), 0);
         const weeklyAverage = totalAiMinutes / (totalAiMinutes + totalExecMinutes) || 0;
 
         const todayMetrics = metrics[0];
@@ -72,8 +99,8 @@ export async function GET() {
 
         // Calculate trend (compare first half vs second half of week)
         const midpoint = Math.floor(metrics.length / 2);
-        const recentAvg = metrics.slice(0, midpoint).reduce((sum, m) => sum + m.chatter_ratio, 0) / midpoint || 0;
-        const olderAvg = metrics.slice(midpoint).reduce((sum, m) => sum + m.chatter_ratio, 0) / (metrics.length - midpoint) || 0;
+        const recentAvg = metrics.slice(0, midpoint).reduce((sum: number, m: any) => sum + m.chatter_ratio, 0) / midpoint || 0;
+        const olderAvg = metrics.slice(midpoint).reduce((sum: number, m: any) => sum + m.chatter_ratio, 0) / (metrics.length - midpoint) || 0;
         const trend = recentAvg - olderAvg;
 
         const builderMode = calculateBuilderMode(currentRatio, trend);
@@ -115,10 +142,8 @@ export async function GET() {
 // POST: Log a new chatter session
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
+        const session = await auth();
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -136,7 +161,7 @@ export async function POST(request: Request) {
         const { data, error } = await supabase
             .from('chatter_metrics')
             .insert({
-                user_id: user.id,
+                user_id: session.user.id,
                 project_id,
                 ai_interaction_minutes,
                 execution_minutes,

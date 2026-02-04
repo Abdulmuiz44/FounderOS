@@ -3,3 +3,12 @@ node_modules/
 dist/
 .DS_Store
 .env.local
+.next/
+out/
+build/
+.vercel/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

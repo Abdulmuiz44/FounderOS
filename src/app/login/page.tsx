@@ -2,17 +2,21 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 
 export default function Login() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+
+  const successMessage = searchParams.get('success');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +31,14 @@ export default function Login() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        if (result.error === 'Configuration') {
+          setError("Email verification failed. Please check your email.");
+        } else {
+          setError(result.error);
+        }
         setLoading(false);
       } else {
-        router.push('/dashboard');
+        router.push('/pricing');
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -59,6 +67,12 @@ export default function Login() {
         </div>
 
         <div className="space-y-4">
+          {successMessage === 'EmailVerified' && (
+            <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-md text-sm text-green-500 text-center">
+              Email verified successfully! You can now log in.
+            </div>
+          )}
+
           <Button
             onClick={handleGoogleLogin}
             variant="secondary"
