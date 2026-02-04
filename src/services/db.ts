@@ -42,8 +42,17 @@ export async function saveBriefForUser(brief: BuilderBrief, userId: string) {
 }
 
 export async function saveBriefToDB(brief: BuilderBrief, email: string) {
-  const { data: users, error } = await getSupabase().auth.admin.listUsers();
-  if (error || !users.users) return;
-  const user = users.users.find((u: any) => u.email === email);
-  if (user) await saveBriefForUser(brief, user.id);
+  // Query the users table directly instead of using auth.admin
+  const { data: user, error } = await getSupabase()
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .single();
+
+  if (error || !user) {
+    console.error("Error finding user:", error);
+    return;
+  }
+
+  await saveBriefForUser(brief, user.id);
 }
