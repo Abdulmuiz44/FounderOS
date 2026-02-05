@@ -8,6 +8,7 @@ import { Providers } from '@/components/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: 'FounderOS – The Operating System for AI Builders',
   description: 'Track, analyze, and optimize every project with FounderOS. Paid SaaS workspace for AI builders.',
   openGraph: {

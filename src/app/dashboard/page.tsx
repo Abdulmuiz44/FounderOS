@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from 'next-auth/react';
 import {
@@ -28,7 +29,8 @@ import {
   Activity,
   Zap,
   Target,
-  AlertTriangle
+  AlertTriangle,
+  Lightbulb
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Project, Log, BuilderPattern, BuilderInsight, BuilderOSProfile, BuilderOSDrift } from '@/types/schema_v2';
@@ -81,17 +83,23 @@ export default function Dashboard() {
       setUser(session.user);
 
       // Strict Subscription Check
-      const { data: sub } = await supabase
-        .from('subscriptions')
-        .select('status')
-        .eq('user_id', session.user.id)
-        .in('status', ['active', 'on_trial'])
-        .maybeSingle();
+      const isAdmin = session.user.email === 'abdulmuizproject@gmail.com';
 
-      // Strict Subscription Check - redirect to pricing if no active subscription
-      if (!sub) {
-        router.push('/pricing');
-        return;
+      let sub = null;
+      if (!isAdmin) {
+        const { data } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', session.user.id)
+          .in('status', ['active', 'on_trial'])
+          .maybeSingle();
+        sub = data;
+
+        // Strict Subscription Check - redirect to pricing if no active subscription
+        if (!sub) {
+          router.push('/pricing');
+          return;
+        }
       }
 
       await fetchProjects(session.user.id);
@@ -232,6 +240,17 @@ export default function Dashboard() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Modules</h3>
+            <Link
+              href="/dashboard/opportunities"
+              className="w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--background)]/50 transition-colors"
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>Opportunity Intelligence</span>
+            </Link>
+          </div>
+
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Projects</h3>
