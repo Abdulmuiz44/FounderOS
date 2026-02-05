@@ -27,6 +27,15 @@ export default function Landing() {
     projects: 0
   });
 
+  const [graphData, setGraphData] = useState<Array<{ active: boolean; height: number }>>([]);
+
+  useEffect(() => {
+    setGraphData(Array(20).fill(0).map(() => ({
+      active: Math.random() > 0.5,
+      height: Math.random() * 100
+    })));
+  }, []);
+
   // Fetch real-time stats (keeping existing logic)
   useEffect(() => {
     const fetchStats = async () => {
@@ -349,8 +358,8 @@ export default function Landing() {
                 <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl relative">
                   {/* Mock contribution graph */}
                   <div className="flex items-end gap-1 h-32 mb-4 justify-between px-2">
-                    {[...Array(20)].map((_, i) => (
-                      <div key={i} className={`w-3 rounded-t ${Math.random() > 0.5 ? 'bg-green-500' : 'bg-[var(--border)]'}`} style={{ height: `${Math.random() * 100}%` }}></div>
+                    {graphData.map((d, i) => (
+                      <div key={i} className={`w-3 rounded-t ${d.active ? 'bg-green-500' : 'bg-[var(--border)]'}`} style={{ height: `${d.height}%` }}></div>
                     ))}
                   </div>
                   <div className="flex justify-between items-center border-t border-[var(--border)] pt-4">
