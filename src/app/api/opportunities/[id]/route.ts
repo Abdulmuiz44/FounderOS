@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         const opportunity = await opportunityService.getOpportunityById(id);
 
         if (!opportunity) {

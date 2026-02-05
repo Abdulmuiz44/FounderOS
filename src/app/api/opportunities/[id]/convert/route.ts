@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = params;
+        const { id } = await params;
 
         // In a real implementation:
         // 1. Fetch opportunity execution plan
