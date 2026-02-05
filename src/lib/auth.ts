@@ -1,61 +1,91 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import GitHub from "next-auth/providers/github"
 import Credentials from "next-auth/providers/credentials"
 import { SupabaseAdapter } from "@auth/supabase-adapter"
 import { compare } from "bcryptjs"
 import { createClient } from "@supabase/supabase-js"
 import { authConfig } from "./auth.config"
 
+// Initialize Supabase client for credentials lookup
+const getSupabaseClient = () => {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
     providers: [
+        // Google OAuth Provider
         Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             allowDangerousEmailAccountLinking: true,
         }),
+        // GitHub OAuth Provider - for build tracking
+        GitHub({
+            clientId: process.env.GITHUB_CLIENT_ID!,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+            allowDangerousEmailAccountLinking: true,
+            authorization: {
+                params: {
+                    scope: 'read:user user:email repo',
+                }
+            }
+        }),
+        // Email/Password Credentials Provider
         Credentials({
-            name: "Credentials",
+            id: "credentials",
+            name: "Email & Password",
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" }
             },
             authorize: async (credentials) => {
-                if (!credentials?.email || !credentials?.password) return null
+                if (!credentials?.email || !credentials?.password) {
+                    return null
+                }
 
                 const email = credentials.email as string
                 const password = credentials.password as string
 
-                const supabase = createClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.SUPABASE_SERVICE_ROLE_KEY!
-                )
+                try {
+                    const supabase = getSupabaseClient()
 
-                const { data: user } = await supabase
-                    .from("users")
-                    .select("*")
-                    .eq("email", email)
-                    .single()
+                    const { data: user, error } = await supabase
+                        .from("users")
+                        .select("*")
+                        .eq("email", email.toLowerCase())
+                        .single()
 
-                if (!user || !user.password_hash) return null
+                    if (error || !user) {
+                        console.log("User not found:", email)
+                        return null
+                    }
 
-                // Check if email is verified
-                // Note: supabase-adapter might store it as "emailVerified" (timestamp) or we might have inconsistent casing
-                // Let's check loosely.
-                if (!user.emailVerified && !user["emailVerified"]) {
-                    console.log("Email verification failed for:", email, user);
-                    // throw new Error("Email not verified") // Optional: strictly enforce
-                }
+                    if (!user.password_hash) {
+                        console.log("No password set for user:", email)
+                        return null
+                    }
 
-                const isValid = await compare(password, user.password_hash)
+                    const isValid = await compare(password, user.password_hash)
 
-                if (!isValid) return null
+                    if (!isValid) {
+                        console.log("Invalid password for user:", email)
+                        return null
+                    }
 
-                return {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name || user.full_name,
-                    image: user.image || user.avatar_url,
+                    return {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name || user.full_name,
+                        image: user.image || user.avatar_url,
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error)
+                    return null
                 }
             }
         })
@@ -64,5 +94,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
         secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     }),
-    debug: true,
+    debug: process.env.NODE_ENV === 'development',
 })
