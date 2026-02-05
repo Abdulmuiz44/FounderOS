@@ -1,7 +1,7 @@
 import { FounderProfile } from '../types';
 
 export const PROMPTS = {
-    GENERATE_OPPORTUNITIES: (profile: FounderProfile) => `
+  GENERATE_OPPORTUNITIES: (profile: FounderProfile) => `
     Generate 3 unique, viable, and high-potential micro-SaaS or niche startup opportunities based on this founder's profile.
     
     # Founder Profile
@@ -11,6 +11,12 @@ export const PROMPTS = {
     - Time Available: ${profile.hoursPerWeek} hours/week
     - Location: ${profile.location}
     - Preference: ${profile.preference}
+    - Business Model Preference: ${profile.businessModelPreference || 'Any'}
+    - Revenue Goal: ${profile.revenueGoal || 'Not specified'}
+    - Key Problem Space/Industry: ${profile.problemSpace || 'General'}
+    - Unfair Advantage/Expertise: ${profile.unfairAdvantage || 'None specified'}
+    - Daily Frustrations (Personal Pain): ${profile.dailyFrustrations || 'None specified'}
+    - Recent Trends/Excitement (Why Now): ${profile.recentExcitement || 'None specified'}
 
     # Output Format
     Return a JSON array where each object has:
@@ -22,7 +28,7 @@ export const PROMPTS = {
     - buyerPersona: string (Who writes the check)
   `,
 
-    VALIDATE_OPPORTUNITY: (opportunity: any) => `
+  VALIDATE_OPPORTUNITY: (opportunity: any) => `
     Act as a relentless Venture Capital Validator. Analyze this startup opportunity and provide a brutal, honest scoring.
     
     # Opportunity
@@ -57,7 +63,7 @@ export const PROMPTS = {
     }
   `,
 
-    MONETIZATION_MAP: (opportunity: any) => `
+  MONETIZATION_MAP: (opportunity: any) => `
     Act as a Chief Revenue Officer. Design the optimal monetization strategy for this business.
     
     # Opportunity
@@ -73,7 +79,7 @@ export const PROMPTS = {
     }
   `,
 
-    EXECUTION_PLAN: (opportunity: any) => `
+  EXECUTION_PLAN: (opportunity: any) => `
     Act as a CTO and Product Manager. Create a step-by-step execution plan to reach MVP.
     
     # Opportunity

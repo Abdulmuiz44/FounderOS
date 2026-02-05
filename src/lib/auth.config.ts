@@ -34,8 +34,10 @@ export const authConfig = {
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.id = token.sub as string
-                // @ts-ignore - add github username if available
+                // @ts-ignore
                 session.user.githubUsername = token.githubUsername
+                // @ts-ignore
+                session.accessToken = token.accessToken
             }
             return session
         },
@@ -43,10 +45,15 @@ export const authConfig = {
             if (user) {
                 token.sub = user.id
             }
-            // Store GitHub username for build tracking
-            if (account?.provider === 'github' && profile) {
-                // @ts-ignore
-                token.githubUsername = profile.login
+            // Store GitHub username and access token
+            if (account?.provider === 'github') {
+                if (profile) {
+                    // @ts-ignore
+                    token.githubUsername = profile.login
+                }
+                if (account.access_token) {
+                    token.accessToken = account.access_token
+                }
             }
             return token
         },

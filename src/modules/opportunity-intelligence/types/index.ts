@@ -72,4 +72,10 @@ export interface FounderProfile {
     hoursPerWeek: number;
     location: string;
     preference: 'B2B' | 'B2C' | 'BOTH';
+    unfairAdvantage?: string;
+    problemSpace?: string;
+    revenueGoal?: string;
+    businessModelPreference?: string;
+    dailyFrustrations?: string;
+    recentExcitement?: string;
 }
