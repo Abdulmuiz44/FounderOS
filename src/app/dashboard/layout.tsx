@@ -1,4 +1,5 @@
-// Force dynamic rendering for all dashboard pages
+import { AppSidebar } from '@/components/dashboard/AppSidebar';
+
 export const dynamic = 'force-dynamic';
 
 export default function DashboardLayout({
@@ -6,5 +7,13 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <div className="flex min-h-screen bg-[var(--background)]">
+      <AppSidebar />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Mobile Header could go here or inside pages */}
+        {children}
+      </div>
+    </div>
+  );
 }

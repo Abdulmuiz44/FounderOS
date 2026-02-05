@@ -6,6 +6,31 @@ export const authConfig = {
         error: '/login',
     },
     callbacks: {
+        authorized({ auth, request: { nextUrl } }) {
+            const isLoggedIn = !!auth?.user
+            const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
+            const isPricing = nextUrl.pathname === '/pricing'
+
+            // Public routes
+            if (nextUrl.pathname === '/' ||
+                nextUrl.pathname.startsWith('/blog') ||
+                nextUrl.pathname === '/about' ||
+                nextUrl.pathname === '/terms' ||
+                nextUrl.pathname === '/privacy' ||
+                nextUrl.pathname === '/login' ||
+                nextUrl.pathname === '/signup') {
+                return true
+            }
+
+            // Must be logged in for pricing and dashboard
+            if (isPricing || isOnDashboard) {
+                if (isLoggedIn) return true
+                return false // Redirect to login
+            }
+
+            // Default allow for other routes (like api) unless specified
+            return true
+        },
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.id = token.sub as string
