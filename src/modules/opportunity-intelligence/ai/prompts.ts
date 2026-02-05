@@ -97,5 +97,29 @@ export const PROMPTS = {
         { "step": "string", "channel": "string", "timeline": "Week 1-2" }
       ]
     }
+  `,
+
+  MOM_TEST_SCRIPT: (opportunity: any) => `
+    Act as an expert user researcher following "The Mom Test" methodology. Generate a user interview script to validate this opportunity.
+    
+    # Opportunity
+    Title: ${opportunity.title}
+    Problem: ${opportunity.problem_statement}
+    Target Audience: ${opportunity.target_niche}
+    
+    # Rules
+    1. Do NOT ask "Would you use this?" (that's a bad question).
+    2. Focus on past behaviors and specific examples.
+    3. Uncover the "pain" and "workarounds".
+    4. Keep questions conversational.
+
+    # Output Format (JSON)
+    {
+      "screenerQuestions": ["string", "string"],
+      "deepDiveQuestions": [
+        { "question": "string", "goal": "What we want to learn" }
+      ],
+      "redFlags": ["string" (e.g. "If they say X, they are not a customer")]
+    }
   `
 };

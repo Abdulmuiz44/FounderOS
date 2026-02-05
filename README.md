@@ -1,21 +1,62 @@
-# FounderOS
+# FounderOS 🚀
 
-The operating system for AI builders to track, analyze, and optimize every project. Stop building in chaos.
+**Don't just build. Build the right thing.**
 
-## Vercel Deployment Instructions
+FounderOS is the operating system for founders who want to stop wasting time on dead-end ideas. It flips the script from "Build -> Launch -> Fail" to "Generate -> Validate -> Execute".
 
-If your deployment fails with "No Output Directory named 'public' found", it means Vercel didn't automatically detect this as a Next.js project.
+## 🌟 Core Philosophy: Validate First
 
-**To Fix:**
-1. Go to your **Vercel Project Settings**.
-2. Under **Build & Development Settings**:
-3. Change **Framework Preset** to **Next.js**.
-4. Save and **Redeploy**.
+Most founders fail because they build something nobody wants. FounderOS forces you to:
+1.  **Generate** high-potential ideas based on your unique "Founder DNA" & Unfair Advantages.
+2.  **Validate** demand, competition, and monetization *before* writing a single line of code.
+3.  **Execute** with focus, tracking real code progress via GitHub integration.
 
-## Environment Variables
-Ensure these are set in Vercel:
-- `GA_PROPERTY_ID`
-- `HUBSPOT_ACCESS_TOKEN`
-- `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`
-- `FOUNDER_EMAIL`
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+## ✨ Key Features
+
+### 🧠 AI Idea Lab
+*   **Founder DNA Profiling:** Deep-dive questionnaire to uncover your daily frustrations, unfair advantages, and market insights.
+*   **Smart Generation:** AI generates tailored micro-SaaS and niche startup opportunities that fit *you*.
+*   **Opportunity Scoring:** Automatic analysis of potential ideas based on Demand, Competition, and Founder Fit.
+
+### ✅ Validation Workspace
+*   **Opportunity Analysis:** Structured breakdown of Problem, Solution, and "Why Now".
+*   **Go-to-Market Plans:** AI-generated roadmaps to get your first customers.
+
+### 🛠 Execution Dashboard
+*   **GitHub Integration:** Link your repositories to track real commit activity.
+*   **Project Tracking:** Move from "Idea" to "Building" to "Launched" with clear milestones.
+
+## 🛠 Tech Stack
+*   **Framework:** Next.js 14 (App Router)
+*   **Database:** Supabase (PostgreSQL + Auth)
+*   **Styling:** Tailwind CSS + Lucide Icons
+*   **Auth:** NextAuth (Google + GitHub)
+*   **AI:** OpenAI Integration
+
+## 🚀 Getting Started
+
+1.  **Clone the repo:**
+    ```bash
+    git clone https://github.com/StartUp-OS/FounderOS.git
+    ```
+2.  **Install dependencies:**
+    ```bash
+    pnpm install
+    ```
+3.  **Set up Environment Variables:**
+    Create a `.env.local` file with:
+    *   `NEXT_PUBLIC_SUPABASE_URL` & `SUPABASE_SERVICE_ROLE_KEY`
+    *   `GITHUB_ID` & `GITHUB_SECRET`
+    *   `OPENAI_API_KEY`
+4.  **Run the development server:**
+    ```bash
+    pnpm dev
+    ```
+
+## 📦 Deployment
+
+Deploy easily on Vercel. Ensure you select **Next.js** as the framework and set all environment variables in the Vercel dashboard.
+
+---
+
+*Built for builders who value their time.*

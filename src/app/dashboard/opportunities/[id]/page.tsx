@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle, BarChart3, ChevronRight, Play, ArrowLeft } from 'lucide-react';
-import { Opportunity, OpportunityScore, ExecutionPlan, MonetizationMap } from '@/modules/opportunity-intelligence/types';
+import { Opportunity, OpportunityScore, ExecutionPlan, MonetizationMap, MomTestScript } from '@/modules/opportunity-intelligence/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
@@ -15,6 +15,8 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
     const [loading, setLoading] = useState(true);
     const [validating, setValidating] = useState(false);
     const [converting, setConverting] = useState(false);
+    const [momScript, setMomScript] = useState<MomTestScript | null>(null);
+    const [generatingScript, setGeneratingScript] = useState(false);
 
     useEffect(() => {
         fetch(`/api/opportunities/${id}`)
@@ -63,6 +65,21 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
             console.error(e);
         } finally {
             setConverting(false);
+        }
+    };
+
+    const handleGenerateScript = async () => {
+        setGeneratingScript(true);
+        try {
+            const res = await fetch(`/api/opportunities/${id}/mom-test`, { method: 'POST' });
+            const data = await res.json();
+            if (data.script) {
+                setMomScript(data.script);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setGeneratingScript(false);
         }
     };
 
@@ -139,6 +156,49 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                                     <p className="text-sm font-medium text-[var(--foreground)] leading-relaxed">{opportunity.market_gap}</p>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Mom Test Tools */}
+                        <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                            <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+                                <span className="bg-pink-500 w-1 h-4 rounded-full"></span>
+                                The Mom Test Helper
+                            </h3>
+                            <p className="text-sm text-[var(--muted)] mb-4">
+                                Generate non-leading interview questions to validate if this problem is real.
+                            </p>
+                            {!momScript ? (
+                                <Button
+                                    onClick={handleGenerateScript}
+                                    disabled={generatingScript}
+                                    className="w-full bg-pink-500 hover:bg-pink-600 text-white"
+                                >
+                                    {generatingScript ? <Loader2 className="animate-spin w-4 h-4" /> : 'Generate Script'}
+                                </Button>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div>
+                                        <span className="text-xs font-bold uppercase text-[var(--muted)]">Screener</span>
+                                        <ul className="list-disc pl-4 text-sm mt-1 space-y-1">
+                                            {momScript.screenerQuestions.map((q: string, i: number) => (
+                                                <li key={i}>{q}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="w-full h-px bg-[var(--border)]"></div>
+                                    <div>
+                                        <span className="text-xs font-bold uppercase text-[var(--muted)]">Deep Dive</span>
+                                        <div className="space-y-3 mt-2">
+                                            {momScript.deepDiveQuestions.map((q: any, i: number) => (
+                                                <div key={i} className="bg-[var(--background)] p-3 rounded border border-[var(--border)]">
+                                                    <p className="text-sm font-medium">{q.question}</p>
+                                                    <p className="text-xs text-[var(--muted)] italic mt-1">Goal: {q.goal}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

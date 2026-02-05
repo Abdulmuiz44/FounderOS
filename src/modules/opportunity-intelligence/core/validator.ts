@@ -1,6 +1,6 @@
 import { aiClient } from '../ai/providers';
 import { PROMPTS } from '../ai/prompts';
-import { Opportunity, OpportunityScore } from '../types';
+import { Opportunity, OpportunityScore, MomTestScript } from '../types';
 
 export const validator = {
     async validate(opportunity: Opportunity): Promise<Omit<OpportunityScore, 'id' | 'opportunity_id' | 'created_at'>> {
@@ -26,5 +26,11 @@ export const validator = {
             ), // Custom weighting override or use result.weightedAverage if robust
             analysis: result.analysis
         };
+    },
+
+    async generateMomTestScript(opportunity: Opportunity): Promise<MomTestScript> {
+        const prompt = PROMPTS.MOM_TEST_SCRIPT(opportunity);
+        const result = await aiClient.generateJSON<MomTestScript>(prompt, 'You are an expert user researcher.');
+        return result;
     }
 };

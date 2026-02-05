@@ -79,3 +79,12 @@ export interface FounderProfile {
     dailyFrustrations?: string;
     recentExcitement?: string;
 }
+
+export interface MomTestScript {
+    screenerQuestions: string[];
+    deepDiveQuestions: {
+        question: string;
+        goal: string;
+    }[];
+    redFlags: string[];
+}
