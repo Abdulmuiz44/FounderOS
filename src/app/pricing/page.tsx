@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
-import { Check, Shield, Zap, Loader2 } from 'lucide-react';
+import { Check, Shield, Zap, Loader2, Info, Lightbulb, GitCommit } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
@@ -29,7 +29,6 @@ export default function PricingPage() {
           .maybeSingle();
 
         if (sub) {
-          // User already has subscription, go to dashboard
           router.push('/dashboard');
           return;
         }
@@ -69,40 +68,43 @@ export default function PricingPage() {
 
   const plans = [
     {
-      name: "Starter",
+      name: "Validator",
       id: "starter",
       price: "12",
-      description: "For solo builders just starting.",
+      description: "Stop guessing. Validate your ideas before you build.",
+      icon: Lightbulb,
       variantId: process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_STARTER,
       features: [
-        "Up to 3 Active Projects",
-        "Unlimited Builder Logs",
-        "Basic Pattern Detection",
-        "Timeline History"
+        "Unlimited Idea Generation",
+        "Basic Market Validation Reports",
+        "Competitor Analysis",
+        "5 Active Projects",
+        "Community Access"
       ],
-      cta: "Start 7-Day Free Trial",
-      trialNote: "No charge for 7 days",
+      cta: "Start Validator Trial",
+      trialNote: "7 days free, then $12/mo",
     },
     {
-      name: "Pro",
+      name: "Builder",
       id: "pro",
       price: "29",
-      description: "For serious builders shipping daily.",
+      description: "For founders ready to execute and ship at speed.",
       popular: true,
+      icon: GitCommit,
       variantId: process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_PRO,
       features: [
+        "Everything in Validator",
+        "Deep Market Intelligence",
+        "GitHub Activity Tracking",
+        "Velocity & Streak Analytics",
         "Unlimited Projects",
-        "Advanced AI Insights",
-        "System Drift Tracking",
-        "Full OS Profile Analysis",
-        "Data Export (CSV/JSON)"
+        "Priority Support"
       ],
-      cta: "Start 7-Day Free Trial",
-      trialNote: "No charge for 7 days",
+      cta: "Start Builder Trial",
+      trialNote: "7 days free, then $29/mo",
     }
   ];
 
-  // Show loading while checking subscription
   if (checkingSubscription) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
@@ -112,93 +114,106 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6">
-      <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-5xl mx-auto w-full z-50">
+    <div className="min-h-screen bg-[var(--background)] selection:bg-[var(--foreground)] selection:text-[var(--background)]">
+
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-6xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-md">
         <Link href="/" className="font-bold text-lg tracking-tight">FounderOS</Link>
         <div className="flex items-center gap-4">
-          <span className="text-xs font-medium bg-[var(--card)] px-3 py-1 rounded-full border border-[var(--border)] text-[var(--muted)]">
-            Secure Checkout
-          </span>
+          <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">Log In</Link>
+          <Link href="/signup">
+            <Button size="sm">Get Started</Button>
+          </Link>
         </div>
       </nav>
 
-      <div className="text-center mb-16 mt-20 max-w-lg">
-        <h1 className="text-4xl font-bold mb-4">Invest in your system.</h1>
-        <p className="text-[var(--muted)] text-lg">
-          FounderOS is a paid tool because we are aligned with your success, not your data.
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full">
-        {plans.map((plan, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className={`bg-[var(--card)] border rounded-2xl p-8 shadow-xl flex flex-col relative ${plan.popular ? 'border-[var(--foreground)]' : 'border-[var(--border)]'}`}
-          >
-            {plan.popular && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--foreground)] text-[var(--background)] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Most Popular
-              </div>
-            )}
-
-            <div className="text-center mb-8">
-              <h2 className="text-xl font-bold mb-2">{plan.name}</h2>
-              <p className="text-xs text-[var(--muted)] mb-6">{plan.description}</p>
-              <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-2 mb-4">
-                <span className="text-sm font-medium text-green-500">7 days free</span>
-              </div>
-              <div className="flex justify-center items-baseline gap-1">
-                <span className="text-sm text-[var(--muted)]">then</span>
-                <span className="text-4xl font-bold">${plan.price}</span>
-                <span className="text-[var(--muted)]">/mo</span>
-              </div>
-            </div>
-
-            <ul className="space-y-4 mb-8 flex-1">
-              {plan.features.map((feature, j) => (
-                <li key={j} className="flex items-center gap-3 text-sm">
-                  <Check className="w-4 h-4 text-[var(--foreground)]" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-
-            <Button
-              className={`w-full h-12 text-base ${plan.popular ? 'shadow-lg hover:shadow-xl' : ''}`}
-              variant={plan.popular ? 'primary' : 'secondary'}
-              onClick={() => {
-                if (plan.variantId) {
-                  handleCheckout(plan.variantId, plan.name);
-                } else {
-                  alert('Checkout not configured for this plan yet.');
-                }
-              }}
-              disabled={loading === plan.name}
-            >
-              {loading === plan.name ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                plan.cta
-              )}
-            </Button>
-            <p className="text-xs text-center text-[var(--muted)] mt-3">
-              {plan.trialNote} • Cancel anytime
-            </p>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="flex flex-col items-center gap-4 mt-12">
-        <div className="flex items-center gap-6 text-xs text-[var(--muted)] opacity-60">
-          <span className="flex items-center gap-2"><Shield className="w-3 h-3" /> Secure Payment</span>
-          <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Instant Access</span>
+      <div className="pt-32 pb-20 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-16 max-w-2xl mx-auto space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold">Invest in clarity.</h1>
+          <p className="text-[var(--muted)] text-xl leading-relaxed">
+            The cost of building the wrong thing is months of your life. <br className="hidden md:block" />
+            The cost of validating it first is less than a lunch.
+          </p>
         </div>
-        <p className="text-xs text-[var(--muted)] opacity-50 text-center max-w-md">
-          Try FounderOS free for 7 days. Your card won't be charged until the trial ends. Cancel anytime before to avoid charges.
-        </p>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {plans.map((plan, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className={`bg-[var(--card)] border rounded-3xl p-8 shadow-xl flex flex-col relative overflow-hidden group ${plan.popular ? 'border-violet-500/50 ring-2 ring-violet-500/10' : 'border-[var(--border)]'}`}
+            >
+              {plan.popular && (
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-violet-500"></div>
+              )}
+
+              <div className="mb-8">
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${plan.popular ? 'bg-violet-500/10 text-violet-500' : 'bg-[var(--foreground)]/5 text-[var(--foreground)]'}`}>
+                    <plan.icon className="w-6 h-6" />
+                  </div>
+                  {plan.popular && <span className="bg-violet-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Popular</span>}
+                </div>
+
+                <h2 className="text-2xl font-bold mb-2">{plan.name}</h2>
+                <p className="text-sm text-[var(--muted)] h-10">{plan.description}</p>
+
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-bold">${plan.price}</span>
+                  <span className="text-[var(--muted)]">/mo</span>
+                </div>
+              </div>
+
+              <div className="border-t border-[var(--border)] pt-8 mb-8 flex-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-4">WHAT'S INCLUDED</p>
+                <ul className="space-y-4">
+                  {plan.features.map((feature, j) => (
+                    <li key={j} className="flex items-center gap-3 text-sm">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.popular ? 'bg-green-500/20 text-green-600' : 'bg-[var(--muted)]/20 text-[var(--muted)]'}`}>
+                        <Check className="w-3 h-3" />
+                      </div>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <Button
+                className={`w-full h-12 text-base rounded-xl transition-all ${plan.popular ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg hover:shadow-violet-500/25' : ''}`}
+                variant={plan.popular ? 'primary' : 'secondary'}
+                onClick={() => {
+                  if (plan.variantId) {
+                    handleCheckout(plan.variantId, plan.name);
+                  } else {
+                    alert('Checkout not configured for this plan yet.');
+                  }
+                }}
+                disabled={loading === plan.name}
+              >
+                {loading === plan.name ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  plan.cta
+                )}
+              </Button>
+              <p className="text-xs text-center text-[var(--muted)] mt-4 flex items-center justify-center gap-1">
+                <Info className="w-3 h-3" /> {plan.trialNote}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="flex flex-col items-center gap-4 mt-16 pb-10">
+          <div className="flex items-center gap-6 text-xs text-[var(--muted)] opacity-60">
+            <span className="flex items-center gap-2"><Shield className="w-3 h-3" /> SSL Encrypted Payment</span>
+            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Instant Access</span>
+          </div>
+          <p className="text-xs text-[var(--muted)] opacity-50 text-center max-w-md">
+            All plans come with a 7-day free trial. You won't be charged until the trial ends.
+          </p>
+        </div>
       </div>
     </div>
   );

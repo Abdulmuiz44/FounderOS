@@ -2,7 +2,7 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   className?: string;
@@ -29,7 +29,8 @@ export function Button({
   const variants = {
     primary: "bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-90 shadow-sm",
     secondary: "bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--background)]",
-    ghost: "bg-transparent text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
+    ghost: "bg-transparent text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--card)]",
+    outline: "bg-transparent border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]/10"
   };
 
   return (

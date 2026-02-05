@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,22 +8,16 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/Footer';
 import {
   ArrowRight,
-  Activity,
-  Target,
-  TrendingUp,
-  Sparkles,
-  GitCommit,
-  Shield,
-  Clock,
   CheckCircle2,
-  Brain,
-  BarChart3,
-  AlertTriangle,
-  Zap,
-  FileText,
-  Eye,
   Lightbulb,
-  Play
+  Target,
+  BarChart3,
+  GitCommit,
+  XCircle,
+  Search,
+  Zap,
+  Shield,
+  Layers
 } from 'lucide-react';
 
 export default function Landing() {
@@ -34,7 +27,7 @@ export default function Landing() {
     projects: 0
   });
 
-  // Fetch real-time stats from Supabase
+  // Fetch real-time stats (keeping existing logic)
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -48,10 +41,17 @@ export default function Landing() {
       }
     };
     fetchStats();
-    // Refresh stats every 30 seconds
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Format number
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}k+`;
+    }
+    return num > 0 ? `${num}+` : '0';
+  };
 
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -63,26 +63,28 @@ export default function Landing() {
     animate: { transition: { staggerChildren: 0.1 } }
   };
 
-  // Format number with + suffix for display
-  const formatNumber = (num: number) => {
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}k+`;
-    }
-    return num > 0 ? `${num}+` : '0';
-  };
-
   return (
-    <div className="min-h-screen bg-[var(--background)] selection:bg-[var(--foreground)] selection:text-[var(--background)] overflow-hidden">
+    <div className="min-h-screen bg-[var(--background)] selection:bg-[var(--foreground)] selection:text-[var(--background)] overflow-hidden font-sans">
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-5xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-sm border-b border-[var(--border)]/50 md:border-transparent">
-        <span className="font-bold text-lg tracking-tight">FounderOS</span>
-        <div className="flex items-center gap-4 md:gap-6">
-          <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+      <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-6xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]/50 md:border-transparent transition-all">
+        <Link href="/" className="font-bold text-xl tracking-tighter flex items-center gap-2">
+          <div className="w-8 h-8 bg-[var(--foreground)] text-[var(--background)] rounded-lg flex items-center justify-center">
+            <Layers className="w-5 h-5" />
+          </div>
+          FounderOS
+        </Link>
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+          <Link href="#features" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">Features</Link>
+          <Link href="#how-it-works" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">How it Works</Link>
+          <Link href="/pricing" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">Pricing</Link>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors hidden sm:block">
             Log In
           </Link>
           <Link href="/signup">
-            <Button variant="primary" className="h-9 text-xs px-4">Start Free Trial</Button>
+            <Button variant="primary" className="h-10 px-5 text-sm font-semibold shadow-lg shadow-blue-500/20">Start Free Trial</Button>
           </Link>
           <div className="hidden md:block">
             <ThemeToggle />
@@ -91,444 +93,315 @@ export default function Landing() {
       </nav>
 
       <main>
-
-        {/* Hero Section - Problem + Solution */}
+        {/* Hero Section */}
         <motion.section
           initial="initial"
           animate="animate"
           variants={stagger}
-          className="pt-40 pb-20 md:pt-48 md:pb-32 px-6 max-w-5xl mx-auto text-center space-y-8"
+          className="pt-40 pb-20 md:pt-52 md:pb-32 px-6 max-w-5xl mx-auto text-center space-y-8 relative"
         >
-          {/* Badge */}
-          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2">
-            <Sparkles className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium text-green-500">7-Day Free Trial • No Credit Card Required</span>
+          {/* Background decoration */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] -z-10 opacity-50 dark:opacity-20 pointer-events-none" />
+
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-4 py-1.5 shadow-sm">
+            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="text-xs font-medium text-[var(--muted)]">New: Validation Intelligence Engine</span>
           </motion.div>
 
-          <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            Stop wondering where
+          <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05]">
+            Don't just build.
             <br />
-            <span className="text-[var(--muted)]">your time goes.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400">Build the right thing.</span>
           </motion.h1>
 
-          <motion.p variants={fadeInUp} className="text-lg md:text-xl text-[var(--muted)] font-light leading-relaxed max-w-2xl mx-auto">
-            FounderOS automatically tracks your building activity, detects productivity patterns, and shows you <strong className="text-[var(--foreground)]">exactly what's working</strong> — so you can ship faster.
+          <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-[var(--muted)] font-light leading-relaxed max-w-3xl mx-auto">
+            Stop wasting months on dead-end ideas. <strong className="text-[var(--foreground)]">Generate</strong> startup concepts, <strong className="text-[var(--foreground)]">validate</strong> their market potential with AI, and then <strong className="text-[var(--foreground)]">track</strong> your execution with clarity.
           </motion.p>
 
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
             <Link href="/signup">
-              <Button className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-xl transition-all w-full sm:w-auto">
-                Start Building Smarter <ArrowRight className="ml-2 w-5 h-5" />
+              <Button className="h-14 px-8 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all w-full sm:w-auto bg-[var(--foreground)] text-[var(--background)] hover:bg-[var(--foreground)]/90">
+                Validate Your Idea Free <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <span className="text-sm text-[var(--muted)]">Free for 7 days, then $12/mo</span>
+            <Link href="#how-it-works">
+              <Button variant="secondary" className="h-14 px-8 text-lg rounded-full w-full sm:w-auto bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--secondary)]">
+                How it Works
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Social Proof Stats */}
+          <motion.div variants={fadeInUp} className="pt-16 grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 max-w-2xl mx-auto opacity-70">
+            <div className="text-center">
+              <p className="text-3xl font-bold tabular-nums">{formatNumber(stats.users)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Founders</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold tabular-nums">{formatNumber(stats.projects)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Ideas Validated</p>
+            </div>
+            <div className="text-center hidden md:block">
+              <p className="text-3xl font-bold tabular-nums">{formatNumber(stats.logs)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Build Logs</p>
+            </div>
           </motion.div>
         </motion.section>
 
-        {/* Social Proof Bar - Live Stats */}
-        <section className="py-8 border-y border-[var(--border)] bg-[var(--card)]">
-          <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 md:gap-16">
-            <div className="text-center">
-              <p className="text-2xl font-bold tabular-nums">{formatNumber(stats.users)}</p>
-              <p className="text-xs text-[var(--muted)]">Solo Founders</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold tabular-nums">{formatNumber(stats.logs)}</p>
-              <p className="text-xs text-[var(--muted)]">Logs Tracked</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold tabular-nums">{formatNumber(stats.projects)}</p>
-              <p className="text-xs text-[var(--muted)]">Projects Created</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <p className="text-xs text-green-500 font-medium">Live</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Problem Section */}
-        <section className="py-24 px-6 max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-4">The Problem</h2>
-            <p className="text-3xl md:text-4xl font-bold mb-6">You're working hard but not seeing results.</p>
-            <p className="text-lg text-[var(--muted)] max-w-2xl mx-auto">
-              Sound familiar? You spend hours "building" but can't point to what you shipped. You're stuck in planning loops. You don't know if you're making progress.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: AlertTriangle, title: "Planning Paralysis", desc: "You plan the perfect feature, then replan, then plan again... but never ship." },
-              { icon: Clock, title: "Time Blindness", desc: "Hours disappear into 'research' and 'tweaking'. You can't account for where your time went." },
-              { icon: Activity, title: "Invisible Burnout", desc: "You're exhausted but the progress doesn't match. Are you even moving forward?" }
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-red-500/5 border border-red-500/20 rounded-xl p-6"
-              >
-                <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center mb-4">
-                  <item.icon className="w-5 h-5 text-red-500" />
-                </div>
-                <h3 className="font-bold mb-2">{item.title}</h3>
-                <p className="text-sm text-[var(--muted)]">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Solution Section */}
+        {/* The Problem: The "Build Trap" */}
         <section className="py-24 px-6 bg-[var(--card)] border-y border-[var(--border)]">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-green-500 mb-4">The Solution</h2>
-            <p className="text-3xl md:text-4xl font-bold mb-6">FounderOS: Your personal productivity mirror.</p>
-            <p className="text-lg text-[var(--muted)] max-w-2xl mx-auto">
-              See exactly what you're doing, identify your patterns, and optimize your building process with AI-powered insights.
-            </p>
-          </div>
-
-          {/* Dashboard Preview */}
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-[var(--background)] rounded-2xl border border-[var(--border)] shadow-2xl overflow-hidden"
-            >
-              {/* Mock Dashboard Header */}
-              <div className="border-b border-[var(--border)] p-4 flex items-center gap-3">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
-                </div>
-                <div className="flex-1 bg-[var(--card)] rounded-lg h-6 max-w-md mx-auto flex items-center justify-center">
-                  <span className="text-xs text-[var(--muted)]">app.founderos.io/dashboard</span>
-                </div>
-              </div>
-
-              {/* Mock Dashboard Content */}
-              <div className="p-6 md:p-8 grid md:grid-cols-12 gap-6">
-                {/* Sidebar */}
-                <div className="md:col-span-3 space-y-4">
-                  <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-                    <p className="text-xs font-bold text-[var(--muted)] mb-3">YOUR PROJECTS</p>
-                    <div className="space-y-2">
-                      <div className="bg-[var(--foreground)]/10 rounded px-3 py-2 text-sm font-medium">🚀 My SaaS App</div>
-                      <div className="rounded px-3 py-2 text-sm text-[var(--muted)]">📱 Side Project</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="md:col-span-9 space-y-6">
-                  {/* Insight Card */}
-                  <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-4 h-4 text-purple-500" />
-                      <span className="text-xs font-bold text-purple-500">AI INSIGHT</span>
-                    </div>
-                    <p className="text-lg font-medium">"You've shipped 3 features this week, up from 1 last week. Your momentum is building — keep this streak going!"</p>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { label: "Builder Mode", value: "Deep Focus", color: "text-blue-500" },
-                      { label: "This Week", value: "23 logs", color: "text-green-500" },
-                      { label: "Chatter Ratio", value: "32%", color: "text-yellow-500" },
-                      { label: "System Drift", value: "Stable", color: "text-green-500" }
-                    ].map((stat, i) => (
-                      <div key={i} className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-                        <p className="text-[10px] font-bold text-[var(--muted)] uppercase">{stat.label}</p>
-                        <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Recent Logs */}
-                  <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-                    <p className="text-xs font-bold text-[var(--muted)] mb-4">RECENT ACTIVITY</p>
-                    <div className="space-y-3">
-                      {[
-                        { type: "update", text: "Shipped the new onboarding flow ✅", time: "2h ago" },
-                        { type: "learning", text: "Realized I was overcomplicating auth", time: "5h ago" },
-                        { type: "blocker", text: "Stuck on payment integration", time: "Yesterday" }
-                      ].map((log, i) => (
-                        <div key={i} className="flex items-start gap-3 text-sm">
-                          <div className={`w-2 h-2 rounded-full mt-1.5 ${log.type === 'update' ? 'bg-[var(--foreground)]' : log.type === 'learning' ? 'bg-blue-500' : 'bg-red-500'}`}></div>
-                          <div className="flex-1">
-                            <p>{log.text}</p>
-                            <p className="text-xs text-[var(--muted)]">{log.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* How It Works - Step by Step */}
-        <section className="py-24 px-6 max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-4">How It Works</h2>
-            <p className="text-3xl md:text-4xl font-bold">Three simple steps to clarity.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: "1",
-                icon: FileText,
-                title: "Log Your Progress",
-                desc: "Take 30 seconds to log what you worked on, what you learned, or what's blocking you. It's like a developer journal, but smarter.",
-                visual: (
-                  <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)] mt-4">
-                    <div className="flex gap-2 mb-3">
-                      <span className="px-2 py-1 bg-[var(--foreground)] text-[var(--background)] rounded text-xs">update</span>
-                      <span className="px-2 py-1 border border-[var(--border)] rounded text-xs text-[var(--muted)]">learning</span>
-                      <span className="px-2 py-1 border border-[var(--border)] rounded text-xs text-[var(--muted)]">blocker</span>
-                    </div>
-                    <div className="bg-[var(--background)] rounded p-3 text-sm text-[var(--muted)]">
-                      Finally got Stripe webhooks working after 3 hours of debugging...
-                    </div>
-                  </div>
-                )
-              },
-              {
-                step: "2",
-                icon: Brain,
-                title: "AI Detects Patterns",
-                desc: "Our AI analyzes your logs over time and identifies patterns in your work — momentum streaks, focus areas, and friction points.",
-                visual: (
-                  <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)] mt-4 space-y-3">
-                    {[
-                      { pattern: "Momentum Streak", confidence: "92%", color: "bg-green-500" },
-                      { pattern: "Deep Focus Mode", confidence: "87%", color: "bg-blue-500" },
-                      { pattern: "Planning Loop", confidence: "23%", color: "bg-red-500" }
-                    ].map((p, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-sm">{p.pattern}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-2 bg-[var(--background)] rounded-full overflow-hidden">
-                            <div className={`h-full ${p.color}`} style={{ width: p.confidence }}></div>
-                          </div>
-                          <span className="text-xs text-[var(--muted)]">{p.confidence}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              },
-              {
-                step: "3",
-                icon: Lightbulb,
-                title: "Get Actionable Insights",
-                desc: "Receive personalized insights that help you understand your work style and improve your execution over time.",
-                visual: (
-                  <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg p-4 mt-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-3 h-3 text-purple-500" />
-                      <span className="text-xs font-bold text-purple-500">INSIGHT</span>
-                    </div>
-                    <p className="text-sm">"You're most productive between 9-11 AM. Consider scheduling deep work during this window."</p>
-                  </div>
-                )
-              }
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                className="text-center md:text-left"
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--foreground)] text-[var(--background)] text-xl font-bold mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-[var(--muted)] text-sm">{item.desc}</p>
-                {item.visual}
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Features Deep Dive */}
-        <section className="py-24 px-6 bg-[var(--card)] border-y border-[var(--border)]">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-4">Features</h2>
-              <p className="text-3xl md:text-4xl font-bold">Everything you need to build smarter.</p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              {[
-                {
-                  icon: BarChart3,
-                  title: "Chatter Ratio",
-                  desc: "Are you shipping or just talking? Track how much of your AI interaction actually translates into shipped code.",
-                  highlight: "Know if you're executing or overthinking."
-                },
-                {
-                  icon: Activity,
-                  title: "System Drift Detection",
-                  desc: "Get alerted when you're veering off your goals. Catch momentum decay before you even feel it.",
-                  highlight: "Stay on track automatically."
-                },
-                {
-                  icon: Target,
-                  title: "Builder Profile",
-                  desc: "Understand your unique working style — your focus patterns, friction points, and optimal conditions.",
-                  highlight: "Know yourself as a builder."
-                },
-                {
-                  icon: Sparkles,
-                  title: "AI Insights",
-                  desc: "Receive personalized recommendations based on your actual work patterns, not generic productivity advice.",
-                  highlight: "Actionable, not generic."
-                },
-                {
-                  icon: GitCommit,
-                  title: "Timeline History",
-                  desc: "Look back at your journey. See how you've evolved as a builder over weeks and months.",
-                  highlight: "Your building story, visualized."
-                },
-                {
-                  icon: Shield,
-                  title: "Privacy First",
-                  desc: "Your logs are yours. We never use your data to train models. Everything is encrypted and secure.",
-                  highlight: "Your data stays yours."
-                }
-              ].map((feature, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-[var(--background)] border border-[var(--border)] p-8 rounded-2xl"
-                >
-                  <div className="w-12 h-12 bg-[var(--card)] rounded-lg flex items-center justify-center border border-[var(--border)] mb-6">
-                    <feature.icon className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                  <p className="text-[var(--muted)] text-sm mb-4">{feature.desc}</p>
-                  <p className="text-sm font-medium text-green-500 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {feature.highlight}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="py-24 px-6 max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] mb-4">Testimonials</h2>
-            <p className="text-3xl md:text-4xl font-bold">Loved by solo founders.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { name: "Alex K.", role: "Building AI CRM", quote: "I thought I was shipping, but FounderOS showed me I was just planning. The 'Preparation Loop' pattern was a wake-up call. Now I actually ship.", stars: 5 },
-              { name: "Sarah J.", role: "Indie Hacker", quote: "The System Drift feature is scary good. It caught my momentum decay three days before I even felt it. Essential for solo founders.", stars: 5 },
-              { name: "Mike R.", role: "AI Builder", quote: "Finally, a tool that's not about useless charts. It's a mirror for my execution. I've 2x'd my shipping speed since using it.", stars: 5 }
-            ].map((t, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                className="bg-[var(--card)] p-8 rounded-xl border border-[var(--border)]"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(t.stars)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">★</span>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div className="space-y-6">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-2">The Trap</h2>
+                <h3 className="text-3xl md:text-5xl font-bold leading-tight">Most founders build fast, <br />but build <span className="text-red-500 decoration-red-500/30 underline decoration-wavy">wrong</span>.</h3>
+                <p className="text-lg text-[var(--muted)]">
+                  It's the classic mistake: you get an idea, get excited, and start coding immediately. Three months later, you launch to crickets.
+                </p>
+                <ul className="space-y-4 pt-4">
+                  {[
+                    "Building features nobody asked for",
+                    "Solving problems that aren't painful",
+                    "Wasting 100+ hours on 'MVP' code",
+                    "Burning out with zero revenue"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[var(--foreground)]">
+                      <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                      {item}
+                    </li>
                   ))}
-                </div>
-                <p className="text-lg mb-6">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[var(--foreground)] to-[var(--muted)] rounded-full"></div>
-                  <div>
-                    <p className="font-bold">{t.name}</p>
-                    <p className="text-xs text-[var(--muted)]">{t.role}</p>
+                </ul>
+              </div>
+              <div className="relative">
+                {/* Visual representation of 'Building in Dark' vs 'Clarity' */}
+                <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+                  <div className="space-y-6 relative z-10">
+                    <div className="flex gap-4 items-center opacity-40 grayscale">
+                      <div className="w-10 h-10 rounded-full bg-[var(--muted)]/20 flex items-center justify-center">1</div>
+                      <div className="flex-1 h-3 bg-[var(--muted)]/20 rounded"></div>
+                    </div>
+                    <div className="flex gap-4 items-center opacity-40 grayscale">
+                      <div className="w-10 h-10 rounded-full bg-[var(--muted)]/20 flex items-center justify-center">2</div>
+                      <div className="flex-1 h-3 bg-[var(--muted)]/20 rounded"></div>
+                    </div>
+
+                    {/* The Warning Card */}
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-5 transform rotate-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Search className="w-4 h-4 text-red-500" />
+                        <span className="text-sm font-bold text-red-500">Validation Missing</span>
+                      </div>
+                      <p className="text-lg font-bold">"Is this worth building?"</p>
+                      <p className="text-sm opacity-70 mt-1">Market demand unclear. Competitor analysis missing. monetization strategy undefined.</p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section className="py-24 max-w-3xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
-          </div>
-
-          <div className="space-y-6">
-            {[
-              { q: "What exactly is FounderOS?", a: "FounderOS is a productivity system for solo founders. You log your daily progress (updates, learnings, blockers), and our AI analyzes your patterns to give you insights about how you work and how to improve." },
-              { q: "How is this different from a to-do app?", a: "To-do apps track what you plan to do. FounderOS tracks what you actually do. It's about understanding your real behavior, not your intentions." },
-              { q: "How long does it take to see results?", a: "Most users see their first meaningful insights within 1-2 weeks of consistent logging. The more you log, the smarter the insights become." },
-              { q: "Is there a free trial?", a: "Yes! You get 7 days completely free. No credit card required to start. Try it risk-free." },
-              { q: "Is my data private?", a: "Absolutely. Your logs are encrypted, never shared, and never used to train AI models. You can export or delete your data anytime." },
-              { q: "Can I cancel anytime?", a: "Yes. Cancel with one click from your settings. No questions asked, no hoops to jump through." }
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="border-b border-[var(--border)] pb-6"
-              >
-                <h3 className="font-bold mb-2 text-lg">{item.q}</h3>
-                <p className="text-[var(--muted)]">{item.a}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="py-32 text-center space-y-8 bg-gradient-to-b from-[var(--card)] to-[var(--background)] border-t border-[var(--border)]">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto px-6"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">Ready to build smarter?</h2>
-            <p className="text-xl text-[var(--muted)] mb-8">
-              Join {stats.users > 0 ? formatNumber(stats.users) : ''} founders who've transformed their building process. Start your free trial today.
-            </p>
-            <Link href="/signup">
-              <Button className="h-14 px-12 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all">
-                Start 7-Day Free Trial <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-[var(--muted)]">
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> No credit card required</span>
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Cancel anytime</span>
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Full access for 7 days</span>
+              </div>
             </div>
+          </div>
+        </section>
+
+        {/* The Solution: High Level Workflow */}
+        <section id="how-it-works" className="py-32 px-6 max-w-6xl mx-auto">
+          <div className="text-center mb-20 max-w-3xl mx-auto">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-4">The FounderOS Workflow</h2>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">From Idea to Empire.<br />Without the guesswork.</h3>
+            <p className="text-lg text-[var(--muted)]">
+              A systematic process to ensure every line of code you write contributes to valuable intellectual property.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connecting Line (Desktop) */}
+            <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-blue-500/20 via-violet-500/20 to-green-500/20 z-0"></div>
+
+            {/* Step 1: Generate */}
+            <div className="relative z-10 bg-[var(--background)] p-6 rounded-2xl border border-[var(--border)] shadow-lg hover:shadow-xl transition-all group">
+              <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Lightbulb className="w-8 h-8" />
+              </div>
+              <h4 className="text-xl font-bold mb-3">1. Generate</h4>
+              <p className="text-[var(--muted)] mb-4 leading-relaxed">
+                Stuck on what to build? Use our AI to generate high-potential startup ideas based on your skills, interests, and current market trends.
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Niche Discovery</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Problem-Solution Fit</li>
+              </ul>
+            </div>
+
+            {/* Step 2: Validate */}
+            <div className="relative z-10 bg-[var(--background)] p-6 rounded-2xl border border-[var(--border)] shadow-lg hover:shadow-xl transition-all group ring-2 ring-violet-500/20">
+              <div className="w-16 h-16 bg-violet-500/10 text-violet-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Target className="w-8 h-8" />
+              </div>
+              <div className="absolute top-4 right-4 bg-violet-500 text-white text-[10px] font-bold px-2 py-1 rounded">CORE</div>
+              <h4 className="text-xl font-bold mb-3">2. Validate</h4>
+              <p className="text-[var(--muted)] mb-4 leading-relaxed">
+                Before writing code, get a <strong className="text-violet-500">Validation Score</strong>. AI analyzes competitors, search volume, and monetization potential to tell you if it's a "Go".
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Competitor Analysis</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Monetization Strategy</li>
+              </ul>
+            </div>
+
+            {/* Step 3: Execute */}
+            <div className="relative z-10 bg-[var(--background)] p-6 rounded-2xl border border-[var(--border)] shadow-lg hover:shadow-xl transition-all group">
+              <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <GitCommit className="w-8 h-8" />
+              </div>
+              <h4 className="text-xl font-bold mb-3">3. Execute</h4>
+              <p className="text-[var(--muted)] mb-4 leading-relaxed">
+                Once validated, switch to builder mode. Track your commit activity, manage tasks, and get AI insights on your shipping velocity.
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> GitHub Sync</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Velocity Tracking</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Deep Dive Features */}
+        <section id="features" className="py-24 bg-[var(--card)] border-y border-[var(--border)]">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="grid md:grid-cols-2 gap-16 items-center mb-24">
+              <div className="order-2 md:order-1 relative">
+                <div className="absolute inset-0 bg-violet-500/20 blur-[100px] rounded-full opacity-30"></div>
+                <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl relative">
+                  <div className="border-b border-[var(--border)] pb-4 mb-4 flex justify-between items-center">
+                    <span className="font-bold text-sm">Validating: SaaS Analytics Tool</span>
+                    <span className="bg-green-500/10 text-green-600 px-2 py-1 rounded text-xs font-bold">Score: 8.5/10</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Market Demand</span>
+                      <div className="flex gap-1">
+                        <div className="w-8 h-2 bg-green-500 rounded-full"></div>
+                        <div className="w-8 h-2 bg-green-500 rounded-full"></div>
+                        <div className="w-8 h-2 bg-green-500/30 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Competition</span>
+                      <div className="flex gap-1">
+                        <div className="w-8 h-2 bg-yellow-500 rounded-full"></div>
+                        <div className="w-8 h-2 bg-yellow-500/30 rounded-full"></div>
+                        <div className="w-8 h-2 bg-yellow-500/30 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-[var(--card)] rounded border border-[var(--border)] mt-4">
+                      <p className="text-xs font-bold text-violet-500 mb-1">AI VERDICT</p>
+                      <p className="text-sm">"High potential. The market is growing by 12% YoY, and existing solutions lack AI integration. Proceed to MVP."</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="order-1 md:order-2 space-y-6">
+                <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center text-violet-500 mb-4">
+                  <Search className="w-6 h-6" />
+                </div>
+                <h3 className="text-3xl font-bold">Know before you code.</h3>
+                <p className="text-lg text-[var(--muted)]">
+                  Our Validation Engine scrapes the web, analyzes search trends, and reviews competitor pricing to give you a definitive "Worth It" score.
+                </p>
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div className="border-l-2 border-violet-500 pl-4">
+                    <p className="font-bold text-lg">Market</p>
+                    <p className="text-sm text-[var(--muted)]">Size & Growth</p>
+                  </div>
+                  <div className="border-l-2 border-violet-500 pl-4">
+                    <p className="font-bold text-lg">Competition</p>
+                    <p className="text-sm text-[var(--muted)]">Gaps & Weaknesses</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div className="space-y-6">
+                <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 mb-4">
+                  <BarChart3 className="w-6 h-6" />
+                </div>
+                <h3 className="text-3xl font-bold">Track the build.</h3>
+                <p className="text-lg text-[var(--muted)]">
+                  Connect your GitHub. FounderOS tracks your commits, pull requests, and shipping history to visualize your velocity.
+                </p>
+                <ul className="space-y-3 pt-2">
+                  <li className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <span>Automatic GitHub Activity Sync</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <span>Daily "Shipped" Logs</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <span>Momentum Streak Tracking</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 blur-[100px] rounded-full opacity-30"></div>
+                <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl relative">
+                  {/* Mock contribution graph */}
+                  <div className="flex items-end gap-1 h-32 mb-4 justify-between px-2">
+                    {[...Array(20)].map((_, i) => (
+                      <div key={i} className={`w-3 rounded-t ${Math.random() > 0.5 ? 'bg-green-500' : 'bg-[var(--border)]'}`} style={{ height: `${Math.random() * 100}%` }}></div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center border-t border-[var(--border)] pt-4">
+                    <div>
+                      <p className="text-xs text-[var(--muted)]">Current Streak</p>
+                      <p className="text-xl font-bold">12 Days</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-[var(--muted)]">Commits</p>
+                      <p className="text-xl font-bold">48</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-32 px-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto bg-[var(--foreground)] text-[var(--background)] rounded-3xl p-12 md:p-20 text-center relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 relative z-10">Stop building in the dark.</h2>
+            <p className="text-xl md:text-2xl opacity-90 mb-10 max-w-2xl mx-auto relative z-10">
+              Join {stats.users > 0 ? formatNumber(stats.users) : ''} founders who are validating first and shipping faster.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+              <Link href="/signup">
+                <Button className="h-14 px-10 text-lg bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--background)]/90 border-0 rounded-full">
+                  Start Free 7-Day Trial
+                </Button>
+              </Link>
+              <Link href="/pricing">
+                <Button variant="outline" className="h-14 px-10 text-lg border-white/30 text-white hover:bg-white/10 hover:text-white rounded-full">
+                  View Pricing
+                </Button>
+              </Link>
+            </div>
+
+            <p className="mt-8 text-sm opacity-60">No credit card required • Cancel anytime</p>
           </motion.div>
         </section>
 
       </main>
-
       <Footer />
     </div>
   );

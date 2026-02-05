@@ -23,16 +23,15 @@ export function Footer() {
         <div>
           <h4 className="font-bold text-xs uppercase tracking-wider text-[var(--muted)] mb-4">Resources</h4>
           <ul className="space-y-2 text-sm">
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Manifesto</span></li>
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Blog</span></li>
+            <li><Link href="/about" className="hover:text-[var(--foreground)] transition-colors">About Us</Link></li>
+            <li><Link href="/blog" className="hover:text-[var(--foreground)] transition-colors">Blog</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="font-bold text-xs uppercase tracking-wider text-[var(--muted)] mb-4">Legal</h4>
           <ul className="space-y-2 text-sm">
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Privacy</span></li>
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Terms</span></li>
-            <li><span className="text-[var(--muted)] cursor-not-allowed">Contact</span></li>
+            <li><Link href="/privacy" className="hover:text-[var(--foreground)] transition-colors">Privacy</Link></li>
+            <li><Link href="/terms" className="hover:text-[var(--foreground)] transition-colors">Terms</Link></li>
           </ul>
         </div>
       </div>
@@ -41,10 +40,10 @@ export function Footer() {
           &copy; {new Date().getFullYear()} FounderOS. Confidential by design.
         </p>
         <div className="flex items-center gap-4">
-           <Link href="https://twitter.com" target="_blank" className="text-[var(--muted)] hover:text-[var(--foreground)]"><Twitter className="w-4 h-4" /></Link>
-           <Link href="https://github.com" target="_blank" className="text-[var(--muted)] hover:text-[var(--foreground)]"><Github className="w-4 h-4" /></Link>
-           <div className="w-px h-4 bg-[var(--border)]"></div>
-           <ThemeToggle />
+          <Link href="https://twitter.com" target="_blank" className="text-[var(--muted)] hover:text-[var(--foreground)]"><Twitter className="w-4 h-4" /></Link>
+          <Link href="https://github.com" target="_blank" className="text-[var(--muted)] hover:text-[var(--foreground)]"><Github className="w-4 h-4" /></Link>
+          <div className="w-px h-4 bg-[var(--border)]"></div>
+          <ThemeToggle />
         </div>
       </div>
     </footer>
