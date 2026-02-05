@@ -9,17 +9,29 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function checkUser() {
-    console.log(`Checking user abdulmuizproject@gmail.com at: ${supabaseUrl}`);
-    const { data, error } = await supabase
+    const userId = '49747729-49b8-40e8-a106-ae9d7f72ee6a';
+    console.log(`Checking Auth User ID: ${userId} at: ${supabaseUrl}`);
+
+    // Check Auth Users
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
+
+    if (authError) {
+        console.error("Auth Error:", authError);
+    } else {
+        console.log("Auth User Found:", authUser.user?.email);
+    }
+
+    // Check Public Users
+    console.log("Checking Public Users table...");
+    const { data: publicUser, error: publicError } = await supabase
         .from('users')
         .select('*')
-        .eq('email', 'abdulmuizproject@gmail.com');
+        .eq('id', userId);
 
-    if (error) {
-        console.error("Error:", error);
+    if (publicError) {
+        console.error("Public DB Error:", publicError);
     } else {
-        console.log("Success! Users found:");
-        console.log(data);
+        console.log("Public User Found:", publicUser);
     }
 }
 checkUser();

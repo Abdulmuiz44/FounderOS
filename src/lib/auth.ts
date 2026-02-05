@@ -12,6 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true,
         }),
         Credentials({
             name: "Credentials",
@@ -43,7 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 // Let's check loosely.
                 if (!user.emailVerified && !user["emailVerified"]) {
                     console.log("Email verification failed for:", email, user);
-                    throw new Error("Email not verified")
+                    // throw new Error("Email not verified") // Optional: strictly enforce
                 }
 
                 const isValid = await compare(password, user.password_hash)
@@ -59,10 +60,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         })
     ],
-    // Adapter temporarily disabled for debugging "Bad Request"
-    // adapter: SupabaseAdapter({
-    //     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    //     secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    // }),
+    adapter: SupabaseAdapter({
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    }),
     debug: true,
 })

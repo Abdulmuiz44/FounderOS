@@ -21,7 +21,7 @@ export interface GenerateContentResponse {
 
 export class GeminiProvider {
     private apiKey: string;
-    private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
     constructor(apiKey?: string) {
         this.apiKey = apiKey || process.env.GEMINI_API_KEY || '';
