@@ -1,4 +1,13 @@
-export const BLOG_POSTS = [
+export interface BlogPost {
+    slug: string;
+    title: string;
+    excerpt: string;
+    date: string;
+    category: string;
+    keywords: string[];
+}
+
+export const BLOG_POSTS: BlogPost[] = [
     // --- VALIDATION & STRATEGY ---
     {
         slug: 'validate-startup-idea-ai',
