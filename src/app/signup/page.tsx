@@ -49,10 +49,15 @@ export default function SignUp() {
       }
 
       if (data?.session) {
-        // Email confirmation disabled, or auto-confirmed. Redirect immediately.
+        // Email confirmation is disabled (or unnecessary for this provider)
+        // Auto-login successful -> Redirect to dashboard
         router.push('/dashboard');
-      } else if (data?.user) {
-        // User created but no session -> Email confirmation likely required.
+        return;
+      }
+
+      if (data?.user) {
+        // Fallback: If session is null, it typically means email confirmation IS still enabled in Supabase.
+        // We show the success UI just in case they didn't disable it yet, so they aren't stuck.
         setSuccess(true);
       }
 
