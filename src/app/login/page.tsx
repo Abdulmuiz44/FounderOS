@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { createClient } from '@/utils/supabase/client';
 import { Loader2, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -26,16 +26,17 @@ function LoginForm() {
     setError(null);
 
     try {
-      const result = await signIn('credentials', {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        setError('Invalid email or password');
+      if (error) {
+        setError(error.message);
         setLoading(false);
       } else {
+        router.refresh(); // Refresh server components
         router.push('/dashboard');
       }
     } catch (err) {

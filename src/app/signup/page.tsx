@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AlertCircle, ArrowLeft, Check } from 'lucide-react';
@@ -23,28 +23,27 @@ export default function SignUp() {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name: fullName }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      const result = await signIn('credentials', {
+      const supabase = createClient();
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        redirect: false,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
       });
 
-      if (result?.error) {
-        setSuccess(true); // Account created but login failed (rare), separate flow
-      } else {
-        router.push('/dashboard');
+      if (signUpError) {
+        throw new Error(signUpError.message);
+      }
+
+      if (data?.user) {
+        setSuccess(true);
+        // If email confirmation is disabled, user is logged in. 
+        // We can redirect or show success. 
+        // Assuming email confirmation might be on, showing success message is safer.
+        // But if off, we could auto-redirect. For now, stick to success message -> login flow.
       }
 
     } catch (err: any) {
