@@ -3,7 +3,8 @@ import type { NextAuthConfig } from "next-auth"
 export const authConfig = {
     pages: {
         signIn: '/login',
-        error: '/login',
+        error: '/login', // Redirect back to login page on error
+        newUser: '/dashboard' // Redirect to dashboard after signup
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
@@ -17,15 +18,16 @@ export const authConfig = {
                 nextUrl.pathname === '/about' ||
                 nextUrl.pathname === '/terms' ||
                 nextUrl.pathname === '/privacy' ||
+                nextUrl.pathname === '/pricing' ||
                 nextUrl.pathname === '/login' ||
                 nextUrl.pathname === '/signup') {
                 return true
             }
 
-            // Must be logged in for pricing and dashboard
-            if (isPricing || isOnDashboard) {
+            // Must be logged in for dashboard
+            if (isOnDashboard) {
                 if (isLoggedIn) return true
-                return false // Redirect to login
+                return Response.redirect(new URL('/pricing', nextUrl))
             }
 
             // Default allow for other routes (like api) unless specified

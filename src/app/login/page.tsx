@@ -56,9 +56,12 @@ function LoginForm() {
         className="max-w-md w-full bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="p-8 space-y-8">
-          <div className="space-y-2 text-center">
-            <Link href="/" className="inline-block mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-              <ArrowLeft className="w-5 h-5" />
+          <div className="space-y-4 text-center">
+            <Link href="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                <img src="/logo.svg" alt="FounderOS Logo" className="w-full h-full object-cover" />
+              </div>
+              <span className="font-bold text-xl tracking-tight">FounderOS</span>
             </Link>
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
             <p className="text-sm text-[var(--muted)]">Sign in to continue building your empire.</p>

@@ -25,11 +25,16 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  icons: {
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'FounderOS – The Operating System for AI Builders',
     description: 'Track, analyze, and optimize every project with FounderOS.',
-    images: ['/og-image.png'], // Replace with your actual OG image URL
+    images: ['/og-image.png'],
   },
 };
 

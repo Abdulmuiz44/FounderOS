@@ -7,7 +7,12 @@ export function Footer() {
     <footer className="border-t border-[var(--border)] bg-[var(--background)] pt-16 pb-8">
       <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
         <div className="col-span-2 md:col-span-1">
-          <Link href="/" className="font-bold text-lg tracking-tight mb-4 block">FounderOS</Link>
+          <Link href="/" className="font-bold text-lg tracking-tight mb-4 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+              <img src="/logo.svg" alt="FounderOS Logo" className="w-full h-full object-cover" />
+            </div>
+            FounderOS
+          </Link>
           <p className="text-xs text-[var(--muted)] leading-relaxed">
             The operating system for AI builders.
           </p>

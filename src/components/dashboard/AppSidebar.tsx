@@ -50,7 +50,12 @@ export function AppSidebar() {
         <>
             <aside className="w-64 border-r border-[var(--border)] bg-[var(--card)] flex flex-col hidden md:flex sticky top-0 h-screen">
                 <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-                    <span className="font-bold tracking-tight">FounderOS</span>
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                            <img src="/logo.svg" alt="FounderOS Logo" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="font-bold tracking-tight">FounderOS</span>
+                    </div>
                     <ThemeToggle />
                 </div>
 

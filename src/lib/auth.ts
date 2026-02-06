@@ -42,21 +42,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         .single()
 
                     if (error || !user) {
-                        console.log("User not found:", email)
+                        console.log("LOGIN DEBUG: User not found in Supabase:", email, error)
                         return null
                     }
 
                     if (!user.password_hash) {
-                        console.log("No password set for user:", email)
+                        console.log("LOGIN DEBUG: No password_hash for user:", email)
                         return null
                     }
 
                     const isValid = await compare(password, user.password_hash)
 
                     if (!isValid) {
-                        console.log("Invalid password for user:", email)
+                        console.log("LOGIN DEBUG: Password mismatch for user:", email)
                         return null
                     }
+
+                    console.log("LOGIN DEBUG: Login successful for:", email)
 
                     return {
                         id: user.id,

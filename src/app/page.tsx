@@ -16,8 +16,7 @@ import {
   XCircle,
   Search,
   Zap,
-  Shield,
-  Layers
+  Shield
 } from 'lucide-react';
 
 export default function Landing() {
@@ -78,8 +77,8 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-6xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]/50 md:border-transparent transition-all">
         <Link href="/" className="font-bold text-xl tracking-tighter flex items-center gap-2">
-          <div className="w-8 h-8 bg-[var(--foreground)] text-[var(--background)] rounded-lg flex items-center justify-center">
-            <Layers className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+            <img src="/logo.svg" alt="FounderOS Logo" className="w-full h-full object-cover" />
           </div>
           FounderOS
         </Link>
