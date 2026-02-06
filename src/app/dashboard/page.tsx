@@ -28,8 +28,18 @@ export default function DashboardOverview() {
     const fetchStats = async () => {
       // Auth User
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUser(user);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+
+      if (authUser) {
+        // Fetch full profile from public.users to get the correct name/avatar
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        setUser(profile || authUser); // Fallback to authUser if profile missing (shouldn't happen)
+      }
 
       // Fetch Data
       try {
@@ -65,7 +75,7 @@ export default function DashboardOverview() {
         {/* Hero / Welcome */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold tracking-tight">
-            Welcome back, <span className="text-[var(--foreground)]">{user?.name?.split(' ')[0] || 'Founder'}</span>.
+            Welcome back, <span className="text-[var(--foreground)]">{user?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Founder'}</span>.
           </h1>
           <p className="text-xl text-[var(--muted)] max-w-2xl leading-relaxed">
             Don't just build. <span className="text-[var(--foreground)] font-medium">Validate first.</span><br />
