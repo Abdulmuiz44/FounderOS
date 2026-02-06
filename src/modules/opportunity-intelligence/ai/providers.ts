@@ -55,56 +55,81 @@ export class GeminiProvider {
 
         const https = await import('https'); // Dynamic import to avoid edge issues if any
 
-        return new Promise((resolve, reject) => {
-            const data = JSON.stringify(body);
-            const url = new URL(`${this.baseUrl}?key=${this.apiKey}`);
+        return this.makeRequestWithRetry(https, body) as Promise<T>;
+    }
 
-            const options = {
-                hostname: url.hostname,
-                path: url.pathname + url.search,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data)
-                },
-                // Add a slightly relaxed agent for development environments if likely to fail
-            };
+    private async makeRequestWithRetry(https: any, body: GenerateContentRequest, attempt = 1): Promise<any> {
+        const MAX_RETRIES = 3;
+        const BASE_DELAY = 2000; // Start with 2 seconds
 
-            const req = https.request(options, (res: any) => {
-                let responseData = '';
+        try {
+            return await new Promise((resolve, reject) => {
+                const data = JSON.stringify(body);
+                const url = new URL(`${this.baseUrl}?key=${this.apiKey}`);
 
-                res.on('data', (chunk: any) => {
-                    responseData += chunk;
-                });
+                const options = {
+                    hostname: url.hostname,
+                    path: url.pathname + url.search,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(data)
+                    },
+                };
 
-                res.on('end', () => {
-                    if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-                        reject(new Error(`Gemini API Error: ${res.statusCode} - ${responseData}`));
-                        return;
-                    }
+                const req = https.request(options, (res: any) => {
+                    let responseData = '';
 
-                    try {
-                        const json = JSON.parse(responseData) as GenerateContentResponse;
-                        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (!text) {
-                            reject(new Error('No content generated'));
+                    res.on('data', (chunk: any) => {
+                        responseData += chunk;
+                    });
+
+                    res.on('end', () => {
+                        if (res.statusCode === 429) {
+                            reject(new Error('RATE_LIMIT'));
                             return;
                         }
-                        resolve(JSON.parse(text) as T);
-                    } catch (e) {
-                        reject(e);
-                    }
+
+                        if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+                            reject(new Error(`Gemini API Error: ${res.statusCode} - ${responseData}`));
+                            return;
+                        }
+
+                        try {
+                            const json = JSON.parse(responseData) as GenerateContentResponse;
+                            const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                            if (!text) {
+                                reject(new Error('No content generated'));
+                                return;
+                            }
+                            resolve(JSON.parse(text));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
                 });
-            });
 
-            req.on('error', (e: any) => {
-                console.error('Gemini Request Failed:', e);
-                reject(e);
-            });
+                req.on('error', (e: any) => {
+                    console.error('Gemini Request Failed:', e);
+                    reject(e);
+                });
 
-            req.write(data);
-            req.end();
-        });
+                req.write(data);
+                req.end();
+            });
+        } catch (error: any) {
+            if (error.message === 'RATE_LIMIT' || error.message?.includes('429')) {
+                if (attempt <= MAX_RETRIES) {
+                    const delay = BASE_DELAY * Math.pow(2, attempt - 1); // 2s, 4s, 8s
+                    console.warn(`Gemini Rate Limit Hit. Retrying in ${delay}ms (Attempt ${attempt}/${MAX_RETRIES})...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return this.makeRequestWithRetry(https, body, attempt + 1);
+                } else {
+                    throw new Error('Gemini API Rate Limit Exceeded after retries.');
+                }
+            }
+            throw error;
+        }
     }
 }
 

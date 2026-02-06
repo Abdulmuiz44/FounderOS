@@ -6,15 +6,13 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Github, AlertCircle, ArrowLeft, Check } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check } from 'lucide-react';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [githubLoading, setGithubLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
@@ -53,13 +51,6 @@ export default function SignUp() {
       setError(err.message);
       setLoading(false);
     }
-  };
-
-  const socialLogin = async (provider: 'google' | 'github') => {
-    if (provider === 'google') setGoogleLoading(true);
-    else setGithubLoading(true);
-    setError(null);
-    await signIn(provider, { callbackUrl: '/dashboard' });
   };
 
   if (success) {
@@ -102,39 +93,6 @@ export default function SignUp() {
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={() => socialLogin('google')}
-                variant="outline"
-                className="h-11 font-normal"
-                isLoading={googleLoading}
-                disabled={loading || githubLoading}
-              >
-                {!googleLoading && <span className="mr-2">G</span>}
-                Google
-              </Button>
-
-              <Button
-                onClick={() => socialLogin('github')}
-                variant="outline"
-                className="h-11 font-normal"
-                isLoading={githubLoading}
-                disabled={loading || googleLoading}
-              >
-                {!githubLoading && <Github className="w-4 h-4 mr-2" />}
-                GitHub
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[var(--border)]" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[var(--card)] px-2 text-[var(--muted)]">Or sign up with email</span>
-              </div>
-            </div>
-
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-3">
                 <div>
@@ -172,7 +130,7 @@ export default function SignUp() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-11" isLoading={loading} disabled={googleLoading || githubLoading}>
+              <Button type="submit" className="w-full h-11" isLoading={loading}>
                 Create Account
               </Button>
 
