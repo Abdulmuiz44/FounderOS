@@ -1,19 +1,20 @@
-import NextAuth from "next-auth"
-import { authConfig } from "@/lib/auth.config"
-import { NextResponse } from "next/server"
+import { type NextRequest } from 'next/server';
+import { updateSession } from '@/utils/supabase/middleware';
 
-const { auth } = NextAuth(authConfig)
-
-export default auth((req) => {
-  const { pathname } = req.nextUrl
-
-  // If authenticated user tries to access login/signup, redirect to dashboard
-  if (req.auth && (pathname === '/login' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
-  }
-})
+export async function middleware(request: NextRequest) {
+  return await updateSession(request);
+}
 
 export const config = {
-  // Exclude /api routes, static files, and images from middleware
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - api/ (API routes - handled separately or protected inside route)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
