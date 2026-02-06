@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Check } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Mail } from 'lucide-react';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -48,12 +48,12 @@ export default function SignUp() {
         throw new Error(signUpError.message);
       }
 
-      if (data?.user) {
+      if (data?.session) {
+        // Email confirmation disabled, or auto-confirmed. Redirect immediately.
+        router.push('/dashboard');
+      } else if (data?.user) {
+        // User created but no session -> Email confirmation likely required.
         setSuccess(true);
-        // If email confirmation is disabled, user is logged in. 
-        // We can redirect or show success. 
-        // Assuming email confirmation might be on, showing success message is safer.
-        // But if off, we could auto-redirect. For now, stick to success message -> login flow.
       }
 
     } catch (err: any) {
@@ -66,16 +66,21 @@ export default function SignUp() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--background)]">
         <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
-            <Check className="w-8 h-8 text-green-500" />
+          <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20">
+            <Mail className="w-8 h-8 text-blue-500" />
           </div>
-          <h2 className="text-2xl font-bold">Account Created!</h2>
+          <h2 className="text-2xl font-bold">Check your email</h2>
           <p className="text-[var(--muted)]">
-            Your account has been created successfully.
+            We've sent a confirmation link to <strong>{email}</strong>.<br />
+            Please verify your email address to log in.
           </p>
-          <Button onClick={() => router.push('/login')} className="w-full">
-            Continue to Login
-          </Button>
+          <div className="pt-4">
+            <Link href="/login">
+              <Button variant="outline" className="w-full">
+                Back to Login
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
