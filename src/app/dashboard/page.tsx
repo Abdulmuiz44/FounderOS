@@ -27,9 +27,9 @@ export default function DashboardOverview() {
   useEffect(() => {
     const fetchStats = async () => {
       // Auth User
-      const authRes = await fetch('/api/auth/session');
-      const session = await authRes.json();
-      if (session?.user) setUser(session.user);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUser(user);
 
       // Fetch Data
       try {

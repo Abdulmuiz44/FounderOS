@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+// import { signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus,
@@ -69,20 +69,19 @@ export default function ProjectsPage() {
 
     useEffect(() => {
         const init = async () => {
-            const res = await fetch('/api/auth/session');
-            const session = await res.json();
+            const { data: { user } } = await supabase.auth.getUser();
 
-            if (!session?.user) {
+            if (!user) {
                 router.push('/login');
                 return;
             }
 
-            // Check for GitHub access token presence
-            if (session.accessToken) {
-                setGithubConnected(true);
-            }
+            // Check for GitHub access token presence - TO DO: Re-implement with Supabase provider token if needed
+            // if (session.accessToken) {
+            //     setGithubConnected(true);
+            // }
 
-            await fetchProjects(session.user.id);
+            await fetchProjects(user.id);
             fetchPatterns();
             fetchInsight();
             fetchProfile();

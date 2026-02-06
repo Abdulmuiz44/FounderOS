@@ -24,11 +24,10 @@ export function SubscriptionModal({ isOpen, onClose }: { isOpen: boolean; onClos
     const loadSubscription = async () => {
         setLoading(true);
         try {
-            // Get session from NextAuth
-            const res = await fetch('/api/auth/session');
-            const session = await res.json();
+            // Get session from Supabase
+            const { data: { user } } = await supabase.auth.getUser();
 
-            if (session?.user?.id) {
+            if (user?.id) {
                 // Fetch subscription via API to use service role
                 const subRes = await fetch('/api/subscription');
                 if (subRes.ok) {
@@ -75,8 +74,8 @@ export function SubscriptionModal({ isOpen, onClose }: { isOpen: boolean; onClos
                         <div className="space-y-4">
                             {/* Pro Plan Card */}
                             <div className={`p-6 rounded-xl border relative overflow-hidden ${isPro
-                                    ? 'bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/30'
-                                    : 'bg-gradient-to-br from-green-500/10 to-blue-500/10 border-green-500/30'
+                                ? 'bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/30'
+                                : 'bg-gradient-to-br from-green-500/10 to-blue-500/10 border-green-500/30'
                                 }`}>
                                 <div className="absolute top-0 right-0 p-2 opacity-20">
                                     {isPro ? <Crown className="w-24 h-24" /> : <Sparkles className="w-24 h-24" />}
@@ -90,8 +89,8 @@ export function SubscriptionModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                             </div>
                                             <div className="flex items-center gap-2 mt-2">
                                                 <span className={`text-xs uppercase font-bold px-2 py-1 rounded-full ${subscription.status === 'active'
-                                                        ? 'bg-green-500/20 text-green-500'
-                                                        : 'bg-yellow-500/20 text-yellow-500'
+                                                    ? 'bg-green-500/20 text-green-500'
+                                                    : 'bg-yellow-500/20 text-yellow-500'
                                                     }`}>
                                                     {subscription.status === 'on_trial' ? '🎉 Trial Active' : '✓ Active'}
                                                 </span>

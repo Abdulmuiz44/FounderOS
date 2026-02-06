@@ -17,18 +17,15 @@ export default function PricingPage() {
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        const res = await fetch('/api/auth/session');
-        if (!res.ok) throw new Error('Failed to fetch session');
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        const session = await res.json();
-
-        if (session?.user?.id) {
+        if (user?.id) {
           try {
-            const supabase = createClient();
             const { data: sub } = await supabase
               .from('subscriptions')
               .select('status')
-              .eq('user_id', session.user.id)
+              .eq('user_id', user.id)
               .in('status', ['active', 'on_trial'])
               .maybeSingle();
 
@@ -38,7 +35,6 @@ export default function PricingPage() {
             }
           } catch (supabaseError) {
             console.warn('Supabase client failed to initialize or fetch:', supabaseError);
-            // Continue showing pricing page if Supabase fails (fallback)
           }
         }
       } catch (e) {
