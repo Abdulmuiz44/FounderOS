@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
@@ -15,7 +15,17 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [founderCount, setFounderCount] = useState(500);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      const supabase = createClient();
+      const { count } = await supabase.from('users').select('*', { count: 'exact', head: true });
+      if (count) setFounderCount(count > 500 ? count : 500);
+    };
+    fetchCount();
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +101,7 @@ export default function SignUp() {
               <span className="font-bold text-xl tracking-tight">FounderOS</span>
             </Link>
             <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
-            <p className="text-sm text-[var(--muted)]">Join 500+ founders tracking their build.</p>
+            <p className="text-sm text-[var(--muted)]">Join {founderCount > 500 ? `${founderCount}+` : '500+'} founders tracking their build.</p>
           </div>
 
           <div className="space-y-4">

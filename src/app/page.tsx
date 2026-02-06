@@ -383,29 +383,34 @@ export default function Landing() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto bg-[var(--foreground)] text-[var(--background)] rounded-3xl p-12 md:p-20 text-center relative overflow-hidden"
+            className="max-w-4xl mx-auto rounded-3xl p-12 md:p-20 text-center relative overflow-hidden ring-1 ring-white/10"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+            {/* Dark/Light mode compatible background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-900 to-black dark:from-indigo-950/50 dark:via-purple-950/30 dark:to-black z-0"></div>
 
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 relative z-10">Stop building in the dark.</h2>
-            <p className="text-xl md:text-2xl opacity-90 mb-10 max-w-2xl mx-auto relative z-10">
+            {/* Mesh gradient overlay */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 mix-blend-overlay"></div>
+            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-500/20 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 mix-blend-overlay"></div>
+
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 relative z-10 text-white dark:text-gray-100">Stop building in the dark.</h2>
+            <p className="text-xl md:text-2xl opacity-90 mb-10 max-w-2xl mx-auto relative z-10 text-gray-300 dark:text-gray-300">
               Join {stats.users > 0 ? formatNumber(stats.users) : ''} founders who are validating first and shipping faster.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <Link href="/signup">
-                <Button className="h-14 px-10 text-lg bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--background)]/90 border-0 rounded-full">
+                <Button className="h-14 px-10 text-lg bg-white text-black hover:bg-white/90 border-0 rounded-full shadow-xl hover:shadow-2xl transition-all font-semibold">
                   Start Free 7-Day Trial
                 </Button>
               </Link>
               <Link href="/pricing">
-                <Button variant="outline" className="h-14 px-10 text-lg border-white/30 text-white hover:bg-white/10 hover:text-white rounded-full">
+                <Button variant="outline" className="h-14 px-10 text-lg border-white/20 text-white hover:bg-white/10 hover:text-white rounded-full bg-transparent">
                   View Pricing
                 </Button>
               </Link>
             </div>
 
-            <p className="mt-8 text-sm opacity-60">No credit card required • Cancel anytime</p>
+            <p className="mt-8 text-sm opacity-50 relative z-10 text-gray-400">No credit card required • Cancel anytime</p>
           </motion.div>
         </section>
 
