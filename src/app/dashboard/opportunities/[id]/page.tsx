@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle, BarChart3, ChevronRight, Play, ArrowLeft } from 'lucide-react';
-import { Opportunity, OpportunityScore, ExecutionPlan, MonetizationMap, MomTestScript } from '@/modules/opportunity-intelligence/types';
+import { Opportunity, OpportunityScore, ExecutionPlan, MonetizationMap, MomTestScript, CompetitorAnalysis, WaitlistContent } from '@/modules/opportunity-intelligence/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
@@ -17,6 +17,10 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
     const [converting, setConverting] = useState(false);
     const [momScript, setMomScript] = useState<MomTestScript | null>(null);
     const [generatingScript, setGeneratingScript] = useState(false);
+    const [competitorAnalysis, setCompetitorAnalysis] = useState<CompetitorAnalysis | null>(null);
+    const [analyzingCompetitors, setAnalyzingCompetitors] = useState(false);
+    const [waitlistContent, setWaitlistContent] = useState<WaitlistContent | null>(null);
+    const [generatingWaitlist, setGeneratingWaitlist] = useState(false);
 
     useEffect(() => {
         fetch(`/api/opportunities/${id}`)
@@ -80,6 +84,36 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
             console.error(e);
         } finally {
             setGeneratingScript(false);
+        }
+    };
+
+    const handleAnalyzeCompetitors = async () => {
+        setAnalyzingCompetitors(true);
+        try {
+            const res = await fetch(`/api/opportunities/${id}/competitor-spy`, { method: 'POST' });
+            const data = await res.json();
+            if (data.analysis) {
+                setCompetitorAnalysis(data.analysis);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setAnalyzingCompetitors(false);
+        }
+    };
+
+    const handleGenerateWaitlist = async () => {
+        setGeneratingWaitlist(true);
+        try {
+            const res = await fetch(`/api/opportunities/${id}/waitlist`, { method: 'POST' });
+            const data = await res.json();
+            if (data.content) {
+                setWaitlistContent(data.content);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setGeneratingWaitlist(false);
         }
     };
 
@@ -196,6 +230,97 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                                                 </div>
                                             ))}
                                         </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Competitor Spy */}
+                        <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                            <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+                                <span className="bg-red-500 w-1 h-4 rounded-full"></span>
+                                Competitor Spy
+                            </h3>
+                            <p className="text-sm text-[var(--muted)] mb-4">
+                                Identify competitors and find your winning angle.
+                            </p>
+                            {!competitorAnalysis ? (
+                                <Button
+                                    onClick={handleAnalyzeCompetitors}
+                                    disabled={analyzingCompetitors}
+                                    className="w-full bg-red-500 hover:bg-red-600 text-white"
+                                >
+                                    {analyzingCompetitors ? <Loader2 className="animate-spin w-4 h-4" /> : 'Analyze Competition'}
+                                </Button>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="bg-red-500/5 p-3 rounded-lg border border-red-500/10">
+                                        <span className="text-xs font-bold uppercase text-red-600 block mb-1">Market Gap</span>
+                                        <p className="text-sm text-[var(--foreground)] italic">"{competitorAnalysis.marketGapSummary}"</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {competitorAnalysis.competitors.map((comp, i) => (
+                                            <div key={i} className="bg-[var(--background)] p-3 rounded border border-[var(--border)]">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="font-bold text-sm">{comp.name}</span>
+                                                    {comp.url && <a href={comp.url} target="_blank" className="text-xs text-blue-500 hover:underline">Visit</a>}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                                                    <div>
+                                                        <span className="text-green-600 font-semibold block">Strength</span>
+                                                        <span className="text-[var(--muted)]">{comp.strength}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-red-500 font-semibold block">Weakness</span>
+                                                        <span className="text-[var(--muted)]">{comp.weakness}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="border-t border-[var(--border)] pt-2 mt-1">
+                                                    <span className="text-indigo-500 font-semibold text-xs block">How we win</span>
+                                                    <span className="text-xs text-[var(--foreground)]">{comp.differentiationOpportunity}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Waitlist Generator */}
+                        <div className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)]">
+                            <h3 className="font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
+                                <span className="bg-purple-500 w-1 h-4 rounded-full"></span>
+                                Waitlist Page Builder
+                            </h3>
+                            <p className="text-sm text-[var(--muted)] mb-4">
+                                Generate high-conversion copy for your pre-launch landing page.
+                            </p>
+                            {!waitlistContent ? (
+                                <Button
+                                    onClick={handleGenerateWaitlist}
+                                    disabled={generatingWaitlist}
+                                    className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                                >
+                                    {generatingWaitlist ? <Loader2 className="animate-spin w-4 h-4" /> : 'Generate Landing Page'}
+                                </Button>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="bg-[var(--background)] p-4 rounded-xl border border-[var(--border)] text-center">
+                                        <h1 className="text-xl font-bold mb-2">{waitlistContent.headline}</h1>
+                                        <p className="text-[var(--muted)] mb-4">{waitlistContent.subheadline}</p>
+                                        <Button className="mx-auto bg-black text-white px-6 w-auto">{waitlistContent.ctaText}</Button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <span className="text-xs font-bold uppercase text-[var(--muted)]">Key Benefits</span>
+                                        {waitlistContent.benefits.map((b, i) => (
+                                            <div key={i} className="text-sm pl-2 border-l-2 border-purple-500">
+                                                <span className="font-semibold block">{b.title}</span>
+                                                <span className="text-[var(--muted)]">{b.description}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="bg-purple-500/10 p-3 rounded-lg text-xs text-purple-600 font-medium text-center">
+                                        Viral Mechanic: {waitlistContent.viralMechanic}
                                     </div>
                                 </div>
                             )}

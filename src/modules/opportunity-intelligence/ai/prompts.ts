@@ -121,5 +121,57 @@ export const PROMPTS = {
       ],
       "redFlags": ["string" (e.g. "If they say X, they are not a customer")]
     }
+  `,
+
+  COMPETITOR_SPY: (opportunity: any) => `
+    Act as a competitive intelligence analyst. Identify 3-5 potential competitors (direct or indirect) for this startup idea and analyze them.
+    
+    # Opportunity
+    Title: ${opportunity.title}
+    Problem: ${opportunity.problem_statement}
+    Target Audience: ${opportunity.target_niche}
+    Market Gap: ${opportunity.market_gap}
+    
+    # Goal
+    Find existing players that solve this problem and explain how we can win.
+
+    # Output Format (JSON)
+    {
+      "competitors": [
+        {
+          "name": "string (Company Name or 'Excel/Sheets')",
+          "url": "string (optional valid URL if known, else null)",
+          "strength": "What they do well",
+          "weakness": "What they are missing or do poorly",
+          "differentiationOpportunity": "How this startup beats them"
+        }
+      ],
+      "marketGapSummary": "A concise summary of the open space in the market."
+    }
+  `,
+
+  WAITLIST_PAGE: (opportunity: any) => `
+    Act as a high-conversion copywriter. Create content for a pre-launch waitlist page for this startup.
+    
+    # Opportunity
+    Title: ${opportunity.title}
+    Problem: ${opportunity.problem_statement}
+    Target Audience: ${opportunity.target_niche}
+    
+    # Goal
+    Convince visitors to give their email address. Use the "benefit-first" approach.
+
+    # Output Format (JSON)
+    {
+      "headline": "Punchy, value-driven main heading (H1)",
+      "subheadline": "Explanation of how it solves the problem (H2)",
+      "ctaText": "Action-oriented button text (e.g. 'Join the Private Beta')",
+      "benefits": [
+        { "title": "Benefit 1", "description": "Short explanation" },
+        { "title": "Benefit 2", "description": "Short explanation" },
+        { "title": "Benefit 3", "description": "Short explanation" }
+      ],
+      "viralMechanic": "A specific idea to make them share (e.g. 'Get early access if you refer 3 friends')"
+    }
   `
 };

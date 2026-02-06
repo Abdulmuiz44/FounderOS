@@ -34,9 +34,6 @@ export class GeminiProvider {
         const contents = [];
 
         if (systemInstruction) {
-            // Gemini 1.5 supports system instructions generally, but if not using SDK, 
-            // sometimes it's safer to prepend to user prompt or use specific field.
-            // For simplicity in REST:
             contents.push({
                 role: 'user',
                 parts: [{ text: `System Instruction: ${systemInstruction}\n\nTask: ${prompt}` }]
@@ -56,32 +53,58 @@ export class GeminiProvider {
             }
         };
 
-        try {
-            const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
+        const https = await import('https'); // Dynamic import to avoid edge issues if any
+
+        return new Promise((resolve, reject) => {
+            const data = JSON.stringify(body);
+            const url = new URL(`${this.baseUrl}?key=${this.apiKey}`);
+
+            const options = {
+                hostname: url.hostname,
+                path: url.pathname + url.search,
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data)
                 },
-                body: JSON.stringify(body)
+                // Add a slightly relaxed agent for development environments if likely to fail
+            };
+
+            const req = https.request(options, (res: any) => {
+                let responseData = '';
+
+                res.on('data', (chunk: any) => {
+                    responseData += chunk;
+                });
+
+                res.on('end', () => {
+                    if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+                        reject(new Error(`Gemini API Error: ${res.statusCode} - ${responseData}`));
+                        return;
+                    }
+
+                    try {
+                        const json = JSON.parse(responseData) as GenerateContentResponse;
+                        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!text) {
+                            reject(new Error('No content generated'));
+                            return;
+                        }
+                        resolve(JSON.parse(text) as T);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Gemini API Error: ${response.status} - ${errorText}`);
-            }
+            req.on('error', (e: any) => {
+                console.error('Gemini Request Failed:', e);
+                reject(e);
+            });
 
-            const data = await response.json() as GenerateContentResponse;
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (!text) {
-                throw new Error('No content generated');
-            }
-
-            return JSON.parse(text) as T;
-        } catch (error) {
-            console.error('Gemini Generation Failed:', error);
-            throw error;
-        }
+            req.write(data);
+            req.end();
+        });
     }
 }
 

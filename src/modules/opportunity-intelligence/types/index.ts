@@ -88,3 +88,25 @@ export interface MomTestScript {
     }[];
     redFlags: string[];
 }
+
+export interface CompetitorAnalysis {
+    competitors: {
+        name: string;
+        url?: string;
+        strength: string;
+        weakness: string;
+        differentiationOpportunity: string;
+    }[];
+    marketGapSummary: string;
+}
+
+export interface WaitlistContent {
+    headline: string;
+    subheadline: string;
+    ctaText: string;
+    benefits: {
+        title: string;
+        description: string;
+    }[];
+    viralMechanic: string; // e.g. "Invite friends for early access"
+}
