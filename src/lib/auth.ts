@@ -7,10 +7,16 @@ import { authConfig } from "./auth.config"
 
 // Initialize Supabase client for credentials lookup
 const getSupabaseClient = () => {
-    return createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!url || !key) {
+        console.error("CRITICAL ERROR: Supabase env vars missing in auth.ts", { url: !!url, key: !!key })
+        // Return a dummy client or throw to prevent crash
+        throw new Error("Supabase environment variables missing (Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)")
+    }
+
+    return createClient(url, key)
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -73,9 +79,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         })
     ],
-    adapter: SupabaseAdapter({
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    }),
+    adapter: (() => {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
+        if (!url || !secret) {
+            console.error("CRITICAL: Supabase Adapter missing env vars")
+            return undefined // Auth will fail but app won't crash 404 immediately hopefully
+        }
+        return SupabaseAdapter({
+            url,
+            secret,
+        })
+    })(),
     debug: process.env.NODE_ENV === 'development',
 })
