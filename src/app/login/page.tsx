@@ -27,7 +27,7 @@ function LoginForm() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -36,6 +36,20 @@ function LoginForm() {
         setError(error.message);
         setLoading(false);
       } else {
+        // Explicitly verify/fetch from public.users as requested
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError && !profile) {
+          console.warn("User authenticated but public profile missing:", profileError);
+          // Optional: Could trigger a profile creation here if missing
+        } else {
+          console.log("Login successful. Public profile verified:", profile);
+        }
+
         router.refresh(); // Refresh server components
         router.push('/dashboard');
       }

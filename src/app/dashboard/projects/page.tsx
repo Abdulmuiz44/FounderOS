@@ -6,7 +6,8 @@ import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useRouter, useSearchParams } from 'next/navigation';
-// import { signIn } from 'next-auth/react';
+// import { signIn } from 'next-auth/react'; 
+// Removing unused NextAuth import completely
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus,
@@ -215,23 +216,65 @@ export default function ProjectsPage() {
 
     // GitHub Repo Handling
     const handleConnectGitHub = async () => {
-        if (!githubConnected) {
-            signIn('github', { callbackUrl: window.location.href });
-            return;
-        }
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+                scopes: 'repo',
+                redirectTo: `${window.location.origin}/dashboard/projects`
+            }
+        });
+        if (error) console.error("GitHub Auth Error:", error);
+    };
+
+    const fetchGitHubRepos = async () => {
         setLoadingRepos(true);
-        setShowRepoSelector(true);
         try {
-            const res = await fetch('/api/github/repos');
+            const { data: { session } } = await supabase.auth.getSession();
+            const providerToken = session?.provider_token;
+
+            if (!providerToken) {
+                // If we don't have a token, we might need to re-auth
+                console.warn("No GitHub provider token found. Please reconnect GitHub.");
+                // Optional: Force re-auth or show UI message
+                // For now, we'll try fetching from the API route if we decided to keep it, 
+                // OR we just suggest connecting again.
+                // Let's try the direct client fetch first if token exists.
+                return;
+            }
+
+            const res = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
+                headers: {
+                    Authorization: `Bearer ${providerToken}`,
+                    Accept: 'application/vnd.github.v3+json'
+                }
+            });
+
             if (res.ok) {
                 const data = await res.json();
                 setRepos(data);
+                setGithubConnected(true);
+            } else {
+                console.error("Failed to fetch repos directly from GitHub", res.statusText);
             }
         } catch (e) {
             console.error(e);
         } finally {
             setLoadingRepos(false);
         }
+    };
+
+    // Replace the old connect logic with a dual-mode button (Auth vs Fetch)
+    const handleRepoSelectorClick = async () => {
+        if (!githubConnected) {
+            // We can verify connection by checking if we have a token or just trying to fetch
+            await fetchGitHubRepos();
+            if (!githubConnected) {
+                // If still false after trying to fetch (likely no token), prompt auth
+                // Note: Ideally we track connection state via a profile flag, but for now validation is "can we fetch?"
+                // We will show the selector if we have repos, otherwise assume we need to connect.
+            }
+        }
+        setShowRepoSelector(true);
     };
 
     const selectRepo = async (repoName: string) => {
@@ -243,8 +286,6 @@ export default function ProjectsPage() {
         setProjects(projects.map(p => p.id === activeProject.id ? updatedProject : p));
         setShowRepoSelector(false);
 
-        // Save to DB via Supabase directly or new API endpoint
-        // For simplicity using supabase client directly if RLS allows, or a specialized endpoint
         const { error } = await supabase
             .from('projects')
             .update({ github_repo_full_name: repoName })
@@ -252,9 +293,19 @@ export default function ProjectsPage() {
 
         if (error) {
             console.error("Failed to update project repo", error);
-            // Revert on error would be ideal
         }
     };
+
+    // Check for provider token on mount to set "connected" state
+    useEffect(() => {
+        const checkGitHubToken = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.provider_token) {
+                setGithubConnected(true);
+            }
+        };
+        checkGitHubToken();
+    }, []);
 
     if (loading) return <div className="h-full flex items-center justify-center p-8"><Skeleton className="w-12 h-12 rounded-full" /></div>;
 
@@ -407,7 +458,7 @@ export default function ProjectsPage() {
                                                                     variant="outline"
                                                                     size="sm"
                                                                     className="w-full gap-2"
-                                                                    onClick={handleConnectGitHub}
+                                                                    onClick={githubConnected ? handleRepoSelectorClick : handleConnectGitHub}
                                                                 >
                                                                     <Github className="w-4 h-4" />
                                                                     {githubConnected ? 'Select Repository' : 'Connect GitHub Account'}
