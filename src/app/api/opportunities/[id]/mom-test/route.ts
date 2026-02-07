@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { validator } from '@/modules/opportunity-intelligence/core/validator';
 import { createClient } from '@supabase/supabase-js';
 
@@ -10,8 +10,8 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
+        const user = await getServerUser();
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

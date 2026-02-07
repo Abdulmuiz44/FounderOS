@@ -23,7 +23,7 @@ function calculateBuilderMode(ratio: number, recentTrend: number): BuilderModeTy
 export async function GET() {
     try {
         const user = await getServerUser();
-        if (!session?.user?.id) {
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -143,7 +143,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const user = await getServerUser();
-        if (!session?.user?.id) {
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

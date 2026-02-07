@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
 import { createClient } from '@supabase/supabase-js';
-import { auth } from '@/lib/auth'; // Import auth helper
+import { getServerUser } from '@/utils/supabase/auth';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
-        const session = await auth(); // Get current session
+        const user = await getServerUser();
 
-        if (!session?.user?.id) {
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
