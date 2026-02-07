@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { generator } from '@/modules/opportunity-intelligence/core/generator';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
 import { FounderProfile } from '@/modules/opportunity-intelligence/types';
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await auth();
+        const user = await getServerUser();
         const userId = session?.user?.id;
 
         if (!userId) {
@@ -39,3 +39,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to generate opportunities' }, { status: 500 });
     }
 }
+

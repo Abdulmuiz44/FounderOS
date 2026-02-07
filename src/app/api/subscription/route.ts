@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { createClient } from '@supabase/supabase-js';
 
 // Use service role client for database operations
@@ -10,7 +10,7 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    const session = await auth();
+    const user = await getServerUser();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -19,7 +19,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .in('status', ['active', 'on_trial', 'past_due', 'paused'])
       .order('created_at', { ascending: false })
       .maybeSingle();
@@ -35,3 +35,4 @@ export async function GET() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

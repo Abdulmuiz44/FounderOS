@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { createClient } from '@supabase/supabase-js';
 import { classifyProfile } from '@/lib/profile/classifier';
 
@@ -10,7 +10,7 @@ const supabase = createClient(
 );
 
 export async function GET(request: Request) {
-  const session = await auth();
+  const user = await getServerUser();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from('builder_os_profile')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (error) {
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 
 // Triggered by Insight update (or Pattern update)
 export async function POST(request: Request) {
-  const session = await auth();
+  const user = await getServerUser();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   const { data: patterns } = await supabase
     .from('builder_patterns')
     .select('*')
-    .eq('user_id', session.user.id);
+    .eq('user_id', user.id);
 
   if (!patterns || patterns.length === 0) {
     return NextResponse.json({ processed: false, reason: 'no_patterns' });
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('builder_os_profile')
     .upsert({
-      user_id: session.user.id,
+      user_id: user.id,
       builder_mode: profile.builder_mode,
       dominant_pattern: profile.dominant_pattern,
       execution_style: profile.execution_style,
@@ -82,3 +82,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json(data);
 }
+

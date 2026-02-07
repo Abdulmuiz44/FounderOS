@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { createClient } from '@supabase/supabase-js';
 
 // Use service role client for database operations
@@ -9,7 +9,7 @@ const supabase = createClient(
 );
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const user = await getServerUser();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('logs')
     .insert({
-      user_id: session.user.id,
+      user_id: user.id,
       project_id,
       content,
       log_type
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const session = await auth();
+  const user = await getServerUser();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('project_id');
 
-  let query = supabase.from('logs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
+  let query = supabase.from('logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
 
   if (projectId) {
     query = query.eq('project_id', projectId);
@@ -68,3 +68,4 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
+

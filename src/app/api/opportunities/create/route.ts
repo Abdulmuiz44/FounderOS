@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await auth();
+        const user = await getServerUser();
         const userId = session?.user?.id;
 
         if (!userId) {
@@ -31,3 +31,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to create opportunity' }, { status: 500 });
     }
 }
+

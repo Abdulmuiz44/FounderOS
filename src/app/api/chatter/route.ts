@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { createClient } from '@supabase/supabase-js';
 import { ChatterMetrics, BuilderModeType } from '@/types/schema_v2';
 
@@ -22,7 +22,7 @@ function calculateBuilderMode(ratio: number, recentTrend: number): BuilderModeTy
 // GET: Fetch chatter metrics for current user
 export async function GET() {
     try {
-        const session = await auth();
+        const user = await getServerUser();
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -34,7 +34,7 @@ export async function GET() {
         const { data: metrics, error } = await supabase
             .from('chatter_metrics')
             .select('*')
-            .eq('user_id', session.user.id)
+            .eq('user_id', user.id)
             .gte('session_date', sevenDaysAgo.toISOString().split('T')[0])
             .order('session_date', { ascending: false });
 
@@ -47,7 +47,7 @@ export async function GET() {
             const { data: logs } = await supabase
                 .from('logs')
                 .select('*')
-                .eq('user_id', session.user.id)
+                .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
                 .limit(20);
 
@@ -142,7 +142,7 @@ export async function GET() {
 // POST: Log a new chatter session
 export async function POST(request: Request) {
     try {
-        const session = await auth();
+        const user = await getServerUser();
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -161,7 +161,7 @@ export async function POST(request: Request) {
         const { data, error } = await supabase
             .from('chatter_metrics')
             .insert({
-                user_id: session.user.id,
+                user_id: user.id,
                 project_id,
                 ai_interaction_minutes,
                 execution_minutes,
@@ -184,3 +184,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+

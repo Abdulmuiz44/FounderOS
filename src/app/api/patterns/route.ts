@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { createClient } from '@supabase/supabase-js';
 import { analyzeMomentum, analyzeFocus, analyzeExecution, analyzeFriction } from '@/lib/patterns/engine';
 
@@ -10,15 +10,15 @@ const supabase = createClient(
 );
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getServerUser();
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { data, error } = await supabase
     .from('builder_patterns')
     .select('*')
-    .eq('user_id', session.user.id);
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error fetching patterns:', error);
@@ -30,8 +30,8 @@ export async function GET(request: Request) {
 
 // Internal trigger endpoint (called by log creation or cron)
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getServerUser();
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   const { data: logs } = await supabase
     .from('logs')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(50); // Analyze last 50 logs
 
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   // 3. Save Patterns
   for (const p of patterns) {
     const { error } = await supabase.from('builder_patterns').upsert({
-      user_id: session.user.id,
+      user_id: user.id,
       pattern_type: p.pattern_type,
       pattern_label: p.pattern_label,
       explanation: p.explanation,

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 
 export async function GET(req: NextRequest) {
-    const session = await auth();
+    const user = await getServerUser();
 
     // @ts-ignore
     const accessToken = session?.accessToken;
@@ -42,3 +42,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch repositories' }, { status: 500 });
     }
 }
+

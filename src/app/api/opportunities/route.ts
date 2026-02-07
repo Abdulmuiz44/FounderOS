@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = await getServerUser();
 
-        if (!userId) {
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const opportunities = await opportunityService.getOpportunities(userId);
+        const opportunities = await opportunityService.getOpportunities(user.id);
 
         return NextResponse.json({ opportunities });
     } catch (error) {

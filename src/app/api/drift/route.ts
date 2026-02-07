@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerUser } from '@/utils/supabase/auth';
 import { createClient } from '@supabase/supabase-js';
 import { calculateDrift } from '@/lib/profile/drift';
 
@@ -10,7 +10,7 @@ const supabase = createClient(
 );
 
 export async function GET(request: Request) {
-  const session = await auth();
+  const user = await getServerUser();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from('builder_os_drift')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (error) {
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 
 // Triggered by Profile update
 export async function POST(request: Request) {
-  const session = await auth();
+  const user = await getServerUser();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   const { data: currentProfile } = await supabase
     .from('builder_os_profile')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (!currentProfile) {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const { data: history } = await supabase
     .from('builder_os_history')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .order('recorded_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
   // 4. Save New Snapshot to History (for next time)
   await supabase.from('builder_os_history').insert({
-    user_id: session.user.id,
+    user_id: user.id,
     builder_mode: currentProfile.builder_mode,
     execution_style: currentProfile.execution_style,
     dominant_pattern: currentProfile.dominant_pattern,
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('builder_os_drift')
     .upsert({
-      user_id: session.user.id,
+      user_id: user.id,
       summary: driftResult.summary,
       severity: driftResult.severity,
       created_at: new Date().toISOString()
@@ -87,3 +87,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json(data);
 }
+
