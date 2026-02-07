@@ -50,8 +50,8 @@ export default function SignUp() {
 
       if (data?.session) {
         // Email confirmation is disabled (or unnecessary for this provider)
-        // Auto-login successful -> Redirect to dashboard
-        router.push('/dashboard');
+        // Auto-login successful -> Redirect to pricing to select plan
+        router.push('/pricing');
         return;
       }
 
