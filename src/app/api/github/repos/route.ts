@@ -4,10 +4,11 @@ import { getServerUser } from '@/utils/supabase/auth';
 export async function GET(req: NextRequest) {
     const user = await getServerUser();
 
-    // @ts-ignore
-    const accessToken = session?.accessToken;
+    // TODO: Get GitHub provider_token from Supabase session
+    // For now, this endpoint needs GitHub OAuth setup
+    const accessToken = null;
 
-    if (!session || !accessToken) {
+    if (!user || !accessToken) {
         return NextResponse.json({ error: 'GitHub not connected' }, { status: 401 });
     }
 

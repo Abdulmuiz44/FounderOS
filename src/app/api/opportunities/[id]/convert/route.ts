@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const { data: project, error: projError } = await supabase
             .from('projects')
             .insert({
-                user_id: session.user.id, // Enforce current user
+                user_id: user.id, // Enforce current user
                 name: opp.title,
                 description: opp.problem_statement,
                 audience: opp.target_niche,
