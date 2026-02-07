@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/Footer';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowRight,
   CheckCircle2,
@@ -20,6 +21,9 @@ import {
 } from 'lucide-react';
 
 export default function Landing() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [stats, setStats] = useState({
     users: 0,
     logs: 0,
@@ -27,6 +31,15 @@ export default function Landing() {
   });
 
   const [graphData, setGraphData] = useState<Array<{ active: boolean; height: number }>>([]);
+
+  // Handle email confirmation code redirect
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      // Redirect to auth callback with the code
+      router.push(`/auth/callback?code=${code}`);
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     setGraphData(Array(20).fill(0).map(() => ({
