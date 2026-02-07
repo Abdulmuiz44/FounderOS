@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -20,10 +20,22 @@ import {
   Shield
 } from 'lucide-react';
 
-export default function Landing() {
+// Separate component for handling auth code
+function AuthCodeHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      router.push(`/auth/callback?code=${code}`);
+    }
+  }, [searchParams, router]);
+
+  return null;
+}
+
+export default function Landing() {
   const [stats, setStats] = useState({
     users: 0,
     logs: 0,
@@ -31,15 +43,6 @@ export default function Landing() {
   });
 
   const [graphData, setGraphData] = useState<Array<{ active: boolean; height: number }>>([]);
-
-  // Handle email confirmation code redirect
-  useEffect(() => {
-    const code = searchParams.get('code');
-    if (code) {
-      // Redirect to auth callback with the code
-      router.push(`/auth/callback?code=${code}`);
-    }
-  }, [searchParams, router]);
 
   useEffect(() => {
     setGraphData(Array(20).fill(0).map(() => ({
@@ -86,6 +89,10 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] selection:bg-[var(--foreground)] selection:text-[var(--background)] overflow-hidden font-sans">
+      {/* Handle auth code redirect */}
+      <Suspense fallback={null}>
+        <AuthCodeHandler />
+      </Suspense>
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-6xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]/50 md:border-transparent transition-all">
