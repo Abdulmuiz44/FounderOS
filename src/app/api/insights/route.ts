@@ -11,7 +11,7 @@ const supabase = createClient(
 
 export async function GET(request: Request) {
   const user = await getServerUser();
-  if (!session?.user?.id) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 // Triggered by Patterns update
 export async function POST(request: Request) {
   const user = await getServerUser();
-  if (!session?.user?.id) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

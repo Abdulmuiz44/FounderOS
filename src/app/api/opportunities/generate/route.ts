@@ -7,7 +7,7 @@ import { FounderProfile } from '@/modules/opportunity-intelligence/types';
 export async function POST(req: NextRequest) {
     try {
         const user = await getServerUser();
-        const userId = session?.user?.id;
+        const userId = user?.id;
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
