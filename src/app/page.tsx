@@ -298,33 +298,12 @@ export default function Landing() {
             <div className="grid md:grid-cols-2 gap-16 items-center mb-24">
               <div className="order-2 md:order-1 relative">
                 <div className="absolute inset-0 bg-violet-500/20 blur-[100px] rounded-full opacity-30"></div>
-                <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl relative">
-                  <div className="border-b border-[var(--border)] pb-4 mb-4 flex justify-between items-center">
-                    <span className="font-bold text-sm">Validating: SaaS Analytics Tool</span>
-                    <span className="bg-green-500/10 text-green-600 px-2 py-1 rounded text-xs font-bold">Score: 8.5/10</span>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">Market Demand</span>
-                      <div className="flex gap-1">
-                        <div className="w-8 h-2 bg-green-500 rounded-full"></div>
-                        <div className="w-8 h-2 bg-green-500 rounded-full"></div>
-                        <div className="w-8 h-2 bg-green-500/30 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">Competition</span>
-                      <div className="flex gap-1">
-                        <div className="w-8 h-2 bg-yellow-500 rounded-full"></div>
-                        <div className="w-8 h-2 bg-yellow-500/30 rounded-full"></div>
-                        <div className="w-8 h-2 bg-yellow-500/30 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-[var(--card)] rounded border border-[var(--border)] mt-4">
-                      <p className="text-xs font-bold text-violet-500 mb-1">AI VERDICT</p>
-                      <p className="text-sm">"High potential. The market is growing by 12% YoY, and existing solutions lack AI integration. Proceed to MVP."</p>
-                    </div>
-                  </div>
+                <div className="rounded-2xl overflow-hidden shadow-2xl relative border border-[var(--border)]">
+                  <img
+                    src="/images/visuals/validation-dashboard.png"
+                    alt="FounderOS Validation Dashboard showing 8.5/10 score"
+                    className="w-full h-auto"
+                  />
                 </div>
               </div>
               <div className="order-1 md:order-2 space-y-6">
@@ -374,23 +353,12 @@ export default function Landing() {
               </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-green-500/20 blur-[100px] rounded-full opacity-30"></div>
-                <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl relative">
-                  {/* Mock contribution graph */}
-                  <div className="flex items-end gap-1 h-32 mb-4 justify-between px-2">
-                    {graphData.map((d, i) => (
-                      <div key={i} className={`w-3 rounded-t ${d.active ? 'bg-green-500' : 'bg-[var(--border)]'}`} style={{ height: `${d.height}%` }}></div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between items-center border-t border-[var(--border)] pt-4">
-                    <div>
-                      <p className="text-xs text-[var(--muted)]">Current Streak</p>
-                      <p className="text-xl font-bold">12 Days</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-[var(--muted)]">Commits</p>
-                      <p className="text-xl font-bold">48</p>
-                    </div>
-                  </div>
+                <div className="rounded-2xl overflow-hidden shadow-2xl relative border border-[var(--border)]">
+                  <img
+                    src="/images/visuals/github-tracking.png"
+                    alt="FounderOS GitHub Activity Tracking with 12 day streak and 48 commits"
+                    className="w-full h-auto"
+                  />
                 </div>
               </div>
             </div>
