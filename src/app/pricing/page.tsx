@@ -11,7 +11,7 @@ import { createClient } from '@/utils/supabase/client';
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ email?: string } | null>(null);
   const router = useRouter();
 
   // Check if user already has an active subscription
@@ -19,16 +19,16 @@ export default function PricingPage() {
     const checkSubscription = async () => {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-        setUser(user); // Store user for header display
+        setUser(currentUser); // Store user for header display
 
-        if (user?.id) {
+        if (currentUser?.id) {
           try {
             const { data: sub } = await supabase
               .from('subscriptions')
               .select('status')
-              .eq('user_id', user.id)
+              .eq('user_id', currentUser.id)
               .in('status', ['active', 'on_trial'])
               .maybeSingle();
 
@@ -134,7 +134,7 @@ export default function PricingPage() {
           {user ? (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)]">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm font-medium">{user.email}</span>
+              <span className="text-sm font-medium">{user?.email}</span>
             </div>
           ) : (
             <>
