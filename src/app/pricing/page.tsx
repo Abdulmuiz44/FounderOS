@@ -11,6 +11,7 @@ import { createClient } from '@/utils/supabase/client';
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   // Check if user already has an active subscription
@@ -19,6 +20,8 @@ export default function PricingPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
+
+        setUser(user); // Store user for header display
 
         if (user?.id) {
           try {
@@ -128,10 +131,19 @@ export default function PricingPage() {
       <nav className="fixed top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center max-w-6xl mx-auto w-full z-50 bg-[var(--background)]/80 backdrop-blur-md">
         <Link href="/" className="font-bold text-lg tracking-tight">FounderOS</Link>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">Log In</Link>
-          <Link href="/signup">
-            <Button size="sm">Get Started</Button>
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)]">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-sm font-medium">{user.email}</span>
+            </div>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">Log In</Link>
+              <Link href="/signup">
+                <Button size="sm">Get Started</Button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
