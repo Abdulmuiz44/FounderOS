@@ -1,5 +1,5 @@
 import { BLOG_POSTS } from '@/lib/blog-data';
-import { generatePostContent } from '@/lib/content-generator';
+import { getPostBySlug } from '@/lib/blog';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 import { ArrowLeft, Share2, Twitter, Linkedin, Clock, Calendar } from 'lucide-react';
@@ -17,14 +17,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     };
 }
 
-export default function BlogPost({ params }: { params: { slug: string } }) {
+export default async function BlogPost({ params }: { params: { slug: string } }) {
     const post = BLOG_POSTS.find(p => p.slug === params.slug);
 
     if (!post) {
         notFound();
     }
 
-    const contentHtml = generatePostContent(post);
+    // Try to get markdown content, fallback to generated content
+    const mdPost = await getPostBySlug(params.slug);
+    const contentHtml = mdPost?.content || `<p>${post.excerpt}</p><p><em>Full content coming soon...</em></p>`;
 
     return (
         <div className="min-h-screen bg-[var(--background)]">
