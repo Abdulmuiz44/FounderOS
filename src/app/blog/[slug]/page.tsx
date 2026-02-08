@@ -1,10 +1,18 @@
 import { BLOG_POSTS } from '@/lib/blog-data';
-import { getPostBySlug } from '@/lib/blog';
+import { getPostBySlug, getAllPostSlugs } from '@/lib/blog';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 import { ArrowLeft, Share2, Twitter, Linkedin, Clock, Calendar } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+
+export async function generateStaticParams() {
+    // Generate params for all blog posts that have markdown files
+    const slugs = getAllPostSlugs();
+    return slugs.map((slug) => ({
+        slug: slug,
+    }));
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
     const post = BLOG_POSTS.find(p => p.slug === params.slug);
