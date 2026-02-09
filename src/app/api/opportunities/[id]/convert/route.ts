@@ -3,9 +3,12 @@ import { opportunityService } from '@/modules/opportunity-intelligence/services/
 import { createClient } from '@supabase/supabase-js';
 import { getServerUser } from '@/utils/supabase/auth';
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
-        const { id } = await params;
+        const { id } = await context.params;
         const user = await getServerUser();
 
         if (!user) {

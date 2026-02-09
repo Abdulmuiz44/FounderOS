@@ -8,14 +8,17 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
         const user = await getServerUser();
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id } = await params;
+        const { id } = await context.params;
 
         // Fetch Opportunity
         const { data: opportunity, error } = await supabase
