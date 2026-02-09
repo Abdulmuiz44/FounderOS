@@ -1,25 +1,18 @@
 import { BLOG_POSTS } from '@/lib/blog-data';
-import { getPostBySlug, getAllPostSlugs } from '@/lib/blog';
+import { getEmbeddedPost, getAllEmbeddedSlugs } from '@/lib/blog-content';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
-import { ArrowLeft, Share2, Twitter, Linkedin, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 
-// Force static generation for all blog posts
-export const dynamic = 'force-static';
-export const dynamicParams = false; // Return 404 for unknown slugs
-
 export async function generateStaticParams() {
-    // Generate params for all blog posts that have markdown files
-    const slugs = getAllPostSlugs();
-    console.log('Generating static params for blog posts:', slugs);
+    // Get slugs from embedded content
+    const slugs = getAllEmbeddedSlugs();
+    console.log('[Blog] Generating static params for embedded slugs:', slugs);
 
-    // Also include all posts from blog-data as fallback
-    const allSlugs = [...new Set([...slugs, ...BLOG_POSTS.map(p => p.slug)])];
-
-    return allSlugs.map((slug) => ({
-        slug: slug,
+    return slugs.map((slug) => ({
+        slug,
     }));
 }
 
@@ -41,9 +34,9 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         notFound();
     }
 
-    // Try to get markdown content, fallback to generated content
-    const mdPost = await getPostBySlug(params.slug);
-    const contentHtml = mdPost?.content || `<p>${post.excerpt}</p><p><em>Full content coming soon...</em></p>`;
+    // Get embedded content
+    const embeddedPost = getEmbeddedPost(params.slug);
+    const contentHtml = embeddedPost?.content || `<p>${post.excerpt}</p><p><em>Full content coming soon...</em></p>`;
 
     return (
         <div className="min-h-screen bg-[var(--background)]">
