@@ -18,6 +18,14 @@ export interface BlogPostData {
 export async function getPostBySlug(slug: string): Promise<BlogPostData | null> {
     try {
         const fullPath = path.join(postsDirectory, `${slug}.md`);
+        console.log(`Attempting to read blog post: ${fullPath}`);
+
+        // Check if file exists
+        if (!fs.existsSync(fullPath)) {
+            console.error(`Blog post file not found: ${fullPath}`);
+            return null;
+        }
+
         const fileContents = fs.readFileSync(fullPath, 'utf8');
 
         // Use gray-matter to parse the post metadata section

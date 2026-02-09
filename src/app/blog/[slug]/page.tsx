@@ -6,10 +6,19 @@ import { ArrowLeft, Share2, Twitter, Linkedin, Clock, Calendar } from 'lucide-re
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 
+// Force static generation for all blog posts
+export const dynamic = 'force-static';
+export const dynamicParams = false; // Return 404 for unknown slugs
+
 export async function generateStaticParams() {
     // Generate params for all blog posts that have markdown files
     const slugs = getAllPostSlugs();
-    return slugs.map((slug) => ({
+    console.log('Generating static params for blog posts:', slugs);
+
+    // Also include all posts from blog-data as fallback
+    const allSlugs = [...new Set([...slugs, ...BLOG_POSTS.map(p => p.slug)])];
+
+    return allSlugs.map((slug) => ({
         slug: slug,
     }));
 }
