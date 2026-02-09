@@ -132,9 +132,21 @@ export default function PricingPage() {
         <Link href="/" className="font-bold text-lg tracking-tight">FounderOS</Link>
         <div className="flex items-center gap-4">
           {user ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)]">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm font-medium">{user?.email}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)]">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-sm font-medium">{user?.email}</span>
+              </div>
+              <button
+                onClick={async () => {
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                  router.push('/login');
+                }}
+                className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              >
+                Sign Out
+              </button>
             </div>
           ) : (
             <>
