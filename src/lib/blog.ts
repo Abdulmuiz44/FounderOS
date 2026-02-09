@@ -15,10 +15,17 @@ export interface BlogPostData {
     content: string;
 }
 
+// Cache to store processed blog posts at build time
+const blogPostsCache = new Map<string, BlogPostData>();
+
 export async function getPostBySlug(slug: string): Promise<BlogPostData | null> {
+    // Check cache first
+    if (blogPostsCache.has(slug)) {
+        return blogPostsCache.get(slug)!;
+    }
+
     try {
         const fullPath = path.join(postsDirectory, `${slug}.md`);
-        console.log(`Attempting to read blog post: ${fullPath}`);
 
         // Check if file exists
         if (!fs.existsSync(fullPath)) {
@@ -55,7 +62,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPostData | null> 
 
         const contentHtml = processedContent.toString();
 
-        return {
+        const postData: BlogPostData = {
             slug,
             title,
             date,
@@ -63,6 +70,11 @@ export async function getPostBySlug(slug: string): Promise<BlogPostData | null> 
             readTime,
             content: contentHtml
         };
+
+        // Cache the result
+        blogPostsCache.set(slug, postData);
+
+        return postData;
     } catch (error) {
         console.error(`Error reading post ${slug}:`, error);
         return null;
@@ -71,12 +83,32 @@ export async function getPostBySlug(slug: string): Promise<BlogPostData | null> 
 
 export function getAllPostSlugs(): string[] {
     try {
+        if (!fs.existsSync(postsDirectory)) {
+            console.error('Blog posts directory not found:', postsDirectory);
+            return [];
+        }
+
         const fileNames = fs.readdirSync(postsDirectory);
-        return fileNames
+        const slugs = fileNames
             .filter(fileName => fileName.endsWith('.md'))
             .map(fileName => fileName.replace(/\.md$/, ''));
+
+        console.log('Found blog post slugs:', slugs);
+        return slugs;
     } catch (error) {
         console.error('Error reading posts directory:', error);
         return [];
     }
+}
+
+// Pre-load all blog posts at build time
+export async function preloadAllPosts() {
+    const slugs = getAllPostSlugs();
+    console.log('Pre-loading blog posts:', slugs);
+
+    const posts = await Promise.all(
+        slugs.map(slug => getPostBySlug(slug))
+    );
+
+    return posts.filter((p): p is BlogPostData => p !== null);
 }
