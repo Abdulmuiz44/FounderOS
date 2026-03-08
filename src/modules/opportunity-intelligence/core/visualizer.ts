@@ -5,7 +5,10 @@ import { Opportunity, MonetizationMap } from '../types';
 export const monetizer = {
     async mapStrategies(opportunity: Opportunity): Promise<Omit<MonetizationMap, 'id' | 'opportunity_id' | 'created_at'>> {
         const prompt = PROMPTS.MONETIZATION_MAP(opportunity);
-        const result = await aiClient.generateJSON<any>(prompt, 'You are a Chief Revenue Officer.');
+        const result = await aiClient.generateJSON<any>(prompt, {
+            systemInstruction: 'You are a Chief Revenue Officer.',
+            temperature: 0.4
+        });
 
         return {
             revenue_model: result.revenueModel,
