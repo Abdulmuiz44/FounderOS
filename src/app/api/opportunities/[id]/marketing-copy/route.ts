@@ -3,8 +3,6 @@ import { getServerUser } from '@/utils/supabase/auth';
 import { validator } from '@/modules/opportunity-intelligence/core/validator';
 import { createClient } from '@supabase/supabase-js';
 
-
-
 export async function POST(
     req: NextRequest,
     context: { params: Promise<{ id: string }> }
@@ -21,6 +19,7 @@ export async function POST(
         }
 
         const { id } = await context.params;
+        console.log(`[MarketingCopy] Generating for ID: ${id}`);
 
         // Fetch Opportunity
         const { data: opportunity, error } = await supabase
@@ -30,16 +29,24 @@ export async function POST(
             .single();
 
         if (error || !opportunity) {
+            console.error(`[MarketingCopy] Opportunity not found or DB error:`, error);
             return NextResponse.json({ error: 'Opportunity not found' }, { status: 404 });
         }
 
-        // Generate Script
-        const script = await validator.generateMomTestScript(opportunity);
+        console.log(`[MarketingCopy] Found opportunity: ${opportunity.title}`);
 
-        return NextResponse.json({ script });
+        // Generate Marketing Copy
+        try {
+            const copy = await validator.generateMarketingCopy(opportunity);
+            console.log(`[MarketingCopy] Successfully generated copy`);
+            return NextResponse.json({ copy });
+        } catch (vError: any) {
+            console.error(`[MarketingCopy] Validator failed:`, vError);
+            return NextResponse.json({ error: vError.message || 'Validation failed' }, { status: 500 });
+        }
 
-    } catch (error) {
-        console.error('Failed to generate mom test script:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    } catch (error: any) {
+        console.error('[MarketingCopy] Critical error:', error);
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }

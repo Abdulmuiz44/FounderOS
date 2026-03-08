@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import Link from 'next/link';
 
 export default function WaitlistPage() {
   const [email, setEmail] = useState('');
@@ -33,9 +34,9 @@ export default function WaitlistPage() {
       
       {/* Header - No longer absolute to prevent overlap */}
       <nav className="w-full max-w-5xl mx-auto px-6 py-8 flex justify-between items-center">
-        <a href="/" className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity">
+        <Link href="/" className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity">
           FounderOS
-        </a>
+        </Link>
         <ThemeToggle />
       </nav>
 
@@ -110,9 +111,9 @@ export default function WaitlistPage() {
 
           {/* Learn More Link */}
           <div className="pt-8">
-            <a href="/" className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors border-b border-transparent hover:border-[var(--muted)] pb-0.5">
+            <Link href="/" className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors border-b border-transparent hover:border-[var(--muted)] pb-0.5">
               Learn more about FounderOS
-            </a>
+            </Link>
           </div>
         </div>
       </main>

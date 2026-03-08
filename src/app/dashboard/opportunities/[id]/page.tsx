@@ -2,8 +2,8 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, CheckCircle, BarChart3, ChevronRight, Play, ArrowLeft } from 'lucide-react';
-import { Opportunity, OpportunityScore, ExecutionPlan, MonetizationMap, MomTestScript, CompetitorAnalysis, WaitlistContent } from '@/modules/opportunity-intelligence/types';
+import { Loader2, CheckCircle, BarChart3, ChevronRight, Play, ArrowLeft, Layout, Sparkles, Copy, FileText, Star, HelpCircle, DollarSign, UserCheck } from 'lucide-react';
+import { MomTestScript, CompetitorAnalysis, WaitlistContent, MarketingCopy, ValidationReport } from '@/modules/opportunity-intelligence/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
@@ -21,6 +21,9 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
     const [analyzingCompetitors, setAnalyzingCompetitors] = useState(false);
     const [waitlistContent, setWaitlistContent] = useState<WaitlistContent | null>(null);
     const [generatingWaitlist, setGeneratingWaitlist] = useState(false);
+    const [marketingCopy, setMarketingCopy] = useState<MarketingCopy | null>(null);
+    const [generatingCopy, setGeneratingCopy] = useState(false);
+    const [activeCopyTab, setActiveCopyTab] = useState<'homepage' | 'about' | 'pricing' | 'dashboard'>('homepage');
 
     useEffect(() => {
         fetch(`/api/opportunities/${id}`)
@@ -31,8 +34,52 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
             .finally(() => setLoading(false));
     }, [id]);
 
+    const validationReport: ValidationReport | undefined = opportunity?.opportunity_scores?.analysis?.validationReport;
+
+    useEffect(() => {
+        if (!opportunity || validating) {
+            return;
+        }
+
+        if (opportunity.status !== 'DRAFT' && opportunity.status !== 'VALIDATING') {
+            return;
+        }
+
+        const run = async () => {
+            setValidating(true);
+            try {
+                const res = await fetch('/api/opportunities/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ opportunityId: id })
+                });
+                const data = await res.json();
+
+                if (data.scores) {
+                    setOpportunity((prev: any) => ({
+                        ...prev,
+                        opportunity_scores: data.scores,
+                        monetization_maps: data.monetization,
+                        execution_plans: data.plan,
+                        status: 'VALIDATED'
+                    }));
+                } else if (data.error) {
+                    setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
+                }
+            } catch (error) {
+                console.error(error);
+                setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
+            } finally {
+                setValidating(false);
+            }
+        };
+
+        run();
+    }, [id, opportunity, validating]);
+
     const handleRunValidation = async () => {
         setValidating(true);
+        setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATING' }));
         try {
             const res = await fetch('/api/opportunities/validate', {
                 method: 'POST',
@@ -49,9 +96,12 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                     execution_plans: data.plan,
                     status: 'VALIDATED'
                 }));
+            } else if (data.error) {
+                setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
             }
         } catch (e) {
             console.error(e);
+            setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
         } finally {
             setValidating(false);
         }
@@ -76,7 +126,12 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         setGeneratingScript(true);
         try {
             const res = await fetch(`/api/opportunities/${id}/mom-test`, { method: 'POST' });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Server error: ${res.status} - ${text.substring(0, 100)}`);
+            }
             const data = await res.json();
+
             if (data.script) {
                 setMomScript(data.script);
             }
@@ -91,7 +146,12 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         setAnalyzingCompetitors(true);
         try {
             const res = await fetch(`/api/opportunities/${id}/competitor-spy`, { method: 'POST' });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Server error: ${res.status} - ${text.substring(0, 100)}`);
+            }
             const data = await res.json();
+
             if (data.analysis) {
                 setCompetitorAnalysis(data.analysis);
             }
@@ -106,7 +166,12 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         setGeneratingWaitlist(true);
         try {
             const res = await fetch(`/api/opportunities/${id}/waitlist`, { method: 'POST' });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Server error: ${res.status} - ${text.substring(0, 100)}`);
+            }
             const data = await res.json();
+
             if (data.content) {
                 setWaitlistContent(data.content);
             }
@@ -115,6 +180,29 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         } finally {
             setGeneratingWaitlist(false);
         }
+    };
+
+    const handleGenerateMarketingCopy = async () => {
+        setGeneratingCopy(true);
+        try {
+            const res = await fetch(`/api/opportunities/${id}/marketing-copy`, { method: 'POST' });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Server error: ${res.status} - ${text.substring(0, 100)}`);
+            }
+            const data = await res.json();
+            if (data.copy) {
+                setMarketingCopy(data.copy);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setGeneratingCopy(false);
+        }
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
     };
 
     if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-[var(--muted)]" /></div>;
@@ -139,11 +227,11 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                             {!opportunity.opportunity_scores ? (
                                 <Button
                                     onClick={handleRunValidation}
-                                    disabled={validating}
+                                    disabled={validating || opportunity.status === 'VALIDATING'}
                                     className="gap-2 h-12 px-6"
                                 >
                                     {validating ? <Loader2 className="animate-spin w-4 h-4" /> : <BarChart3 className="w-4 h-4" />}
-                                    Run Validation AI
+                                    {opportunity.status === 'VALIDATING' || validating ? 'Validating In Background' : 'Run Validation AI'}
                                 </Button>
                             ) : (
                                 <div className="flex flex-col gap-2 items-end">
@@ -161,6 +249,9 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                                         </Button>
                                     )}
                                 </div>
+                            )}
+                            {opportunity.status === 'VALIDATION_FAILED' && (
+                                <span className="text-xs text-red-500 font-medium">Validation failed. Retry to regenerate the research report.</span>
                             )}
                         </div>
                     </div>
@@ -362,9 +453,120 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                                     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
                                     <h4 className="font-bold text-sm mb-2 text-[var(--foreground)]">AI Analysis Summary</h4>
                                     <p className="text-sm text-[var(--muted)] leading-relaxed italic">
-                                        "{opportunity.opportunity_scores.analysis?.demand || 'The market signals are strong. Proceed with validation.'}"
+                                        "{validationReport?.executiveSummary || opportunity.opportunity_scores.analysis?.demand || 'The market signals are strong. Proceed with validation.'}"
                                     </p>
                                 </div>
+
+                                {validationReport && (
+                                    <div className="mt-6 grid gap-6">
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Verdict</span>
+                                                <p className="mt-2 text-2xl font-bold text-[var(--foreground)]">{validationReport.verdict.replaceAll('_', ' ')}</p>
+                                                <p className="mt-2 text-sm text-[var(--muted)]">Confidence: {validationReport.confidence}/100</p>
+                                                <p className="mt-3 text-sm text-[var(--muted)]">{validationReport.marketSizeSummary}</p>
+                                            </div>
+                                            <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Launch Channels</span>
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {validationReport.launchChannels.slice(0, 6).map((channel) => (
+                                                        <span key={channel} className="rounded-full bg-[var(--card)] px-3 py-1 text-xs font-medium text-[var(--foreground)] border border-[var(--border)]">
+                                                            {channel}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                            <h4 className="text-sm font-bold text-[var(--foreground)]">Demand Signals</h4>
+                                            <div className="mt-4 space-y-3">
+                                                {validationReport.demandSignals.slice(0, 4).map((signal) => (
+                                                    <div key={`${signal.signal}-${signal.evidence}`} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <p className="font-medium text-[var(--foreground)]">{signal.signal}</p>
+                                                            <span className="text-xs font-bold text-blue-500">{signal.strength}</span>
+                                                        </div>
+                                                        <p className="mt-2 text-sm text-[var(--muted)]">{signal.evidence}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                            <h4 className="text-sm font-bold text-[var(--foreground)]">Source-backed Competitors</h4>
+                                            <div className="mt-4 space-y-3">
+                                                {validationReport.competitors.slice(0, 4).map((competitor) => (
+                                                    <div key={`${competitor.name}-${competitor.url || competitor.positioning}`} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                                                        <div className="flex items-start justify-between gap-4">
+                                                            <div>
+                                                                <p className="font-semibold text-[var(--foreground)]">{competitor.name}</p>
+                                                                <p className="mt-1 text-sm text-[var(--muted)]">{competitor.positioning}</p>
+                                                            </div>
+                                                            {competitor.url && (
+                                                                <a href={competitor.url} target="_blank" className="text-xs font-medium text-blue-500 hover:underline">
+                                                                    Visit
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                        <div className="mt-3 grid gap-3 text-sm text-[var(--muted)] md:grid-cols-2">
+                                                            <p><span className="font-medium text-[var(--foreground)]">Strength:</span> {competitor.strength}</p>
+                                                            <p><span className="font-medium text-[var(--foreground)]">Weakness:</span> {competitor.weakness}</p>
+                                                        </div>
+                                                        <p className="mt-3 text-sm text-[var(--foreground)]"><span className="font-medium">Wedge:</span> {competitor.differentiationOpportunity}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-6 md:grid-cols-2">
+                                            <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                                <h4 className="text-sm font-bold text-[var(--foreground)]">Primary Risks</h4>
+                                                <div className="mt-4 space-y-3">
+                                                    {validationReport.risks.slice(0, 4).map((risk) => (
+                                                        <div key={`${risk.risk}-${risk.mitigation}`} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <p className="font-medium text-[var(--foreground)]">{risk.risk}</p>
+                                                                <span className="text-xs font-bold text-orange-500">{risk.severity}</span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-[var(--muted)]">{risk.mitigation}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                                <h4 className="text-sm font-bold text-[var(--foreground)]">Next Validation Experiments</h4>
+                                                <div className="mt-4 space-y-3">
+                                                    {validationReport.validationExperiments.slice(0, 4).map((experiment) => (
+                                                        <div key={`${experiment.experiment}-${experiment.successMetric}`} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                                                            <p className="font-medium text-[var(--foreground)]">{experiment.experiment}</p>
+                                                            <p className="mt-2 text-sm text-[var(--muted)]">{experiment.execution}</p>
+                                                            <p className="mt-2 text-xs text-[var(--muted)]">Success metric: {experiment.successMetric}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
+                                            <h4 className="text-sm font-bold text-[var(--foreground)]">Research Sources</h4>
+                                            <div className="mt-4 space-y-3">
+                                                {validationReport.sources.slice(0, 6).map((source) => (
+                                                    <a
+                                                        key={`${source.title}-${source.url}`}
+                                                        href={source.url}
+                                                        target="_blank"
+                                                        className="block rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 transition hover:border-blue-500/40"
+                                                    >
+                                                        <p className="font-medium text-[var(--foreground)]">{source.title}</p>
+                                                        <p className="mt-1 text-xs uppercase tracking-wider text-[var(--muted)]">{source.publisher}</p>
+                                                        <p className="mt-2 text-sm text-[var(--muted)]">{source.evidence}</p>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="bg-[var(--card)] border-2 border-dashed border-[var(--border)] rounded-xl p-12 text-center opacity-70">
@@ -419,6 +621,227 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                             </div>
                         )}
 
+                        {/* Marketing Copy Studio */}
+                        <div className="bg-[var(--card)] p-6 md:p-8 rounded-xl border border-[var(--border)] shadow-sm">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 pb-4 border-b border-[var(--border)]">
+                                <h2 className="text-xl font-bold flex items-center gap-3 text-[var(--foreground)]">
+                                    <Sparkles className="text-amber-500 w-6 h-6" />
+                                    Marketing Copy Studio
+                                </h2>
+                                <Button
+                                    onClick={handleGenerateMarketingCopy}
+                                    disabled={generatingCopy}
+                                    className="gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+                                >
+                                    {generatingCopy ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                                    {marketingCopy ? 'Regenerate All Copy' : 'Generate Full Marketing Suite'}
+                                </Button>
+                            </div>
+
+                            {!marketingCopy ? (
+                                <div className="p-12 text-center bg-[var(--background)] rounded-xl border border-dashed border-[var(--border)]">
+                                    <FileText className="w-12 h-12 mx-auto mb-4 text-[var(--muted)] opacity-50" />
+                                    <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Build Your Presence</h3>
+                                    <p className="text-[var(--muted)] max-w-sm mx-auto">
+                                        Generate long-form, high-conversion copy for your homepage, about page, and pricing strategy in seconds.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {/* Tabs */}
+                                    <div className="flex gap-1 p-1 bg-[var(--background)] rounded-lg border border-[var(--border)] overflow-x-auto">
+                                        {[
+                                            { id: 'homepage', label: 'Homepage', icon: Layout },
+                                            { id: 'about', label: 'About', icon: FileText },
+                                            { id: 'pricing', label: 'Pricing', icon: DollarSign },
+                                            { id: 'dashboard', label: 'Onboarding', icon: UserCheck },
+                                        ].map((tab) => {
+                                            const Icon = tab.icon;
+                                            const active = activeCopyTab === tab.id;
+                                            return (
+                                                <button
+                                                    key={tab.id}
+                                                    onClick={() => setActiveCopyTab(tab.id as any)}
+                                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${active
+                                                        ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]'
+                                                        : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                                                        }`}
+                                                >
+                                                    <Icon className="w-4 h-4" />
+                                                    {tab.label}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+
+                                    {/* Tab Content */}
+                                    <div className="bg-[var(--background)] p-6 rounded-xl border border-[var(--border)] min-h-[400px]">
+                                        {activeCopyTab === 'homepage' && (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                {/* Hero Section */}
+                                                <div className="relative group p-4 border border-dashed border-transparent hover:border-amber-500/30 rounded-lg transition-colors">
+                                                    <button onClick={() => copyToClipboard(`${marketingCopy.homepage.hero.headline}\n${marketingCopy.homepage.hero.subheadline}`)} className="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 hover:bg-[var(--card)] rounded transition-all"><Copy className="w-4 h-4" /></button>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-2 block">Hero Section</span>
+                                                    <h3 className="text-2xl font-bold mb-3">{marketingCopy.homepage.hero.headline}</h3>
+                                                    <p className="text-[var(--muted)] text-lg leading-relaxed mb-4">{marketingCopy.homepage.hero.subheadline}</p>
+                                                    <Button className="bg-[var(--foreground)] text-[var(--background)]">{marketingCopy.homepage.hero.cta}</Button>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-4">
+                                                        <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/10">
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-2 block">The Problem (Agitation)</span>
+                                                            <h4 className="font-bold text-lg mb-2">{marketingCopy.homepage.problem.title}</h4>
+                                                            <p className="text-sm text-[var(--muted)] leading-relaxed italic">"{marketingCopy.homepage.problem.description}"</p>
+                                                        </div>
+                                                        <div className="p-4 bg-green-500/5 rounded-lg border border-green-500/10">
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest text-green-500 mb-2 block">The Solution</span>
+                                                            <h4 className="font-bold text-lg mb-2">{marketingCopy.homepage.solution.title}</h4>
+                                                            <p className="text-sm text-[var(--muted)] leading-relaxed">{marketingCopy.homepage.solution.description}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-2 block">Key Features</span>
+                                                        <div className="space-y-3">
+                                                            {marketingCopy.homepage.features.map((f: any, i: number) => (
+                                                                <div key={i} className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <CheckCircle className="w-3 h-3 text-indigo-500" />
+                                                                        <span className="font-bold text-sm">{f.title}</span>
+                                                                    </div>
+                                                                    <p className="text-xs text-[var(--muted)] mb-1">{f.description}</p>
+                                                                    <p className="text-[10px] font-medium text-indigo-400 italic">Benefit: {f.benefit}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] mb-2 block">Simulated Social Proof</span>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {marketingCopy.homepage.testimonials_simulated.map((t: any, i: number) => (
+                                                            <div key={i} className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg relative overflow-hidden">
+                                                                <Star className="absolute top-4 right-4 text-amber-500 w-3 h-3 fill-amber-500 opacity-20" />
+                                                                <p className="text-sm italic mb-4">"{t.quote}"</p>
+                                                                <div>
+                                                                    <p className="text-xs font-bold">{t.author}</p>
+                                                                    <p className="text-[10px] text-[var(--muted)]">{t.role}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] mb-2 block">F.A.Q.</span>
+                                                    <div className="space-y-3">
+                                                        {marketingCopy.homepage.faq.map((q: any, i: number) => (
+                                                            <div key={i} className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+                                                                <div className="flex items-start gap-2">
+                                                                    <HelpCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                                                    <div>
+                                                                        <p className="text-sm font-bold mb-1">{q.question}</p>
+                                                                        <p className="text-sm text-[var(--muted)]">{q.answer}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {activeCopyTab === 'about' && (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto py-4">
+                                                <div className="text-center">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-2 block">Mission Statement</span>
+                                                    <h3 className="text-2xl font-bold mb-6 italic">"{marketingCopy.about.mission}"</h3>
+                                                </div>
+
+                                                <div className="w-full h-px bg-[var(--border)]"></div>
+
+                                                <div>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] mb-4 block">The Origin Story</span>
+                                                    <div className="prose prose-sm prose-invert max-w-none text-[var(--muted)] leading-relaxed space-y-4">
+                                                        {marketingCopy.about.story.split('\n\n').map((p: string, i: number) => (
+                                                            <p key={i}>{p}</p>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+                                                    {marketingCopy.about.values.map((v: string, i: number) => (
+                                                        <div key={i} className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-lg text-center">
+                                                            <span className="text-sm font-bold text-indigo-400">{v}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {activeCopyTab === 'pricing' && (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4">
+                                                <div className="bg-amber-500/5 p-4 rounded-lg border border-amber-500/10 mb-8 max-w-xl mx-auto">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-2 block text-center">Pricing Strategy</span>
+                                                    <p className="text-sm text-amber-900/80 text-center italic">{marketingCopy.pricing.strategy}</p>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    {marketingCopy.pricing.tiers.map((tier: any, i: number) => (
+                                                        <div key={i} className={`p-6 rounded-2xl border ${tier.recommended ? 'border-indigo-500 bg-indigo-500/5' : 'border-[var(--border)] bg-[var(--card)]'} flex flex-col h-full relative`}>
+                                                            {tier.recommended && (
+                                                                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">Most Popular</span>
+                                                            )}
+                                                            <h4 className="font-bold text-xl mb-1">{tier.name}</h4>
+                                                            <div className="mb-6">
+                                                                <span className="text-3xl font-bold">{tier.price}</span>
+                                                                <span className="text-[var(--muted)] text-sm ml-1">/mo</span>
+                                                            </div>
+                                                            <ul className="space-y-3 mb-8 flex-1">
+                                                                {tier.features.map((f: string, j: number) => (
+                                                                    <li key={j} className="text-sm flex items-start gap-2 text-[var(--muted)]">
+                                                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                                                        {f}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                            <Button className={tier.recommended ? 'bg-indigo-500 hover:bg-indigo-600 text-white' : ''}>
+                                                                Choose {tier.name}
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {activeCopyTab === 'dashboard' && (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto py-4">
+                                                <div className="bg-green-500/5 p-8 rounded-2xl border border-green-500/10 text-center">
+                                                    <UserCheck className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                                                    <h3 className="text-2xl font-bold mb-2">{marketingCopy.dashboard_onboarding.welcome_message}</h3>
+                                                    <p className="text-[var(--muted)] mb-8">Let's get you set up for success in under 2 minutes.</p>
+
+                                                    <div className="space-y-4 text-left">
+                                                        {marketingCopy.dashboard_onboarding.setup_steps.map((s: any, i: number) => (
+                                                            <div key={i} className="flex gap-4 p-4 bg-[var(--background)] border border-[var(--border)] rounded-lg">
+                                                                <div className="w-6 h-6 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                                                    {i + 1}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-bold text-sm mb-1">{s.step}</p>
+                                                                    <p className="text-xs text-[var(--muted)]">{s.description}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

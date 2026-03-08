@@ -1,6 +1,6 @@
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Target, Lightbulb, GitCommit, Shield, Zap, BarChart3, Search } from 'lucide-react';
 
 export default function AboutPage() {
     return (
@@ -9,192 +9,145 @@ export default function AboutPage() {
                 <Link href="/" className="flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Back to Home
                 </Link>
-                <span className="font-bold">FounderOS</span>
+                <span className="font-bold text-xl tracking-tighter">FounderOS</span>
             </nav>
 
-            <main className="max-w-3xl mx-auto px-6 py-20 md:py-32">
-                <div className="space-y-12">
-                    {/* Opening */}
-                    <div className="space-y-6">
-                        <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
-                            I wasted 3 years building things nobody wanted.
+            <main className="max-w-4xl mx-auto px-6 py-20 md:py-32">
+                <div className="space-y-24">
+                    {/* Hero Section */}
+                    <div className="space-y-8 text-center md:text-left">
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1]">
+                            Moving from <span className="text-blue-600 dark:text-blue-400">"Can we build it?"</span><br />
+                            to <span className="text-violet-600 dark:text-violet-400">"Should we build it?"</span>
                         </h1>
-
-                        <p className="text-xl text-[var(--muted)]">
-                            This is the story of how 12 failed projects taught me what most founders learn too late.
+                        <p className="text-xl md:text-2xl text-[var(--muted)] max-w-2xl leading-relaxed">
+                            FounderOS is an Opportunity Intelligence platform designed to help developers and entrepreneurs validate startup ideas with data, not intuition.
                         </p>
                     </div>
 
-                    {/* The Story - Line by Line */}
-                    <div className="prose prose-lg dark:prose-invert max-w-none space-y-8 text-[var(--muted)] leading-relaxed">
-                        <p>
-                            2021. I opened my GitHub.
-                        </p>
+                    {/* Mission Section */}
+                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6">
+                            <h2 className="text-3xl font-bold">The Build Trap</h2>
+                            <p className="text-lg text-[var(--muted)] leading-relaxed">
+                                Most founders fail not because they can't build, but because they build things nobody wants.
+                                We call this the "Build Trap"—spending months on a perfect MVP only to launch to zero users.
+                            </p>
+                            <p className="text-lg text-[var(--muted)] leading-relaxed">
+                                FounderOS was created to break this cycle. We provide the tools to research markets, analyze competitors,
+                                and validate demand before you write a single line of code.
+                            </p>
+                        </div>
+                        <div className="bg-[var(--card)] border border-[var(--border)] p-8 rounded-3xl shadow-xl">
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 text-red-500">
+                                    <Shield className="w-5 h-5" />
+                                    <span className="font-semibold uppercase tracking-wider text-sm">Anti-Failure Engine</span>
+                                </div>
+                                <h3 className="text-2xl font-bold">Data-Driven Validation</h3>
+                                <p className="text-[var(--muted)]">
+                                    Our engine analyzes real-world signals—search volume, competitor growth, and pricing gaps—to
+                                    calculate a definitive Validation Score for your next project.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                        <p>
-                            Twelve repositories. Beautiful code. Pixel-perfect UIs. Zero users.
-                        </p>
-
-                        <p>
-                            I had spent thousands of hours solving problems that didn't exist.
-                        </p>
-
-                        <p>
-                            A task manager for freelancers. (Trello exists.)
-                        </p>
-
-                        <p>
-                            A portfolio builder for designers. (Nobody asked for it.)
-                        </p>
-
-                        <p>
-                            An AI writing tool. (Launched the week ChatGPT went viral. Timing: catastrophic.)
-                        </p>
-
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            The pattern was obvious. I was addicted to building, not validating.
-                        </p>
-
-                        <p>
-                            Every indie hacker shouted: "Just ship it!"
-                        </p>
-
-                        <p>
-                            So I did. Again. And again. Into the void.
-                        </p>
-
-                        <p>
-                            The advice was incomplete. It should have been: "Ship it... if anyone cares."
-                        </p>
-
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            I decided to build one last thing.
-                        </p>
-
-                        <p>
-                            A tool that would save me from myself.
-                        </p>
-
-                        <p>
-                            A system that would force me to answer three questions before I wrote a single line of code:
-                        </p>
-
-                        <div className="bg-[var(--card)] border border-[var(--border)] p-8 rounded-2xl not-prose my-8">
-                            <ol className="space-y-4 text-lg">
-                                <li className="flex gap-4">
-                                    <span className="text-blue-500 font-bold">1.</span>
-                                    <span>Is there search volume for this problem?</span>
-                                </li>
-                                <li className="flex gap-4">
-                                    <span className="text-violet-500 font-bold">2.</span>
-                                    <span>Who's already solving it, and what are they missing?</span>
-                                </li>
-                                <li className="flex gap-4">
-                                    <span className="text-green-500 font-bold">3.</span>
-                                    <span>Can I charge enough to make it worth building?</span>
-                                </li>
-                            </ol>
+                    {/* How it Works / Pillars */}
+                    <div className="space-y-12">
+                        <div className="text-center max-w-2xl mx-auto">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4">The Three Pillars of FounderOS</h2>
+                            <p className="text-[var(--muted)]">A comprehensive workflow from initial spark to shipping.</p>
                         </div>
 
-                        <p>
-                            That tool became FounderOS.
-                        </p>
+                        <div className="grid md:grid-cols-3 gap-8">
+                            <div className="p-8 rounded-2xl bg-[var(--card)] border border-[var(--border)] space-y-4">
+                                <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
+                                    <Lightbulb className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold">1. Generate</h3>
+                                <p className="text-[var(--muted)] text-sm leading-relaxed">
+                                    Use AI-driven Opportunity Intelligence to discover untapped niches and generate startup concepts based on market gaps.
+                                </p>
+                            </div>
 
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            I used it on my next idea.
-                        </p>
+                            <div className="p-8 rounded-2xl bg-[var(--card)] border border-[var(--border)] space-y-4 ring-2 ring-violet-500/20">
+                                <div className="w-12 h-12 bg-violet-500/10 text-violet-500 rounded-xl flex items-center justify-center">
+                                    <Search className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold">2. Validate</h3>
+                                <p className="text-[var(--muted)] text-sm leading-relaxed">
+                                    Analyze search trends and competitor data to get an objective "Worth It" score before committing your time.
+                                </p>
+                            </div>
 
-                        <p>
-                            Validation score: 3.2/10. Market saturated. Low monetization potential.
-                        </p>
+                            <div className="p-8 rounded-2xl bg-[var(--card)] border border-[var(--border)] space-y-4">
+                                <div className="w-12 h-12 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center">
+                                    <GitCommit className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold">3. Execute</h3>
+                                <p className="text-[var(--muted)] text-sm leading-relaxed">
+                                    Once validated, track your velocity with native GitHub integration and momentum-based build logs.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                        <p>
-                            I didn't build it.
-                        </p>
-
-                        <p>
-                            For the first time in years, I saved myself months of wasted work.
-                        </p>
-
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            The next idea scored 8.5/10.
-                        </p>
-
-                        <p>
-                            I built it in 2 weeks. Launched to 47 signups in the first week.
-                        </p>
-
-                        <p>
-                            It wasn't luck. It was data.
-                        </p>
-
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            I realized I wasn't alone.
-                        </p>
-
-                        <p>
-                            There are thousands of developers with the same 12-project graveyard.
-                        </p>
-
-                        <p>
-                            Brilliant builders. Terrible at picking battles.
-                        </p>
-
-                        <p>
-                            So I opened FounderOS to the world.
-                        </p>
-
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            This isn't just a validation tool.
-                        </p>
-
-                        <p>
-                            It's a philosophy: **Data over intuition. Validation before code.**
-                        </p>
-
-                        <p>
-                            Your excitement about an idea doesn't matter.
-                        </p>
-
-                        <p>
-                            Your gut feeling doesn't matter.
-                        </p>
-
-                        <p>
-                            What matters is: Will people pay for this? Today. Not in your dreams.
-                        </p>
-
-                        <p className="text-xl font-semibold text-[var(--foreground)] pt-8">
-                            FounderOS exists to stop you from building the wrong thing.
-                        </p>
-
-                        <p>
-                            Because the world doesn't need more beautiful code in abandoned repositories.
-                        </p>
-
-                        <p>
-                            It needs profitable businesses that solve real problems.
-                        </p>
-
-                        <p className="text-2xl font-bold text-[var(--foreground)] pt-12">
-                            Let's build the right things.
-                        </p>
-
-                        <p className="text-lg">
-                            — The FounderOS Team
-                        </p>
+                    {/* Target Audience */}
+                    <div className="py-20 border-y border-[var(--border)]">
+                        <div className="grid md:grid-cols-2 gap-16 items-center">
+                            <div className="space-y-8">
+                                <h2 className="text-3xl font-bold">Built for Builders</h2>
+                                <div className="space-y-6">
+                                    <div className="flex gap-4">
+                                        <div className="mt-1 text-blue-500"><Zap className="w-5 h-5" /></div>
+                                        <div>
+                                            <h4 className="font-bold">The Serial Maker</h4>
+                                            <p className="text-[var(--muted)] text-sm">Stop building a graveyard of unused repositories and start building assets.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="mt-1 text-violet-500"><Target className="w-5 h-5" /></div>
+                                        <div>
+                                            <h4 className="font-bold">The Solopreneur</h4>
+                                            <p className="text-[var(--muted)] text-sm">Maximize your limited time by only working on high-potential opportunities.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="mt-1 text-green-500"><BarChart3 className="w-5 h-5" /></div>
+                                        <div>
+                                            <h4 className="font-bold">Product Strategists</h4>
+                                            <p className="text-[var(--muted)] text-sm">Validate internal features and new product lines with real-time market data.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-gradient-to-br from-blue-600/5 to-violet-600/5 rounded-3xl p-12 border border-[var(--border)]">
+                                <blockquote className="space-y-6">
+                                    <p className="text-2xl font-medium italic leading-relaxed text-[var(--foreground)]">
+                                        "FounderOS doesn't just save you time—it saves you from the heartbreak of building something that doesn't matter."
+                                    </p>
+                                    <footer className="text-[var(--muted)] font-medium">— The FounderOS Philosophy</footer>
+                                </blockquote>
+                            </div>
+                        </div>
                     </div>
 
                     {/* CTA */}
-                    <div className="pt-12 text-center">
-                        <Link href="/signup">
-                            <button className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 rounded-full font-bold text-lg hover:opacity-90 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
-                                Start Validating Your Ideas
-                            </button>
-                        </Link>
-                        <p className="text-sm text-[var(--muted)] mt-4">
-                            Don't be the 13th failed project.
-                        </p>
+                    <div className="text-center space-y-8 pb-20">
+                        <h2 className="text-4xl font-bold tracking-tight">Ready to build the right thing?</h2>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <Link href="/signup">
+                                <button className="bg-[var(--foreground)] text-[var(--background)] px-10 py-5 rounded-full font-bold text-lg hover:opacity-90 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                                    Start Validating Now
+                                </button>
+                            </Link>
+                            <Link href="/login">
+                                <button className="px-10 py-5 rounded-full font-bold text-lg border border-[var(--border)] hover:bg-[var(--secondary)] transition-all">
+                                    Sign In
+                                </button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </main>

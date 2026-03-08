@@ -6,31 +6,6 @@ import { generateInsightCandidates } from '../insights/generateInsightCandidates
 import { callLLM } from '../../services/llm';
 import { BuilderBrief } from '../../types/brief';
 
-export async function generateBuilderBrief(): Promise<BuilderBrief> {
-  // a) Collect real signals (asynchronously)
-  const signals = [
-    ...(await getGASignals()),
-    ...(await getHubSpotSignals()),
-    ...(await getGitHubSignals())
-  ];
-
-  // b) Detect patterns
-  const patterns = detectPatterns(signals);
-
-  // c) Generate insight candidates
-  const insights = generateInsightCandidates(patterns);
-
-  // d) Pass structured data to callLLM
-  const rawResponse = await callLLM({
-    signals,
-    patterns,
-    insights
-  });
-
-  // e) Parse the raw markdown response into BuilderBrief object
-  return parseBrief(rawResponse);
-}
-
 function parseBrief(raw: string): BuilderBrief {
   const sections = raw.split('# ').filter(s => s.trim().length > 0);
 
@@ -65,4 +40,29 @@ function parseBrief(raw: string): BuilderBrief {
     meaning,
     founderFocus
   };
+}
+
+export async function generateBuilderBrief(): Promise<BuilderBrief> {
+  // a) Collect real signals (asynchronously)
+  const signals = [
+    ...(await getGASignals()),
+    ...(await getHubSpotSignals()),
+    ...(await getGitHubSignals())
+  ];
+
+  // b) Detect patterns
+  const patterns = detectPatterns(signals);
+
+  // c) Generate insight candidates
+  const insights = generateInsightCandidates(patterns);
+
+  // d) Pass structured data to callLLM
+  const rawResponse = await callLLM({
+    signals,
+    patterns,
+    insights
+  });
+
+  // e) Parse the raw markdown response into BuilderBrief object
+  return parseBrief(rawResponse);
 }

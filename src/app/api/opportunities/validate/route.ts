@@ -6,9 +6,12 @@ import { opportunityService } from '@/modules/opportunity-intelligence/services/
 import { Opportunity } from '@/modules/opportunity-intelligence/types';
 
 export async function POST(req: NextRequest) {
+    let opportunityId: string | undefined;
+
     try {
         const body = await req.json();
-        const { opportunityId, opportunityData } = body;
+        opportunityId = body.opportunityId;
+        const { opportunityData } = body;
 
         let opportunity: Opportunity;
 
@@ -22,7 +25,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Opportunity not found or provided' }, { status: 404 });
         }
 
-        // Parallel execution for speed
+        if (opportunityId) {
+            await opportunityService.updateStatus(opportunityId, 'VALIDATING');
+        }
+
         const [scores, monetization, plan] = await Promise.all([
             validator.validate(opportunity),
             monetizer.mapStrategies(opportunity),
@@ -46,6 +52,11 @@ export async function POST(req: NextRequest) {
         });
     } catch (error) {
         console.error('Error validating opportunity:', error);
-        return NextResponse.json({ error: 'Failed to validate opportunity' }, { status: 500 });
+        if (opportunityId) {
+            await opportunityService.updateStatus(opportunityId, 'VALIDATION_FAILED');
+        }
+        return NextResponse.json({
+            error: error instanceof Error ? error.message : 'Failed to validate opportunity'
+        }, { status: 500 });
     }
 }

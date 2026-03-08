@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerUser } from '@/utils/supabase/auth';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(req: NextRequest) {
-    const user = await getServerUser();
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.provider_token;
 
-    // TODO: Get GitHub provider_token from Supabase session
-    // For now, this endpoint needs GitHub OAuth setup
-    const accessToken = null;
-
-    if (!user || !accessToken) {
+    if (!session || !accessToken) {
         return NextResponse.json({ error: 'GitHub not connected' }, { status: 401 });
     }
 
@@ -21,6 +19,8 @@ export async function GET(req: NextRequest) {
         });
 
         if (!res.ok) {
+            const errorText = await res.text();
+            console.error('GitHub API Response Error:', errorText);
             throw new Error('Failed to fetch from GitHub');
         }
 
@@ -43,4 +43,3 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch repositories' }, { status: 500 });
     }
 }
-

@@ -7,9 +7,73 @@ export interface Opportunity {
     market_gap: string;
     why_now: string;
     buyer_persona: string;
-    status: 'DRAFT' | 'VALIDATED' | 'ARCHIVED' | 'CONVERTED';
+    status: 'DRAFT' | 'VALIDATING' | 'VALIDATED' | 'VALIDATION_FAILED' | 'ARCHIVED' | 'CONVERTED';
     created_at: string;
     updated_at: string;
+}
+
+export interface ValidationSource {
+    title: string;
+    url: string;
+    publisher: string;
+    evidence: string;
+}
+
+export interface ValidationCompetitor {
+    name: string;
+    url?: string;
+    positioning: string;
+    targetAudience: string;
+    pricingHint: string;
+    strength: string;
+    weakness: string;
+    differentiationOpportunity: string;
+}
+
+export interface ValidationDemandSignal {
+    signal: string;
+    strength: 'HIGH' | 'MEDIUM' | 'LOW';
+    evidence: string;
+}
+
+export interface ValidationRisk {
+    risk: string;
+    severity: 'HIGH' | 'MEDIUM' | 'LOW';
+    mitigation: string;
+}
+
+export interface ValidationExperiment {
+    experiment: string;
+    goal: string;
+    execution: string;
+    successMetric: string;
+}
+
+export interface ValidationReport {
+    verdict: 'STRONG' | 'PROMISING' | 'WEAK' | 'DO_NOT_BUILD_YET';
+    confidence: number;
+    executiveSummary: string;
+    demandScore: number;
+    competitionScore: number;
+    monetizationScore: number;
+    complexityScore: number;
+    founderFitScore: number;
+    demandAnalysis: string;
+    competitionAnalysis: string;
+    monetizationAnalysis: string;
+    complexityAnalysis: string;
+    founderFitAnalysis: string;
+    marketSizeSummary: string;
+    demandSignals: ValidationDemandSignal[];
+    marketResearch: string[];
+    competitors: ValidationCompetitor[];
+    customerSegments: string[];
+    monetizationInsights: string[];
+    launchChannels: string[];
+    risks: ValidationRisk[];
+    validationExperiments: ValidationExperiment[];
+    searchQueries: string[];
+    sources: ValidationSource[];
 }
 
 export interface OpportunityScore {
@@ -27,6 +91,7 @@ export interface OpportunityScore {
         monetization: string;
         complexity: string;
         founderFit: string;
+        validationReport?: ValidationReport;
     };
     created_at: string;
 }
@@ -90,13 +155,7 @@ export interface MomTestScript {
 }
 
 export interface CompetitorAnalysis {
-    competitors: {
-        name: string;
-        url?: string;
-        strength: string;
-        weakness: string;
-        differentiationOpportunity: string;
-    }[];
+    competitors: ValidationCompetitor[];
     marketGapSummary: string;
 }
 
@@ -109,4 +168,33 @@ export interface WaitlistContent {
         description: string;
     }[];
     viralMechanic: string; // e.g. "Invite friends for early access"
+}
+
+export interface MarketingCopy {
+    homepage: {
+        hero: { headline: string; subheadline: string; cta: string };
+        problem: { title: string; description: string };
+        solution: { title: string; description: string };
+        features: { title: string; description: string; benefit: string }[];
+        testimonials_simulated: { quote: string; author: string; role: string }[];
+        faq: { question: string; answer: string }[];
+    };
+    about: {
+        mission: string;
+        story: string;
+        values: string[];
+    };
+    pricing: {
+        strategy: string;
+        tiers: {
+            name: string;
+            price: string;
+            features: string[];
+            recommended: boolean;
+        }[];
+    };
+    dashboard_onboarding: {
+        welcome_message: string;
+        setup_steps: { step: string; description: string }[];
+    };
 }

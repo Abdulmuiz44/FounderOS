@@ -25,7 +25,7 @@ export default function OpportunitiesDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Opportunity Intelligence</h1>
-                    <p className="text-[var(--muted)] mt-1 text-lg">Discover, Validate, and Execute your next big idea.</p>
+                    <p className="text-[var(--muted)] mt-1 text-lg">Submit an idea, let the engine research it, then move only validated opportunities into execution.</p>
                 </div>
                 <Link
                     href="/dashboard/opportunities/create"
@@ -46,13 +46,13 @@ export default function OpportunitiesDashboard() {
                     </div>
                     <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">No opportunities yet</h3>
                     <p className="text-[var(--muted)] max-w-md mb-8 leading-relaxed">
-                        Start your journey by generating AI-powered startup ideas tailored to your unique profile and skills.
+                        Start with one concrete idea. FounderOS will run demand checks, competitor research, and validation analysis before you build.
                     </p>
                     <Link
                         href="/dashboard/opportunities/create"
                         className="text-[var(--accent)] font-semibold hover:underline flex items-center gap-2"
                     >
-                        Launch Generator <ArrowRight className="w-4 h-4" />
+                        Validate An Idea <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>
             ) : (
@@ -63,6 +63,8 @@ export default function OpportunitiesDashboard() {
                                 {/* Status Badge */}
                                 <div className="flex justify-between items-start mb-4">
                                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${opp.status === 'VALIDATED' ? 'bg-[var(--success-bg)] text-[var(--success-text)]' :
+                                            opp.status === 'VALIDATING' ? 'bg-blue-500/10 text-blue-600' :
+                                                opp.status === 'VALIDATION_FAILED' ? 'bg-red-500/10 text-red-500' :
                                             opp.status === 'CONVERTED' ? 'bg-purple-500/10 text-purple-500' :
                                                 'bg-[var(--background)] border border-[var(--border)] text-[var(--muted)]'
                                         }`}>

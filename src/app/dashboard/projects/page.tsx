@@ -229,35 +229,21 @@ export default function ProjectsPage() {
     const fetchGitHubRepos = async () => {
         setLoadingRepos(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const providerToken = session?.provider_token;
-
-            if (!providerToken) {
-                // If we don't have a token, we might need to re-auth
-                console.warn("No GitHub provider token found. Please reconnect GitHub.");
-                // Optional: Force re-auth or show UI message
-                // For now, we'll try fetching from the API route if we decided to keep it, 
-                // OR we just suggest connecting again.
-                // Let's try the direct client fetch first if token exists.
-                return;
-            }
-
-            const res = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
-                headers: {
-                    Authorization: `Bearer ${providerToken}`,
-                    Accept: 'application/vnd.github.v3+json'
-                }
-            });
+            const res = await fetch('/api/github/repos');
 
             if (res.ok) {
                 const data = await res.json();
                 setRepos(data);
                 setGithubConnected(true);
             } else {
-                console.error("Failed to fetch repos directly from GitHub", res.statusText);
+                const errorData = await res.json();
+                console.error("Failed to fetch repos from API:", errorData.error);
+                if (res.status === 401) {
+                    setGithubConnected(false);
+                }
             }
         } catch (e) {
-            console.error(e);
+            console.error("Error fetching repos:", e);
         } finally {
             setLoadingRepos(false);
         }

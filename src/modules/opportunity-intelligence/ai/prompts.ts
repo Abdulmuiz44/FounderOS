@@ -29,37 +29,93 @@ export const PROMPTS = {
   `,
 
   VALIDATE_OPPORTUNITY: (opportunity: any) => `
-    Act as a relentless Venture Capital Validator. Analyze this startup opportunity and provide a brutal, honest scoring.
+    Act as a full validation intelligence engine for startup ideas.
     
     # Opportunity
     Title: ${opportunity.title}
-    Problem: ${opportunity.problemStatement}
-    Target: ${opportunity.targetNiche}
+    Problem: ${opportunity.problem_statement}
+    Target Niche: ${opportunity.target_niche}
+    Market Gap Claim: ${opportunity.market_gap}
+    Why Now: ${opportunity.why_now}
+    Buyer Persona: ${opportunity.buyer_persona}
     
     # Task
-    Score the opportunity on 5 dimensions (0-100) and provide critical analysis.
-    
-    # Dimensions
-    1. Demand Score: Is there urgent pain?
-    2. Competition Score: Is the market saturated? (Higher score = LESS competition/More winning chance)
-    3. Monetization Score: Can you easily charge for this?
-    4. Complexity Score: How hard to build MVP? (Higher score = EASIER)
-    5. Founder Fit Score: Based on implied skills needed.
-    
-    # Output Format (JSON)
+    Use web research, market research reasoning, competitor analysis, demand assessment, and monetization analysis to validate the idea as deeply as possible.
+    Be evidence-driven, skeptical, and concrete.
+
+    # Validation Requirements
+    1. Search for current market evidence and demand signals.
+    2. Identify real direct or adjacent competitors where possible.
+    3. Explain whether the market is crowded, fragmented, or underserved.
+    4. Assess monetization potential and likely price sensitivity.
+    5. Assess MVP complexity and operational burden.
+    6. Infer founder fit only from the idea details provided.
+    7. Produce a decisive verdict and practical next validation experiments.
+
+    # Output Format
+    Return valid JSON only.
     {
+      "verdict": "STRONG" | "PROMISING" | "WEAK" | "DO_NOT_BUILD_YET",
+      "confidence": number,
+      "executiveSummary": "string",
       "demandScore": number,
       "competitionScore": number,
       "monetizationScore": number,
       "complexityScore": number,
       "founderFitScore": number,
-      "analysis": {
-        "demand": "explanation...",
-        "competition": "explanation...",
-        "monetization": "explanation...",
-        "complexity": "explanation...",
-        "founderFit": "explanation..."
-      }
+      "demandAnalysis": "string",
+      "competitionAnalysis": "string",
+      "monetizationAnalysis": "string",
+      "complexityAnalysis": "string",
+      "founderFitAnalysis": "string",
+      "marketSizeSummary": "string",
+      "demandSignals": [
+        {
+          "signal": "string",
+          "strength": "HIGH" | "MEDIUM" | "LOW",
+          "evidence": "string"
+        }
+      ],
+      "marketResearch": ["string"],
+      "competitors": [
+        {
+          "name": "string",
+          "url": "string",
+          "positioning": "string",
+          "targetAudience": "string",
+          "pricingHint": "string",
+          "strength": "string",
+          "weakness": "string",
+          "differentiationOpportunity": "string"
+        }
+      ],
+      "customerSegments": ["string"],
+      "monetizationInsights": ["string"],
+      "launchChannels": ["string"],
+      "risks": [
+        {
+          "risk": "string",
+          "severity": "HIGH" | "MEDIUM" | "LOW",
+          "mitigation": "string"
+        }
+      ],
+      "validationExperiments": [
+        {
+          "experiment": "string",
+          "goal": "string",
+          "execution": "string",
+          "successMetric": "string"
+        }
+      ],
+      "searchQueries": ["string"],
+      "sources": [
+        {
+          "title": "string",
+          "url": "string",
+          "publisher": "string",
+          "evidence": "string"
+        }
+      ]
     }
   `,
 
@@ -159,19 +215,70 @@ export const PROMPTS = {
     Target Audience: ${opportunity.target_niche}
     
     # Goal
-    Convince visitors to give their email address. Use the "benefit-first" approach.
+    Convince visitors to give their email address. Use the "benefit-first" approach and tap into deep psychological triggers.
 
     # Output Format (JSON)
     {
-      "headline": "Punchy, value-driven main heading (H1)",
-      "subheadline": "Explanation of how it solves the problem (H2)",
-      "ctaText": "Action-oriented button text (e.g. 'Join the Private Beta')",
+      "headline": "Punchy, value-driven main heading (H1) that stops the scroll",
+      "subheadline": "Explanation of how it solves the problem (H2) and why it's different",
+      "ctaText": "Action-oriented button text (e.g. 'Get Early Access to the Future of X')",
       "benefits": [
-        { "title": "Benefit 1", "description": "Short explanation" },
-        { "title": "Benefit 2", "description": "Short explanation" },
-        { "title": "Benefit 3", "description": "Short explanation" }
+        { "title": "Benefit Title", "description": "Compelling explanation of the value" }
       ],
-      "viralMechanic": "A specific idea to make them share (e.g. 'Get early access if you refer 3 friends')"
+      "viralMechanic": "A specific idea to make them share (e.g. 'Move up the queue by inviting friends')"
+    }
+  `,
+
+  MARKETING_COPY: (opportunity: any) => `
+    Act as a World-Class Direct Response Copywriter (think Eugene Schwartz meets Gary Halbert). 
+    Generate a comprehensive, high-conversion marketing copy suite for this startup.
+    
+    # Opportunity
+    Title: ${opportunity.title}
+    Problem: ${opportunity.problem_statement}
+    Target Audience: ${opportunity.target_niche}
+    
+    # Task
+    Generate long-form copy for the Homepage, About, Pricing, and Dashboard onboarding. 
+    Focus on:
+    - Agitating the problem.
+    - Painting the dream scenario.
+    - Removing risk with clarity.
+    - Establishing authority.
+
+    # Output Format (JSON)
+    {
+      "homepage": {
+        "hero": { "headline": "string", "subheadline": "string", "cta": "string" },
+        "problem": { "title": "Agitate the Pain", "description": "Vivid description of the current frustration" },
+        "solution": { "title": "The Better Way", "description": "How this solution changes everything" },
+        "features": [
+          { "title": "Feature Name", "description": "What it does", "benefit": "Why it matters (The 'So What?')" }
+        ],
+        "testimonials_simulated": [
+          { "quote": "Compelling simulated testimonial", "author": "Persona Name", "role": "Specific Job Title" }
+        ],
+        "faq": [
+          { "question": "Objection-handling question", "answer": "Reassuring, authoritative answer" }
+        ]
+      },
+      "about": {
+        "mission": "Big, bold mission statement",
+        "story": "The 'Origin Story' - why this was built and the problem we're obsessed with solving",
+        "values": ["Value 1", "Value 2", "Value 3"]
+      },
+      "pricing": {
+        "strategy": "Explanation of the value-based pricing logic",
+        "tiers": [
+          { "name": "Basic/Pro/Scale", "price": "$X/mo", "features": ["Feature 1", "Feature 2"], "recommended": boolean }
+        ]
+      },
+      "dashboard_onboarding": {
+        "welcome_message": "Warm, action-oriented welcome for new users",
+        "setup_steps": [
+          { "step": "Step 1 Title", "description": "Clear instruction to get their first 'Win'" }
+        ]
+      }
     }
   `
 };

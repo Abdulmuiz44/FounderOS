@@ -1,5 +1,5 @@
 // AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
-// Generated at: 2026-02-09T15:54:14.820Z
+// Generated at: 2026-03-05T04:35:54.279Z
 // Source: src/content/blog/*.md
 
 export interface BlogPostContent {

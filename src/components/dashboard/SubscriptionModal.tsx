@@ -15,12 +15,6 @@ export function SubscriptionModal({ isOpen, onClose }: { isOpen: boolean; onClos
     const [subscription, setSubscription] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadSubscription();
-        }
-    }, [isOpen]);
-
     const loadSubscription = async () => {
         setLoading(true);
         try {
@@ -40,6 +34,12 @@ export function SubscriptionModal({ isOpen, onClose }: { isOpen: boolean; onClos
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        if (isOpen) {
+            loadSubscription();
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
