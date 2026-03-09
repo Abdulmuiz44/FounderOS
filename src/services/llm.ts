@@ -39,6 +39,12 @@ interface GeminiTextResponse {
     }>;
 }
 
+const MODEL_FALLBACKS = [
+    'gemini-3-flash-preview',
+    'gemini-2.5-flash',
+    'gemini-flash-latest'
+];
+
 export async function callLLM(input: { signals: Signal[], patterns: string[], insights: InsightCandidate[] }): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -62,41 +68,47 @@ ${JSON.stringify(insights, null, 2)}
 ${OUTPUT_PROMPT}
 `.trim();
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            systemInstruction: {
-                parts: [{ text: SYSTEM_PROMPT }]
+    const failures: string[] = [];
+
+    for (const model of MODEL_FALLBACKS) {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            contents: [
-                {
-                    role: 'user',
-                    parts: [{ text: userPrompt }]
+            body: JSON.stringify({
+                systemInstruction: {
+                    parts: [{ text: SYSTEM_PROMPT }]
+                },
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [{ text: userPrompt }]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.4
                 }
-            ],
-            generationConfig: {
-                temperature: 0.4
-            }
-        })
-    });
+            })
+        });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
+        if (!response.ok) {
+            failures.push(`${model}: ${response.status} ${response.statusText}`);
+            continue;
+        }
+
+        const data = await response.json() as GeminiTextResponse;
+        const content = data.candidates?.[0]?.content?.parts
+            ?.map((part) => part.text || '')
+            .join('')
+            .trim();
+
+        if (content) {
+            return content;
+        }
+
+        failures.push(`${model}: empty response`);
     }
 
-    const data = await response.json() as GeminiTextResponse;
-    const content = data.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text || '')
-        .join('')
-        .trim();
-
-    if (!content) {
-        throw new Error('Gemini API returned no content');
-    }
-
-    return content;
+    throw new Error(`Gemini API returned no usable content. ${failures.join(' | ')}`);
 }

@@ -18,10 +18,15 @@ interface GeminiResponse {
     candidates?: GeminiCandidate[];
 }
 
+const MODEL_FALLBACKS = [
+    'gemini-3-flash-preview',
+    'gemini-2.5-flash',
+    'gemini-flash-latest'
+];
+
 export class GeminiProvider {
     private apiKey: string;
     private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
-    private readonly model = 'gemini-3-flash';
 
     constructor(apiKey?: string) {
         this.apiKey = apiKey || process.env.GEMINI_API_KEY || '';
@@ -43,25 +48,20 @@ export class GeminiProvider {
         const trimmed = raw.trim();
 
         if (trimmed.startsWith('```')) {
-            const cleaned = trimmed
+            return trimmed
                 .replace(/^```json\s*/i, '')
                 .replace(/^```\s*/i, '')
-                .replace(/\s*```$/, '');
-            return cleaned.trim();
+                .replace(/\s*```$/, '')
+                .trim();
         }
 
         return trimmed;
     }
 
-    async generateJSON<T>(prompt: string, options: GenerateJSONOptions = {}): Promise<T> {
+    private async requestModel<T>(model: string, prompt: string, options: GenerateJSONOptions): Promise<T> {
         const apiKey = this.getApiKey();
 
         const body: Record<string, unknown> = {
-            systemInstruction: options.systemInstruction
-                ? {
-                    parts: [{ text: options.systemInstruction }]
-                }
-                : undefined,
             contents: [
                 {
                     role: 'user',
@@ -74,11 +74,17 @@ export class GeminiProvider {
             }
         };
 
-        if (options.useGoogleSearch) {
-            body.tools = [{ googleSearch: {} }];
+        if (options.systemInstruction) {
+            body.systemInstruction = {
+                parts: [{ text: options.systemInstruction }]
+            };
         }
 
-        const response = await fetch(`${this.baseUrl}/${this.model}:generateContent?key=${apiKey}`, {
+        if (options.useGoogleSearch) {
+            body.tools = [{ google_search: {} }];
+        }
+
+        const response = await fetch(`${this.baseUrl}/${model}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -88,7 +94,7 @@ export class GeminiProvider {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new Error(`${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const data = await response.json() as GeminiResponse;
@@ -106,6 +112,20 @@ export class GeminiProvider {
         } catch (error) {
             throw new Error(`Gemini returned invalid JSON: ${error instanceof Error ? error.message : 'Unknown parse error'}`);
         }
+    }
+
+    async generateJSON<T>(prompt: string, options: GenerateJSONOptions = {}): Promise<T> {
+        const failures: string[] = [];
+
+        for (const model of MODEL_FALLBACKS) {
+            try {
+                return await this.requestModel<T>(model, prompt, options);
+            } catch (error) {
+                failures.push(`${model}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        }
+
+        throw new Error(`Gemini API failed across all fallback models. ${failures.join(' | ')}`);
     }
 }
 
