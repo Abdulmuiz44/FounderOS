@@ -64,7 +64,7 @@ export default function CreateOpportunityPage() {
                         Full Validation Intelligence Engine
                     </div>
                     <h1 className="text-4xl font-bold tracking-tight text-[var(--foreground)]">
-                        Enter an idea. Let the system validate it end to end.
+                        Enter your idea and get a full go/no-go validation plus execution direction.
                     </h1>
                     <p className="max-w-3xl text-lg leading-relaxed text-[var(--muted)]">
                         FounderOS now treats idea validation as research work, not just prompt output. Submit one idea and the engine will assess demand, competitors, monetization, go-to-market angles, and validation risks.
@@ -149,7 +149,7 @@ export default function CreateOpportunityPage() {
 
                         <div className="mt-8 flex items-center justify-between gap-4 border-t border-[var(--border)] pt-6">
                             <p className="text-sm text-[var(--muted)]">
-                                Submission creates the opportunity and immediately routes into the validation workspace.
+                                Submission creates the opportunity, runs validation, and prepares a build-ready execution path.
                             </p>
                             <button
                                 onClick={submitIdea}
@@ -165,7 +165,7 @@ export default function CreateOpportunityPage() {
 
                     <aside className="space-y-5">
                         <div className="rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-[var(--foreground)]">What the engine does</h3>
+                            <h3 className="text-lg font-semibold text-[var(--foreground)]">What you get in the report</h3>
                             <div className="mt-4 space-y-4 text-sm leading-relaxed text-[var(--muted)]">
                                 <p>Searches the web for demand indicators, buyer pain, and category momentum.</p>
                                 <p>Maps direct and adjacent competitors, then highlights the most credible differentiation wedge.</p>

@@ -25,7 +25,7 @@ export default function OpportunitiesDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Opportunity Intelligence</h1>
-                    <p className="text-[var(--muted)] mt-1 text-lg">Submit an idea, let the engine research it, then move only validated opportunities into execution.</p>
+                    <p className="text-[var(--muted)] mt-1 text-lg">Submit an idea, validate it with market evidence, then move winners into a full implementation workflow.</p>
                 </div>
                 <Link
                     href="/dashboard/opportunities/create"
@@ -52,7 +52,7 @@ export default function OpportunitiesDashboard() {
                         href="/dashboard/opportunities/create"
                         className="text-[var(--accent)] font-semibold hover:underline flex items-center gap-2"
                     >
-                        Validate An Idea <ArrowRight className="w-4 h-4" />
+                        Validate an Idea <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>
             ) : (

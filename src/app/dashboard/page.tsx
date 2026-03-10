@@ -78,8 +78,8 @@ export default function DashboardOverview() {
             Welcome back, <span className="text-[var(--foreground)]">{user?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Founder'}</span>.
           </h1>
           <p className="text-xl text-[var(--muted)] max-w-2xl leading-relaxed">
-            Don't just build. <span className="text-[var(--foreground)] font-medium">Validate first.</span><br />
-            The goal is to build the <em>right</em> thing that is actually valuable.
+            Run your founder funnel with evidence first. <span className="text-[var(--foreground)] font-medium">Validate before you build.</span><br />
+            Then execute from a clear implementation plan.
           </p>
         </div>
 
@@ -100,11 +100,11 @@ export default function DashboardOverview() {
                   <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg">
                     <Lightbulb className="w-5 h-5" />
                   </div>
-                  <span className="font-semibold text-[var(--muted)]">Idea Generation</span>
+                  <span className="font-semibold text-[var(--muted)]">Idea Pipeline</span>
                 </div>
                 <div className="mb-4">
                   <span className="text-4xl font-bold">{stats.ideas}</span>
-                  <span className="text-sm text-[var(--muted)] ml-2">ideas logged</span>
+                  <span className="text-sm text-[var(--muted)] ml-2">ideas captured</span>
                 </div>
                 <div className="text-sm text-[var(--muted)] flex items-center gap-1 group-hover:text-[var(--foreground)] transition-colors">
                   Go to Lab <ArrowRight className="w-4 h-4" />
@@ -112,7 +112,7 @@ export default function DashboardOverview() {
               </motion.div>
             </Link>
 
-            {/* Stage 2: Validation */}
+            {/* Stage 2: Validated Opportunities */}
             <Link href="/dashboard/opportunities" className="group">
               <motion.div
                 whileHover={{ y: -5 }}
@@ -125,11 +125,11 @@ export default function DashboardOverview() {
                   <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg">
                     <CheckCircle className="w-5 h-5" />
                   </div>
-                  <span className="font-semibold text-[var(--muted)]">Validation</span>
+                  <span className="font-semibold text-[var(--muted)]">Validated Opportunities</span>
                 </div>
                 <div className="mb-4">
                   <span className="text-4xl font-bold">{stats.validated}</span>
-                  <span className="text-sm text-[var(--muted)] ml-2">ideas verified</span>
+                  <span className="text-sm text-[var(--muted)] ml-2">ideas validated</span>
                 </div>
                 <p className="text-xs text-[var(--muted)] mb-4">
                   {stats.ideas > 0 ? Math.round((stats.validated / stats.ideas) * 100) : 0}% validation rate
@@ -137,7 +137,7 @@ export default function DashboardOverview() {
               </motion.div>
             </Link>
 
-            {/* Stage 3: Execution */}
+            {/* Stage 3: Implementation */}
             <Link href="/dashboard/projects" className="group">
               <motion.div
                 whileHover={{ y: -5 }}
@@ -150,7 +150,7 @@ export default function DashboardOverview() {
                   <div className="p-2 bg-green-500/10 text-green-500 rounded-lg">
                     <Hammer className="w-5 h-5" />
                   </div>
-                  <span className="font-semibold text-[var(--muted)]">Execution</span>
+                  <span className="font-semibold text-[var(--muted)]">Implementation</span>
                 </div>
                 <div className="mb-4">
                   <span className="text-4xl font-bold">{stats.building}</span>

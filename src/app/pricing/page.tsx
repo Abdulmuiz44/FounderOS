@@ -82,7 +82,7 @@ export default function PricingPage() {
       name: "Validator",
       id: "starter",
       price: "12",
-      description: "Stop guessing. Validate your ideas before you build.",
+      description: "Validate demand before you write code. Build ideas that can convert.",
       icon: Lightbulb,
       variantId: process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_STARTER,
       features: [
