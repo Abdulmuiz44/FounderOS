@@ -1,62 +1,57 @@
 # FounderOS 🚀
 
-**Don't just build. Build the right thing.**
+**Stop guessing. Build what customers already want.**
 
-FounderOS is the operating system for founders who want to stop wasting time on dead-end ideas. It flips the script from "Build -> Launch -> Fail" to "Generate -> Validate -> Execute".
+FounderOS helps founders avoid dead-end builds by moving from **Idea Hype → Evidence → Execution**.
 
-## 🌟 Core Philosophy: Validate First
+## Why FounderOS
+Most projects fail because founders build before proving demand. FounderOS gives you a conversion-first workflow:
+1. **Generate** ideas tied to real buyer pain and your unfair advantage.
+2. **Validate** demand, competitors, pricing, and execution risk before coding.
+3. **Execute** with a full implementation plan you can copy into coding agents.
 
-Most founders fail because they build something nobody wants. FounderOS forces you to:
-1.  **Generate** high-potential ideas based on your unique "Founder DNA" & Unfair Advantages.
-2.  **Validate** demand, competition, and monetization *before* writing a single line of code.
-3.  **Execute** with focus, tracking real code progress via GitHub integration.
+## Core Product Experience
 
-## ✨ Key Features
-
-### 🧠 AI Idea Lab
-*   **Founder DNA Profiling:** Deep-dive questionnaire to uncover your daily frustrations, unfair advantages, and market insights.
-*   **Smart Generation:** AI generates tailored micro-SaaS and niche startup opportunities that fit *you*.
-*   **Opportunity Scoring:** Automatic analysis of potential ideas based on Demand, Competition, and Founder Fit.
+### 🧠 Idea Lab
+- Founder-context idea generation (skills, interests, unfair advantages)
+- Problem-first opportunity framing
+- Early-stage fit scoring to prioritize highest-upside ideas
 
 ### ✅ Validation Workspace
-*   **Opportunity Analysis:** Structured breakdown of Problem, Solution, and "Why Now".
-*   **Go-to-Market Plans:** AI-generated roadmaps to get your first customers.
+- AI market validation with competitor + demand signals
+- Buy-signal scoring (demand, competition, monetization, complexity, founder fit)
+- Structured experiments and risk visibility before you commit build time
 
 ### 🛠 Execution Dashboard
-*   **GitHub Integration:** Link your repositories to track real commit activity.
-*   **Project Tracking:** Move from "Idea" to "Building" to "Launched" with clear milestones.
+- **Full implementation plan** from validated idea to shipped MVP
+- Copy/export ready build guide for Cursor/Claude/other coding agents
+- GitHub-linked execution tracking and daily momentum logs
 
-## 🛠 Tech Stack
-*   **Framework:** Next.js 14 (App Router)
-*   **Database:** Supabase (PostgreSQL + Auth)
-*   **Styling:** Tailwind CSS + Lucide Icons
-*   **Auth:** NextAuth (Google + GitHub)
-*   **AI:** OpenAI Integration
+## Tech Stack
+- **Framework:** Next.js (App Router)
+- **Database:** Supabase (PostgreSQL + Auth)
+- **Styling:** Tailwind CSS + Lucide Icons
+- **Auth:** Supabase Auth + NextAuth
+- **AI:** Gemini + OpenAI compatible workflows
 
-## 🚀 Getting Started
+## Getting Started
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+2. Configure `.env.local` with:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `GEMINI_API_KEY` (and/or `OPENAI_API_KEY` depending on flows)
+3. Run dev server:
+   ```bash
+   pnpm dev
+   ```
 
-1.  **Clone the repo:**
-    ```bash
-    git clone https://github.com/StartUp-OS/FounderOS.git
-    ```
-2.  **Install dependencies:**
-    ```bash
-    pnpm install
-    ```
-3.  **Set up Environment Variables:**
-    Create a `.env.local` file with:
-    *   `NEXT_PUBLIC_SUPABASE_URL` & `SUPABASE_SERVICE_ROLE_KEY`
-    *   `GITHUB_ID` & `GITHUB_SECRET`
-    *   `OPENAI_API_KEY`
-4.  **Run the development server:**
-    ```bash
-    pnpm dev
-    ```
-
-## 📦 Deployment
-
-Deploy easily on Vercel. Ensure you select **Next.js** as the framework and set all environment variables in the Vercel dashboard.
+## Deployment
+Deploy on Vercel and set environment variables in project settings.
 
 ---
 
-*Built for builders who value their time.*
+*FounderOS: validate once, build with conviction.*

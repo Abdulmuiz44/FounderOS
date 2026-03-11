@@ -104,7 +104,7 @@ export default function Landing() {
         </Link>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           <Link href="#features" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">Features</Link>
-          <Link href="#how-it-works" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">How it Works</Link>
+          <Link href="#how-it-works" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">See How It Works</Link>
           <Link href="/pricing" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">Pricing</Link>
         </div>
         <div className="flex items-center gap-4">
@@ -133,28 +133,28 @@ export default function Landing() {
 
           <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-full px-4 py-1.5 shadow-sm">
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="text-xs font-medium text-[var(--muted)]">New: Validation Intelligence Engine</span>
+            <span className="text-xs font-medium text-[var(--muted)]">New: Find ideas people will actually pay for</span>
           </motion.div>
 
           <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05]">
-            Don't just build.
+            Stop guessing.
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400">Build the right thing.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400">Build what customers already want.</span>
           </motion.h1>
 
           <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-[var(--muted)] font-light leading-relaxed max-w-3xl mx-auto">
-            Stop wasting months on dead-end ideas. <strong className="text-[var(--foreground)]">Generate</strong> startup concepts, <strong className="text-[var(--foreground)]">validate</strong> their market potential with AI, and then <strong className="text-[var(--foreground)]">track</strong> your execution with clarity.
+            FounderOS helps you pick a winner before you write code. Discover painful problems, validate demand with evidence, and launch with confidence—not hope.
           </motion.p>
 
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
             <Link href="/signup">
               <Button className="h-14 px-8 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all w-full sm:w-auto bg-[var(--foreground)] text-[var(--background)] hover:bg-[var(--foreground)]/90">
-                Validate Your Idea Free <ArrowRight className="ml-2 w-5 h-5" />
+                Get My First Validation Report <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
             <Link href="#how-it-works">
               <Button variant="secondary" className="h-14 px-8 text-lg rounded-full w-full sm:w-auto bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--secondary)]">
-                How it Works
+                See How It Works
               </Button>
             </Link>
           </motion.div>
@@ -181,17 +181,17 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-16 items-center">
               <div className="space-y-6">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-2">The Trap</h2>
-                <h3 className="text-3xl md:text-5xl font-bold leading-tight">Most founders build fast, <br />but build <span className="text-red-500 decoration-red-500/30 underline decoration-wavy">wrong</span>.</h3>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-2">The Cost of Guessing</h2>
+                <h3 className="text-3xl md:text-5xl font-bold leading-tight">Most founders lose months <br />building products nobody buys.</h3>
                 <p className="text-lg text-[var(--muted)]">
-                  It's the classic mistake: you get an idea, get excited, and start coding immediately. Three months later, you launch to crickets.
+                  The pattern is brutal: idea excitement, weeks of building, then silence at launch. Validation first flips that outcome.
                 </p>
                 <ul className="space-y-4 pt-4">
                   {[
-                    "Building features nobody asked for",
-                    "Solving problems that aren't painful",
-                    "Wasting 100+ hours on 'MVP' code",
-                    "Burning out with zero revenue"
+                    "Building features no buyer asked for",
+                    "Chasing problems people won't pay to solve",
+                    "Burning 100+ hours before proving demand",
+                    "Burnout from effort that never converts"
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-[var(--foreground)]">
                       <XCircle className="w-5 h-5 text-red-500 shrink-0" />
@@ -220,7 +220,7 @@ export default function Landing() {
                         <Search className="w-4 h-4 text-red-500" />
                         <span className="text-sm font-bold text-red-500">Validation Missing</span>
                       </div>
-                      <p className="text-lg font-bold">"Is this worth building?"</p>
+                      <p className="text-lg font-bold">&quot;Is this worth building?&quot;</p>
                       <p className="text-sm opacity-70 mt-1">Market demand unclear. Competitor analysis missing. monetization strategy undefined.</p>
                     </div>
                   </div>
@@ -233,10 +233,10 @@ export default function Landing() {
         {/* The Solution: High Level Workflow */}
         <section id="how-it-works" className="py-32 px-6 max-w-6xl mx-auto">
           <div className="text-center mb-20 max-w-3xl mx-auto">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-4">The FounderOS Workflow</h2>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6">From Idea to Empire.<br />Without the guesswork.</h3>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-4">Your Faster Path to Revenue</h2>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">From raw idea to first paying customers.<br />Without gambling months.</h3>
             <p className="text-lg text-[var(--muted)]">
-              A systematic process to ensure every line of code you write contributes to valuable intellectual property.
+              A simple decision system that helps you focus on ideas with clear demand, clear buyers, and clear monetization.
             </p>
           </div>
 
@@ -251,11 +251,11 @@ export default function Landing() {
               </div>
               <h4 className="text-xl font-bold mb-3">1. Generate</h4>
               <p className="text-[var(--muted)] mb-4 leading-relaxed">
-                Stuck on what to build? Use our AI to generate high-potential startup ideas based on your skills, interests, and current market trends.
+                Start with ideas matched to your strengths and real market pain—so you begin with leverage instead of random brainstorming.
               </p>
               <ul className="space-y-2 text-sm">
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Niche Discovery</li>
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Problem-Solution Fit</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> High-intent niche selection</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Problem-first idea framing</li>
               </ul>
             </div>
 
@@ -267,11 +267,11 @@ export default function Landing() {
               <div className="absolute top-4 right-4 bg-violet-500 text-white text-[10px] font-bold px-2 py-1 rounded">CORE</div>
               <h4 className="text-xl font-bold mb-3">2. Validate</h4>
               <p className="text-[var(--muted)] mb-4 leading-relaxed">
-                Before writing code, get a <strong className="text-violet-500">Validation Score</strong>. AI analyzes competitors, search volume, and monetization potential to tell you if it's a "Go".
+                Before building, get a <strong className="text-violet-500">buy-signal score</strong>. FounderOS checks demand, competitors, and willingness-to-pay so you know what to pursue—and what to drop.
               </p>
               <ul className="space-y-2 text-sm">
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Competitor Analysis</li>
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Monetization Strategy</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Demand and competitor proof</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Pricing and monetization clarity</li>
               </ul>
             </div>
 
@@ -282,11 +282,11 @@ export default function Landing() {
               </div>
               <h4 className="text-xl font-bold mb-3">3. Execute</h4>
               <p className="text-[var(--muted)] mb-4 leading-relaxed">
-                Once validated, switch to builder mode. Track your commit activity, manage tasks, and get AI insights on your shipping velocity.
+                When an idea is validated, move into execution with clear milestones and momentum tracking so shipping turns into traction.
               </p>
               <ul className="space-y-2 text-sm">
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> GitHub Sync</li>
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Velocity Tracking</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Execution accountability</li>
+                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Momentum + shipping consistency</li>
               </ul>
             </div>
           </div>
@@ -310,18 +310,18 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center text-violet-500 mb-4">
                   <Search className="w-6 h-6" />
                 </div>
-                <h3 className="text-3xl font-bold">Know before you code.</h3>
+                <h3 className="text-3xl font-bold">Know it can sell before you build.</h3>
                 <p className="text-lg text-[var(--muted)]">
-                  Our Validation Engine scrapes the web, analyzes search trends, and reviews competitor pricing to give you a definitive "Worth It" score.
+                  Get a practical go/no-go decision backed by market evidence, competitive gaps, and monetization signals—so you only build ideas with upside.
                 </p>
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <div className="border-l-2 border-violet-500 pl-4">
                     <p className="font-bold text-lg">Market</p>
-                    <p className="text-sm text-[var(--muted)]">Size & Growth</p>
+                    <p className="text-sm text-[var(--muted)]">Buyer demand</p>
                   </div>
                   <div className="border-l-2 border-violet-500 pl-4">
                     <p className="font-bold text-lg">Competition</p>
-                    <p className="text-sm text-[var(--muted)]">Gaps & Weaknesses</p>
+                    <p className="text-sm text-[var(--muted)]">Positioning gaps</p>
                   </div>
                 </div>
               </div>
@@ -332,22 +332,22 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 mb-4">
                   <BarChart3 className="w-6 h-6" />
                 </div>
-                <h3 className="text-3xl font-bold">Track the build.</h3>
+                <h3 className="text-3xl font-bold">Ship faster, with less second-guessing.</h3>
                 <p className="text-lg text-[var(--muted)]">
-                  Connect your GitHub. FounderOS tracks your commits, pull requests, and shipping history to visualize your velocity.
+                  Turn validated ideas into shipped features. FounderOS keeps your execution visible so your plan becomes progress every week.
                 </p>
                 <ul className="space-y-3 pt-2">
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span>Automatic GitHub Activity Sync</span>
+                    <span>Automatic progress tracking</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span>Daily "Shipped" Logs</span>
+                    <span>Daily shipped evidence</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span>Momentum Streak Tracking</span>
+                    <span>Consistency streaks</span>
                   </li>
                 </ul>
               </div>
@@ -380,15 +380,15 @@ export default function Landing() {
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 mix-blend-overlay"></div>
             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-500/20 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 mix-blend-overlay"></div>
 
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 relative z-10 text-white dark:text-gray-100">Stop building in the dark.</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 relative z-10 text-white dark:text-gray-100">Validate once. Build with conviction.</h2>
             <p className="text-xl md:text-2xl opacity-90 mb-10 max-w-2xl mx-auto relative z-10 text-gray-300 dark:text-gray-300">
-              Join {stats.users > 0 ? formatNumber(stats.users) : ''} founders who are validating first and shipping faster.
+              Join {stats.users > 0 ? formatNumber(stats.users) : 'hundreds of'} founders using FounderOS to avoid dead-end builds and find ideas worth shipping.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <Link href="/signup">
                 <Button className="h-14 px-10 text-lg bg-white text-black hover:bg-white/90 border-0 rounded-full shadow-xl hover:shadow-2xl transition-all font-semibold">
-                  Start Free 7-Day Trial
+                  Start Free and Validate Your First Idea
                 </Button>
               </Link>
               <Link href="/pricing">
@@ -398,7 +398,7 @@ export default function Landing() {
               </Link>
             </div>
 
-            <p className="mt-8 text-sm opacity-50 relative z-10 text-gray-400">No credit card required • Cancel anytime</p>
+            <p className="mt-8 text-sm opacity-50 relative z-10 text-gray-400">No credit card required • Get your first go/no-go decision fast</p>
           </motion.div>
         </section>
 

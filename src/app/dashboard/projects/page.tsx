@@ -25,7 +25,9 @@ import {
     CheckCircle,
     ArrowRight,
     Loader2,
-    GitBranch
+    GitBranch,
+    Copy,
+    Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Project, Log, BuilderPattern, BuilderInsight, BuilderOSProfile, BuilderOSDrift } from '@/types/schema_v2';
@@ -41,10 +43,11 @@ export default function ProjectsPage() {
     const [profile, setProfile] = useState<BuilderOSProfile | null>(null);
     const [drift, setDrift] = useState<BuilderOSDrift | null>(null);
     const [showNewProject, setShowNewProject] = useState(false);
-    const [activeTab, setActiveTab] = useState<'logs' | 'insights' | 'timeline' | 'patterns' | 'details'>('logs');
+    const [activeTab, setActiveTab] = useState<'plan' | 'logs' | 'insights' | 'timeline' | 'patterns' | 'details'>('plan');
 
     // Onboarding State
     const [executionPlan, setExecutionPlan] = useState<any>(null);
+    const [linkedOpportunity, setLinkedOpportunity] = useState<any>(null);
     const [githubConnected, setGithubConnected] = useState(false);
     const [repos, setRepos] = useState<any[]>([]);
     const [loadingRepos, setLoadingRepos] = useState(false);
@@ -101,10 +104,12 @@ export default function ProjectsPage() {
 
 
     const fetchExecutionPlan = async (projectId: string) => {
-        if (activeProject?.opportunity_id) {
+        const project = projects.find((p) => p.id === projectId) || activeProject;
+        if (project?.opportunity_id) {
             try {
-                const res = await fetch(`/api/opportunities/${activeProject.opportunity_id}`);
+                const res = await fetch(`/api/opportunities/${project.opportunity_id}`);
                 const data = await res.json();
+                setLinkedOpportunity(data);
                 if (data.execution_plans) {
                     setExecutionPlan(data.execution_plans);
                 }
@@ -282,6 +287,37 @@ export default function ProjectsPage() {
         }
     };
 
+    const buildExecutionReport = () => {
+        if (!activeProject) return '';
+
+        const features = executionPlan?.mvp_features || [];
+        const stack = executionPlan?.tech_stack || [];
+        const gtm = executionPlan?.go_to_market || [];
+        const score = linkedOpportunity?.opportunity_scores;
+        const monetization = linkedOpportunity?.monetization_maps;
+
+        return `# ${activeProject.name} — Full Implementation Plan\n\n## 1) Project Brief\n- Project: ${activeProject.name}\n- Goal: ${activeProject.description || 'Not provided'}\n- Audience: ${activeProject.audience || 'Not provided'}\n- Linked Repo: ${activeProject.github_repo_full_name || 'Not connected'}\n\n## 2) Validation Snapshot\n- Weighted Validation Score: ${score?.weighted_average ?? 'N/A'}\n- Demand Score: ${score?.demand_score ?? 'N/A'}\n- Competition Score: ${score?.competition_score ?? 'N/A'}\n- Monetization Score: ${score?.monetization_score ?? 'N/A'}\n- Complexity Score: ${score?.complexity_score ?? 'N/A'}\n- Founder Fit Score: ${score?.founder_fit_score ?? 'N/A'}\n\n## 3) Build Strategy\n### MVP Features\n${features.map((f: any, i: number) => `${i + 1}. ${f.feature} (Priority: ${f.priority}, Complexity: ${f.complexity})`).join('\n') || '- No features generated yet'}\n\n### Recommended Tech Stack\n${stack.map((s: any, i: number) => `${i + 1}. ${s.name} [${s.category}] — ${s.reason}`).join('\n') || '- No stack generated yet'}\n\n## 4) Execution Timeline (90-Day)\n### Phase 1 (Week 1-2): Discovery + Foundation\n- Convert MVP features into user stories and acceptance criteria\n- Define architecture + repo structure\n- Implement auth, data model, and core scaffold\n\n### Phase 2 (Week 3-6): Core Build\n- Build high-priority MVP workflows end-to-end\n- Add analytics/events to measure activation\n- Run weekly QA and remove blockers\n\n### Phase 3 (Week 7-10): Beta + Feedback\n- Onboard first beta users from target segment\n- Track friction points and iterate UX\n- Improve retention loops + reliability\n\n### Phase 4 (Week 11-12): Launch Readiness\n- Harden onboarding and billing flow\n- Finalize positioning + landing assets\n- Prepare launch checklist and support docs\n\n## 5) Go-To-Market Actions\n${gtm.map((g: any, i: number) => `${i + 1}. ${g.step} via ${g.channel} (${g.timeline})`).join('\n') || '- No GTM plan generated yet'}\n\n## 6) Monetization Plan\n- Revenue Model: ${monetization?.revenue_model || 'N/A'}\n- Pricing Strategy: ${monetization?.pricing_strategy || 'N/A'}\n- Estimated ARPU: ${monetization?.estimated_arpu || 'N/A'}\n- Time to Revenue: ${monetization?.time_to_revenue || 'N/A'}\n- Secondary Streams: ${(monetization?.secondary_streams || []).join(', ') || 'N/A'}\n\n## 7) Copy/Paste Build Prompt (for coding agents)\n\"You are my senior product + engineering copilot. Build the MVP based on this implementation plan.\nRequirements:\n1) Ship in iterative milestones with clear deliverables each week.\n2) Prioritize MVP features by business impact and lowest complexity first.\n3) Use the recommended stack unless a better justified alternative exists.\n4) Add instrumentation for activation, retention, and conversion events.\n5) Output work as: architecture, schema, API contracts, UI tasks, QA checklist, deployment steps.\n6) Include risks, assumptions, and fallback options for each milestone.\"\n\n## 8) Next Actions\n- Connect repo and create milestone issues\n- Start Week 1 backlog from Phase 1\n- Log daily execution updates in FounderOS\n`;
+    };
+
+    const copyExecutionReport = async () => {
+        const report = buildExecutionReport();
+        if (!report) return;
+        await navigator.clipboard.writeText(report);
+    };
+
+    const exportExecutionReport = () => {
+        const report = buildExecutionReport();
+        if (!report || !activeProject) return;
+
+        const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${activeProject.name.toLowerCase().replace(/\s+/g, '-')}-implementation-plan.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     // Check for provider token on mount to set "connected" state
     useEffect(() => {
         const checkGitHubToken = async () => {
@@ -377,7 +413,7 @@ export default function ProjectsPage() {
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="flex bg-[var(--card)] rounded-lg p-1 border border-[var(--border)]">
-                                    {['logs', 'insights'].map((tab) => (
+                                    {['plan', 'logs', 'insights'].map((tab) => (
                                         <button
                                             key={tab}
                                             onClick={() => setActiveTab(tab as any)}
@@ -483,6 +519,29 @@ export default function ProjectsPage() {
                                 )}
 
                                 <AnimatePresence mode="wait">
+                                    {activeTab === 'plan' && (
+                                        <motion.div
+                                            key="plan"
+                                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                            className="space-y-6"
+                                        >
+                                            <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 md:p-8 shadow-sm">
+                                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                                                    <div>
+                                                        <h2 className="text-2xl font-bold">Full Implementation Plan</h2>
+                                                        <p className="text-[var(--muted)] mt-1">A complete build guide for your validated idea. Copy it into Cursor, Claude, or your coding agent to start execution instantly.</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Button variant="secondary" onClick={copyExecutionReport} className="h-9 text-xs gap-1"><Copy className="w-3.5 h-3.5" /> Copy Full Plan</Button>
+                                                        <Button onClick={exportExecutionReport} className="h-9 text-xs gap-1"><Download className="w-3.5 h-3.5" /> Export .md</Button>
+                                                    </div>
+                                                </div>
+
+                                                <pre className="whitespace-pre-wrap text-sm leading-relaxed bg-[var(--background)] border border-[var(--border)] rounded-xl p-4 md:p-5 max-h-[70vh] overflow-auto">{buildExecutionReport()}</pre>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
                                     {/* LOGS TAB */}
                                     {activeTab === 'logs' && (
                                         <motion.div
