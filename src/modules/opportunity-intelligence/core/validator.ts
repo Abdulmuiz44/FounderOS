@@ -53,7 +53,6 @@ export async function validate(opportunity: Opportunity): Promise<Omit<Opportuni
         const prompt = PROMPTS.VALIDATE_OPPORTUNITY(opportunity);
         const result = normalizeValidationReport(await aiClient.generateJSON<ValidationReport>(prompt, {
             systemInstruction: 'You are a startup validation intelligence engine. Research aggressively, stay skeptical, and return strict JSON only.',
-            useGoogleSearch: true,
             temperature: 0.2
         }));
 

@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.11.1",
-    "@google/generative-ai": "^0.24.1",
     "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.1",

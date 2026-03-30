@@ -1,57 +1,60 @@
-# FounderOS 🚀
+# FounderOS
 
-**Stop guessing. Build what customers already want.**
+Stop guessing. Build what customers already want.
 
-FounderOS helps founders avoid dead-end builds by moving from **Idea Hype → Evidence → Execution**.
+FounderOS helps founders avoid dead-end builds by moving from idea hype to evidence to execution.
 
-## Why FounderOS
-Most projects fail because founders build before proving demand. FounderOS gives you a conversion-first workflow:
-1. **Generate** ideas tied to real buyer pain and your unfair advantage.
-2. **Validate** demand, competitors, pricing, and execution risk before coding.
-3. **Execute** with a full implementation plan you can copy into coding agents.
+## Core Philosophy: Validate First
 
-## Core Product Experience
+Most founders fail because they build something nobody wants. FounderOS forces you to:
+1. Generate high-potential ideas based on your unique Founder DNA and unfair advantages.
+2. Validate demand, competition, and monetization before writing a single line of code.
+3. Execute with focus, tracking real code progress via GitHub integration.
 
-### 🧠 Idea Lab
-- Founder-context idea generation (skills, interests, unfair advantages)
-- Problem-first opportunity framing
-- Early-stage fit scoring to prioritize highest-upside ideas
+## Key Features
 
-### ✅ Validation Workspace
-- AI market validation with competitor + demand signals
-- Buy-signal scoring (demand, competition, monetization, complexity, founder fit)
-- Structured experiments and risk visibility before you commit build time
+### AI Idea Lab
+* Founder DNA profiling: Deep-dive questionnaire to uncover your daily frustrations, unfair advantages, and market insights.
+* Smart generation: AI generates tailored micro-SaaS and niche startup opportunities that fit you.
+* Opportunity scoring: Automatic analysis of potential ideas based on demand, competition, and founder fit.
 
-### 🛠 Execution Dashboard
-- **Full implementation plan** from validated idea to shipped MVP
-- Copy/export ready build guide for Cursor/Claude/other coding agents
-- GitHub-linked execution tracking and daily momentum logs
+### Validation Workspace
+* Opportunity analysis: Structured breakdown of problem, solution, and why now.
+* Go-to-market plans: AI-generated roadmaps to get your first customers.
+
+### Execution Dashboard
+* GitHub integration: Link your repositories to track real commit activity.
+* Project tracking: Move from idea to building to launched with clear milestones.
 
 ## Tech Stack
-- **Framework:** Next.js (App Router)
-- **Database:** Supabase (PostgreSQL + Auth)
-- **Styling:** Tailwind CSS + Lucide Icons
-- **Auth:** Supabase Auth + NextAuth
-- **AI:** Gemini + OpenAI compatible workflows
+* Framework: Next.js 14 (App Router)
+* Database: Supabase (PostgreSQL + Auth)
+* Styling: Tailwind CSS + Lucide Icons
+* Auth: NextAuth (Google + GitHub)
+* AI: Mistral AI Integration
 
 ## Getting Started
-1. Install dependencies:
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/StartUp-OS/FounderOS.git
+   ```
+2. Install dependencies:
    ```bash
    pnpm install
    ```
-2. Configure `.env.local` with:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `GEMINI_API_KEY` (and/or `OPENAI_API_KEY` depending on flows)
-3. Run dev server:
+3. Set up environment variables:
+   Create a `.env.local` file with:
+   * `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+   * `GITHUB_ID` and `GITHUB_SECRET`
+   * `MISTRAL_API_KEY`
+4. Run the development server:
    ```bash
    pnpm dev
    ```
 
 ## Deployment
-Deploy on Vercel and set environment variables in project settings.
 
----
+Deploy on Vercel. Select Next.js as the framework and set all environment variables in the Vercel dashboard.
 
-*FounderOS: validate once, build with conviction.*
+Built for builders who value their time.

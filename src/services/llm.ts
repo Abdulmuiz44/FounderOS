@@ -31,24 +31,23 @@ Exactly 3 actionable priorities to optimize execution.
 
 Use structured, system-oriented language. No fluff.`;
 
-interface GeminiTextResponse {
-    candidates?: Array<{
-        content?: {
-            parts?: Array<{ text?: string }>;
+interface MistralChatResponse {
+    choices?: Array<{
+        message?: {
+            content?: string;
         };
     }>;
 }
 
 const MODEL_FALLBACKS = [
-    'gemini-3-flash-preview',
-    'gemini-2.5-flash',
-    'gemini-flash-latest'
+    'mistral-large-latest',
+    'mistral-small-latest'
 ];
 
 export async function callLLM(input: { signals: Signal[], patterns: string[], insights: InsightCandidate[] }): Promise<string> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.MISTRAL_API_KEY;
     if (!apiKey) {
-        throw new Error('GEMINI_API_KEY is not set');
+        throw new Error('MISTRAL_API_KEY is not set');
     }
 
     const { signals, patterns, insights } = input;
@@ -71,37 +70,36 @@ ${OUTPUT_PROMPT}
     const failures: string[] = [];
 
     for (const model of MODEL_FALLBACKS) {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                systemInstruction: {
-                    parts: [{ text: SYSTEM_PROMPT }]
-                },
-                contents: [
+                model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: SYSTEM_PROMPT
+                    },
                     {
                         role: 'user',
-                        parts: [{ text: userPrompt }]
+                        content: userPrompt
                     }
                 ],
-                generationConfig: {
-                    temperature: 0.4
-                }
+                temperature: 0.4
             })
         });
 
         if (!response.ok) {
-            failures.push(`${model}: ${response.status} ${response.statusText}`);
+            const errorText = await response.text();
+            failures.push(`${model}: ${response.status} ${response.statusText} - ${errorText}`);
             continue;
         }
 
-        const data = await response.json() as GeminiTextResponse;
-        const content = data.candidates?.[0]?.content?.parts
-            ?.map((part) => part.text || '')
-            .join('')
-            .trim();
+        const data = await response.json() as MistralChatResponse;
+        const content = data.choices?.[0]?.message?.content?.trim();
 
         if (content) {
             return content;
@@ -110,5 +108,5 @@ ${OUTPUT_PROMPT}
         failures.push(`${model}: empty response`);
     }
 
-    throw new Error(`Gemini API returned no usable content. ${failures.join(' | ')}`);
+    throw new Error(`Mistral API returned no usable content. ${failures.join(' | ')}`);
 }
