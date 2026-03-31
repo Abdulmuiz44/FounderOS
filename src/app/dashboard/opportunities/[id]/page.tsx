@@ -53,18 +53,22 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ opportunityId: id })
                 });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`Validation request failed: ${res.status} ${res.statusText} - ${text.slice(0, 200)}`);
+                }
+
                 const data = await res.json();
 
                 if (data.scores) {
                     setOpportunity((prev: any) => ({
                         ...prev,
                         opportunity_scores: data.scores,
-                        monetization_maps: data.monetization,
-                        execution_plans: data.plan,
                         status: 'VALIDATED'
                     }));
-                } else if (data.error) {
-                    setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
+                } else {
+                    throw new Error('Validation API returned no scores');
                 }
             } catch (error) {
                 console.error(error);
@@ -86,18 +90,22 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ opportunityId: id })
             });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Validation request failed: ${res.status} ${res.statusText} - ${text.slice(0, 200)}`);
+            }
+
             const data = await res.json();
 
             if (data.scores) {
                 setOpportunity((prev: any) => ({
                     ...prev,
                     opportunity_scores: data.scores,
-                    monetization_maps: data.monetization,
-                    execution_plans: data.plan,
                     status: 'VALIDATED'
                 }));
-            } else if (data.error) {
-                setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
+            } else {
+                throw new Error('Validation API returned no scores');
             }
         } catch (e) {
             console.error(e);
