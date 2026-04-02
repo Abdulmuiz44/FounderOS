@@ -34,7 +34,7 @@ Use structured, system-oriented language. No fluff.`;
 interface MistralChatResponse {
     choices?: Array<{
         message?: {
-            content?: string;
+            content?: string | Array<{ text?: string }>;
         };
     }>;
 }
@@ -43,6 +43,18 @@ const MODEL_FALLBACKS = [
     'mistral-large-latest',
     'mistral-small-latest'
 ];
+
+function normalizeContent(content: string | Array<{ text?: string }> | undefined): string {
+    if (typeof content === 'string') {
+        return content.trim();
+    }
+
+    if (Array.isArray(content)) {
+        return content.map((part) => part.text || '').join('').trim();
+    }
+
+    return '';
+}
 
 export async function callLLM(input: { signals: Signal[], patterns: string[], insights: InsightCandidate[] }): Promise<string> {
     const apiKey = process.env.MISTRAL_API_KEY;
@@ -88,7 +100,8 @@ ${OUTPUT_PROMPT}
                         content: userPrompt
                     }
                 ],
-                temperature: 0.4
+                temperature: 0.4,
+                max_tokens: 2048
             })
         });
 
@@ -99,7 +112,7 @@ ${OUTPUT_PROMPT}
         }
 
         const data = await response.json() as MistralChatResponse;
-        const content = data.choices?.[0]?.message?.content?.trim();
+        const content = normalizeContent(data.choices?.[0]?.message?.content);
 
         if (content) {
             return content;

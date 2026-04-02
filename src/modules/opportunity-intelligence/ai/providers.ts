@@ -1,10 +1,11 @@
 interface GenerateJSONOptions {
     systemInstruction?: string;
     temperature?: number;
+    maxTokens?: number;
 }
 
 interface MistralMessage {
-    content?: string;
+    content?: string | Array<{ text?: string }>;
 }
 
 interface MistralChoice {
@@ -54,6 +55,21 @@ export class MistralProvider {
         return trimmed;
     }
 
+    private normalizeContent(content: MistralMessage['content']): string {
+        if (typeof content === 'string') {
+            return content.trim();
+        }
+
+        if (Array.isArray(content)) {
+            return content
+                .map((part) => part.text || '')
+                .join('')
+                .trim();
+        }
+
+        return '';
+    }
+
     private async requestModel<T>(model: string, prompt: string, options: GenerateJSONOptions): Promise<T> {
         const apiKey = this.getApiKey();
         const messages: Array<{ role: 'system' | 'user'; content: string }> = [];
@@ -80,7 +96,8 @@ export class MistralProvider {
                 model,
                 messages,
                 temperature: options.temperature ?? 0.4,
-                response_format: { type: 'json_object' }
+                response_format: { type: 'json_object' },
+                max_tokens: options.maxTokens ?? 4096
             })
         });
 
@@ -90,7 +107,7 @@ export class MistralProvider {
         }
 
         const data = await response.json() as MistralResponse;
-        const text = data.choices?.[0]?.message?.content?.trim();
+        const text = this.normalizeContent(data.choices?.[0]?.message?.content);
 
         if (!text) {
             throw new Error('Mistral API returned no content.');
