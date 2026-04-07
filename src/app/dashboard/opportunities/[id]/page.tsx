@@ -24,6 +24,8 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
     const [marketingCopy, setMarketingCopy] = useState<MarketingCopy | null>(null);
     const [generatingCopy, setGeneratingCopy] = useState(false);
     const [activeCopyTab, setActiveCopyTab] = useState<'homepage' | 'about' | 'pricing' | 'dashboard'>('homepage');
+    const [validationMode, setValidationMode] = useState<'ai' | 'fallback' | null>(null);
+    const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
     useEffect(() => {
         fetch(`/api/opportunities/${id}`)
@@ -35,6 +37,21 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
     }, [id]);
 
     const validationReport: ValidationReport | undefined = opportunity?.opportunity_scores?.analysis?.validationReport;
+
+    const applyValidationResult = (data: any) => {
+        if (data.scores) {
+            setOpportunity((prev: any) => ({
+                ...prev,
+                opportunity_scores: data.scores,
+                status: 'VALIDATED'
+            }));
+            setValidationMode(data.validationMode || 'ai');
+            setValidationMessage(data.validationMessage || null);
+            return;
+        }
+
+        throw new Error('Validation API returned no scores');
+    };
 
     useEffect(() => {
         if (!opportunity || validating) {
@@ -60,16 +77,7 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                 }
 
                 const data = await res.json();
-
-                if (data.scores) {
-                    setOpportunity((prev: any) => ({
-                        ...prev,
-                        opportunity_scores: data.scores,
-                        status: 'VALIDATED'
-                    }));
-                } else {
-                    throw new Error('Validation API returned no scores');
-                }
+                applyValidationResult(data);
             } catch (error) {
                 console.error(error);
                 setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
@@ -83,6 +91,8 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
 
     const handleRunValidation = async () => {
         setValidating(true);
+        setValidationMode(null);
+        setValidationMessage(null);
         setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATING' }));
         try {
             const res = await fetch('/api/opportunities/validate', {
@@ -97,16 +107,7 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
             }
 
             const data = await res.json();
-
-            if (data.scores) {
-                setOpportunity((prev: any) => ({
-                    ...prev,
-                    opportunity_scores: data.scores,
-                    status: 'VALIDATED'
-                }));
-            } else {
-                throw new Error('Validation API returned no scores');
-            }
+            applyValidationResult(data);
         } catch (e) {
             console.error(e);
             setOpportunity((prev: any) => ({ ...prev, status: 'VALIDATION_FAILED' }));
@@ -233,19 +234,31 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                         </div>
                         <div className="flex flex-col gap-3 shrink-0">
                             {!opportunity.opportunity_scores ? (
-                                <Button
-                                    onClick={handleRunValidation}
-                                    disabled={validating || opportunity.status === 'VALIDATING'}
-                                    className="gap-2 h-12 px-6"
-                                >
-                                    {validating ? <Loader2 className="animate-spin w-4 h-4" /> : <BarChart3 className="w-4 h-4" />}
-                                    {opportunity.status === 'VALIDATING' || validating ? 'Validating In Background' : 'Run Validation AI'}
-                                </Button>
+                                <>
+                                    <Button
+                                        onClick={handleRunValidation}
+                                        disabled={validating || opportunity.status === 'VALIDATING'}
+                                        className="gap-2 h-12 px-6"
+                                    >
+                                        {validating ? <Loader2 className="animate-spin w-4 h-4" /> : <BarChart3 className="w-4 h-4" />}
+                                        {opportunity.status === 'VALIDATING' || validating ? 'Validating In Background' : 'Run Validation AI'}
+                                    </Button>
+                                    {validationMessage && (
+                                        <p className={`max-w-sm text-xs text-right ${validationMode === 'fallback' ? 'text-amber-500' : 'text-[var(--muted)]'}`}>
+                                            {validationMessage}
+                                        </p>
+                                    )}
+                                </>
                             ) : (
                                 <div className="flex flex-col gap-2 items-end">
                                     <span className="text-xs uppercase font-bold text-green-500 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
                                         Validated Idea
                                     </span>
+                                    {validationMessage && (
+                                        <p className={`max-w-sm text-xs text-right ${validationMode === 'fallback' ? 'text-amber-500' : 'text-[var(--muted)]'}`}>
+                                            {validationMessage}
+                                        </p>
+                                    )}
                                     {opportunity.status !== 'CONVERTED' && (
                                         <Button
                                             onClick={handleConvert}

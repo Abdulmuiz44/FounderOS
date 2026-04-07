@@ -48,7 +48,89 @@ function normalizeValidationReport(result: Partial<ValidationReport>): Validatio
     };
 }
 
-export async function validate(opportunity: Opportunity): Promise<Omit<OpportunityScore, 'id' | 'opportunity_id' | 'created_at'>> {
+function scoreFromSignals(text: string, signals: string[], baseScore: number) {
+    const matches = signals.reduce((count, signal) => count + (text.includes(signal) ? 1 : 0), 0);
+    return Math.max(0, Math.min(100, baseScore + (matches * 5) - (text.length < 80 ? 8 : 0)));
+}
+
+function buildFallbackValidationReport(opportunity: Opportunity): ValidationReport {
+    const combinedText = [
+        opportunity.title,
+        opportunity.problem_statement,
+        opportunity.target_niche,
+        opportunity.market_gap,
+        opportunity.why_now,
+        opportunity.buyer_persona,
+    ].join(' ').toLowerCase();
+
+    const demandScore = scoreFromSignals(combinedText, [
+        'pain', 'urgent', 'time', 'manual', 'revenue', 'compliance', 'expensive', 'repeat', 'workflow', 'automate'
+    ], 62);
+    const competitionScore = scoreFromSignals(combinedText, [
+        'niche', 'specific', 'underserved', 'gap', 'differentiated', 'unique'
+    ], 58);
+    const monetizationScore = scoreFromSignals(combinedText, [
+        'budget', 'pay', 'revenue', 'pricing', 'b2b', 'subscription', 'savings', 'roi'
+    ], 64);
+    const complexityScore = scoreFromSignals(combinedText, [
+        'simple', 'focused', 'workflow', 'narrow', 'mvp', 'one', 'single'
+    ], 60);
+    const founderFitScore = scoreFromSignals(combinedText, [
+        'experience', 'skills', 'expertise', 'familiar', 'interest', 'background'
+    ], 55);
+
+    const weightedAverage = Math.round(
+        (demandScore * 0.3) +
+        (competitionScore * 0.2) +
+        (monetizationScore * 0.2) +
+        (complexityScore * 0.1) +
+        (founderFitScore * 0.2)
+    );
+
+    const verdict: ValidationReport['verdict'] = weightedAverage >= 75
+        ? 'STRONG'
+        : weightedAverage >= 60
+            ? 'PROMISING'
+            : weightedAverage >= 45
+                ? 'WEAK'
+                : 'DO_NOT_BUILD_YET';
+
+    return {
+        verdict,
+        confidence: 62,
+        executiveSummary: `Fallback validation for ${opportunity.title} based on structured heuristic scoring.`,
+        demandScore,
+        competitionScore,
+        monetizationScore,
+        complexityScore,
+        founderFitScore,
+        demandAnalysis: 'Heuristic demand analysis used because the AI validation provider was unavailable.',
+        competitionAnalysis: 'Heuristic competition analysis used because the AI validation provider was unavailable.',
+        monetizationAnalysis: 'Heuristic monetization analysis used because the AI validation provider was unavailable.',
+        complexityAnalysis: 'Heuristic complexity analysis used because the AI validation provider was unavailable.',
+        founderFitAnalysis: 'Heuristic founder fit analysis used because the AI validation provider was unavailable.',
+        marketSizeSummary: 'Fallback mode does not estimate market size directly.',
+        demandSignals: [],
+        marketResearch: [],
+        competitors: [],
+        customerSegments: opportunity.target_niche ? [opportunity.target_niche] : [],
+        monetizationInsights: [],
+        launchChannels: [],
+        risks: [],
+        validationExperiments: [],
+        searchQueries: [],
+        sources: []
+    };
+}
+
+type ValidationMode = 'ai' | 'fallback';
+
+type ValidationResult = Omit<OpportunityScore, 'id' | 'opportunity_id' | 'created_at'> & {
+    validationMode: ValidationMode;
+    validationMessage: string;
+};
+
+export async function validate(opportunity: Opportunity): Promise<ValidationResult> {
     try {
         const prompt = PROMPTS.VALIDATE_OPPORTUNITY(opportunity);
         const result = normalizeValidationReport(await aiClient.generateJSON<ValidationReport>(prompt, {
@@ -76,10 +158,37 @@ export async function validate(opportunity: Opportunity): Promise<Omit<Opportuni
                 complexity: result.complexityAnalysis,
                 founderFit: result.founderFitAnalysis,
                 validationReport: result
-            }
+            },
+            validationMode: 'ai',
+            validationMessage: 'Validation completed with live AI analysis.'
         };
     } catch (error: any) {
-        throw new Error(`Opportunity validation failed: ${error.message}`);
+        const fallback = buildFallbackValidationReport(opportunity);
+
+        return {
+            demand_score: fallback.demandScore,
+            competition_score: fallback.competitionScore,
+            monetization_score: fallback.monetizationScore,
+            complexity_score: fallback.complexityScore,
+            founder_fit_score: fallback.founderFitScore,
+            weighted_average: Math.round(
+                (fallback.demandScore * 0.3) +
+                (fallback.competitionScore * 0.2) +
+                (fallback.monetizationScore * 0.2) +
+                (fallback.complexityScore * 0.1) +
+                (fallback.founderFitScore * 0.2)
+            ),
+            analysis: {
+                demand: fallback.demandAnalysis,
+                competition: fallback.competitionAnalysis,
+                monetization: fallback.monetizationAnalysis,
+                complexity: fallback.complexityAnalysis,
+                founderFit: fallback.founderFitAnalysis,
+                validationReport: fallback
+            },
+            validationMode: 'fallback',
+            validationMessage: 'Validation completed with a local heuristic fallback because the AI provider was unavailable.'
+        };
     }
 }
 

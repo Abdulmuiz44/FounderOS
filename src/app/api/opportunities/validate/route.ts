@@ -27,14 +27,22 @@ export async function POST(req: NextRequest) {
             await opportunityService.updateStatus(opportunityId, 'VALIDATING');
         }
 
-        const scores = await validator.validate(opportunity);
+        const validationResult = await validator.validate(opportunity);
 
         if (opportunityId) {
+            const { validationMode, validationMessage, ...scores } = validationResult;
             await opportunityService.saveScore({ ...scores, opportunity_id: opportunityId });
             await opportunityService.updateStatus(opportunityId, 'VALIDATED');
+
+            return NextResponse.json({
+                scores,
+                validationMode,
+                validationMessage
+            });
         }
 
-        return NextResponse.json({ scores });
+        const { validationMode, validationMessage, ...scores } = validationResult;
+        return NextResponse.json({ scores, validationMode, validationMessage });
     } catch (error) {
         console.error('Error validating opportunity:', error);
         if (opportunityId) {
