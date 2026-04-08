@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validator } from '@/modules/opportunity-intelligence/core/validator';
+import { bridge } from '@/modules/opportunity-intelligence/core/bridge';
+import { monetizer } from '@/modules/opportunity-intelligence/core/visualizer';
 import { opportunityService } from '@/modules/opportunity-intelligence/services/opportunityService';
 import { Opportunity } from '@/modules/opportunity-intelligence/types';
 
@@ -32,6 +34,23 @@ export async function POST(req: NextRequest) {
         if (opportunityId) {
             const { validationMode, validationMessage, ...scores } = validationResult;
             await opportunityService.saveScore({ ...scores, opportunity_id: opportunityId });
+
+            const [executionPlan, monetizationMap] = await Promise.all([
+                bridge.createPlan(opportunity),
+                monetizer.mapStrategies(opportunity)
+            ]);
+
+            await Promise.all([
+                opportunityService.saveExecutionPlan({
+                    ...executionPlan,
+                    opportunity_id: opportunityId
+                }),
+                opportunityService.saveMonetization({
+                    ...monetizationMap,
+                    opportunity_id: opportunityId
+                })
+            ]);
+
             await opportunityService.updateStatus(opportunityId, 'VALIDATED');
 
             return NextResponse.json({
