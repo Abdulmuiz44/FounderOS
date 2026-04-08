@@ -294,9 +294,11 @@ export default function ProjectsPage() {
                 },
                 body: JSON.stringify({
                     repoName: `${activeProject.name}-master-plan`,
+                    repoFullName: activeProject.github_repo_full_name || undefined,
                     description: `MASTER_PLAN.md for ${activeProject.name}`,
                     content: report,
-                    private: true
+                    private: true,
+                    createIfMissing: !activeProject.github_repo_full_name
                 })
             });
 
