@@ -52,6 +52,8 @@ export default function ProjectsPage() {
     const [repos, setRepos] = useState<any[]>([]);
     const [loadingRepos, setLoadingRepos] = useState(false);
     const [showRepoSelector, setShowRepoSelector] = useState(false);
+    const [publishingMasterPlan, setPublishingMasterPlan] = useState(false);
+    const [githubNotice, setGithubNotice] = useState<string | null>(null);
 
     // New Project Form
     const [newProjectData, setNewProjectData] = useState({
@@ -240,15 +242,18 @@ export default function ProjectsPage() {
                 const data = await res.json();
                 setRepos(data);
                 setGithubConnected(true);
+                return data;
             } else {
                 const errorData = await res.json();
                 console.error("Failed to fetch repos from API:", errorData.error);
                 if (res.status === 401) {
                     setGithubConnected(false);
                 }
+                return [];
             }
         } catch (e) {
             console.error("Error fetching repos:", e);
+            return [];
         } finally {
             setLoadingRepos(false);
         }
@@ -256,16 +261,62 @@ export default function ProjectsPage() {
 
     // Replace the old connect logic with a dual-mode button (Auth vs Fetch)
     const handleRepoSelectorClick = async () => {
+        setGithubNotice(null);
         if (!githubConnected) {
-            // We can verify connection by checking if we have a token or just trying to fetch
-            await fetchGitHubRepos();
-            if (!githubConnected) {
-                // If still false after trying to fetch (likely no token), prompt auth
-                // Note: Ideally we track connection state via a profile flag, but for now validation is "can we fetch?"
-                // We will show the selector if we have repos, otherwise assume we need to connect.
+            const fetchedRepos = await fetchGitHubRepos();
+            if (!fetchedRepos.length) {
+                await handleConnectGitHub();
+                return;
             }
         }
         setShowRepoSelector(true);
+    };
+
+    const handlePublishMasterPlan = async () => {
+        if (!activeProject) return;
+
+        if (!githubConnected) {
+            await handleConnectGitHub();
+            return;
+        }
+
+        const report = getFullExecutionReport();
+        if (!report) return;
+
+        setPublishingMasterPlan(true);
+        setGithubNotice(null);
+
+        try {
+            const res = await fetch('/api/github/master-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    repoName: `${activeProject.name}-master-plan`,
+                    description: `MASTER_PLAN.md for ${activeProject.name}`,
+                    content: report,
+                    private: true
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to publish MASTER_PLAN.md to GitHub');
+            }
+
+            setGithubNotice(`Published MASTER_PLAN.md to ${data.repo}`);
+            setActiveProject((prev: any) => prev ? { ...prev, github_repo_full_name: data.repo } : prev);
+            setProjects((prev) => prev.map((project) => project.id === activeProject.id ? { ...project, github_repo_full_name: data.repo } : project));
+            setGithubConnected(true);
+            setShowRepoSelector(false);
+        } catch (error) {
+            console.error(error);
+            setGithubNotice(error instanceof Error ? error.message : 'Failed to publish MASTER_PLAN.md');
+        } finally {
+            setPublishingMasterPlan(false);
+        }
     };
 
     const selectRepo = async (repoName: string) => {
@@ -287,6 +338,58 @@ export default function ProjectsPage() {
         }
     };
 
+    const buildIdeaLabAppendix = () => {
+        if (!activeProject) return '';
+
+        const score = linkedOpportunity?.opportunity_scores;
+        const monetization = linkedOpportunity?.monetization_maps;
+        const validationReport = score?.analysis?.validationReport;
+        const demandSignals = validationReport?.demandSignals || [];
+        const competitors = validationReport?.competitors || [];
+        const launchChannels = validationReport?.launchChannels || [];
+        const risks = validationReport?.risks || [];
+        const experiments = validationReport?.validationExperiments || [];
+        const sources = validationReport?.sources || [];
+
+        return `
+
+---
+
+## Appendix: Idea Lab Intelligence
+
+### Demand Signals
+${demandSignals.length ? demandSignals.map((signal: any, index: number) => `${index + 1}. ${signal.signal}\n   - ${signal.evidence}`).join('\n') : '- None yet'}
+
+### Source-Backed Competitors
+${competitors.length ? competitors.map((competitor: any, index: number) => `${index + 1}. ${competitor.name}\n   - Positioning: ${competitor.positioning}\n   - Strength: ${competitor.strength}\n   - Weakness: ${competitor.weakness}\n   - Wedge: ${competitor.differentiationOpportunity}`).join('\n') : '- None yet'}
+
+### Launch Channels
+${launchChannels.length ? launchChannels.map((channel: string, index: number) => `${index + 1}. ${channel}`).join('\n') : '- None yet'}
+
+### Primary Risks
+${risks.length ? risks.map((risk: any, index: number) => `${index + 1}. ${risk.risk} (${risk.severity})\n   - ${risk.mitigation}`).join('\n') : '- None yet'}
+
+### Next Validation Experiments
+${experiments.length ? experiments.map((experiment: any, index: number) => `${index + 1}. ${experiment.experiment}\n   - Goal: ${experiment.goal}\n   - Execution: ${experiment.execution}\n   - Success Metric: ${experiment.successMetric}`).join('\n') : '- None yet'}
+
+### Research Sources
+${sources.length ? sources.map((source: any, index: number) => `${index + 1}. ${source.title}\n   - ${source.url}\n   - ${source.publisher}\n   - ${source.evidence}`).join('\n') : '- None yet'}
+
+### Monetization Notes
+- Revenue Model: ${monetization?.revenue_model || 'N/A'}
+- Pricing Strategy: ${monetization?.pricing_strategy || 'N/A'}
+- Estimated ARPU: ${monetization?.estimated_arpu || 'N/A'}
+- Time to Revenue: ${monetization?.time_to_revenue || 'N/A'}
+
+### Marketing Guide
+- Positioning: ${validationReport?.competitionAnalysis || 'Position around the clearest pain point and the fastest path to value.'}
+- Headline: ${activeProject.name} for ${activeProject.audience || 'your audience'}
+- CTA: Start Validating Now
+`;
+    };
+
+    const getFullExecutionReport = () => `${buildExecutionReport()}${buildIdeaLabAppendix()}`;
+
     const buildExecutionReport = () => {
         if (!activeProject) return '';
 
@@ -300,13 +403,13 @@ export default function ProjectsPage() {
     };
 
     const copyExecutionReport = async () => {
-        const report = buildExecutionReport();
+        const report = getFullExecutionReport();
         if (!report) return;
         await navigator.clipboard.writeText(report);
     };
 
     const exportExecutionReport = () => {
-        const report = buildExecutionReport();
+        const report = getFullExecutionReport();
         if (!report || !activeProject) return;
 
         const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
@@ -476,15 +579,26 @@ export default function ProjectsPage() {
                                                         <>
                                                             <p className="text-xs text-[var(--muted)] mb-4">Connect your repository to track commits and build activity automatically.</p>
                                                             {!showRepoSelector ? (
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className="w-full gap-2"
-                                                                    onClick={githubConnected ? handleRepoSelectorClick : handleConnectGitHub}
-                                                                >
-                                                                    <Github className="w-4 h-4" />
-                                                                    {githubConnected ? 'Select Repository' : 'Connect GitHub Account'}
-                                                                </Button>
+                                                                <div className="space-y-2">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="w-full gap-2"
+                                                                        onClick={githubConnected ? handleRepoSelectorClick : handleConnectGitHub}
+                                                                    >
+                                                                        <Github className="w-4 h-4" />
+                                                                        {githubConnected ? 'Select Repository' : 'Connect GitHub Account'}
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="w-full gap-2"
+                                                                        onClick={handlePublishMasterPlan}
+                                                                        disabled={publishingMasterPlan}
+                                                                    >
+                                                                        {publishingMasterPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
+                                                                        {publishingMasterPlan ? 'Publishing MASTER_PLAN' : 'Create MASTER_PLAN Repo'}
+                                                                    </Button>
+                                                                </div>
                                                             ) : (
                                                                 <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
                                                                     {loadingRepos ? (
@@ -505,6 +619,9 @@ export default function ProjectsPage() {
                                                                     )}
                                                                     <button onClick={() => setShowRepoSelector(false)} className="text-xs text-[var(--muted)] hover:underline">Cancel</button>
                                                                 </div>
+                                                            )}
+                                                            {githubNotice && (
+                                                                <p className="text-xs text-[var(--muted)] mt-2">{githubNotice}</p>
                                                             )}
                                                         </>
                                                     )}
@@ -537,7 +654,7 @@ export default function ProjectsPage() {
                                                     </div>
                                                 </div>
 
-                                                <pre className="whitespace-pre-wrap text-sm leading-relaxed bg-[var(--background)] border border-[var(--border)] rounded-xl p-4 md:p-5 max-h-[70vh] overflow-auto">{buildExecutionReport()}</pre>
+                                                <pre className="whitespace-pre-wrap text-sm leading-relaxed bg-[var(--background)] border border-[var(--border)] rounded-xl p-4 md:p-5 max-h-[70vh] overflow-auto">{getFullExecutionReport()}</pre>
                                             </div>
                                         </motion.div>
                                     )}
