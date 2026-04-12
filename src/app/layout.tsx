@@ -1,11 +1,8 @@
-import { Inter } from 'next/font/google';
 import './globals.css';
 import Analytics from '@/components/Analytics';
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
 import { Providers } from '@/components/Providers';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -41,7 +38,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
           {children}
