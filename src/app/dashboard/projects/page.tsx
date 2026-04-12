@@ -54,6 +54,7 @@ export default function ProjectsPage() {
     const [showRepoSelector, setShowRepoSelector] = useState(false);
     const [publishingMasterPlan, setPublishingMasterPlan] = useState(false);
     const [githubNotice, setGithubNotice] = useState<string | null>(null);
+    const [syncingLogs, setSyncingLogs] = useState(false);
 
     // New Project Form
     const [newProjectData, setNewProjectData] = useState({
@@ -65,10 +66,6 @@ export default function ProjectsPage() {
     });
 
     // Log Input
-    const [logContent, setLogContent] = useState('');
-    const [logType, setLogType] = useState<'update' | 'learning' | 'blocker'>('update');
-    const [savingLog, setSavingLog] = useState(false);
-
     const supabase = createClient();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -159,7 +156,7 @@ export default function ProjectsPage() {
             setProjects(data);
             if (data.length > 0) {
                 setActiveProject(data[0]);
-                fetchLogs(data[0].id);
+                await fetchLogs(data[0].id, true);
             } else {
                 setShowNewProject(true);
             }
@@ -167,7 +164,45 @@ export default function ProjectsPage() {
         setLoading(false);
     };
 
-    const fetchLogs = async (projectId: string) => {
+    const syncAutomatedLogs = async (projectId: string) => {
+        setSyncingLogs(true);
+        try {
+            const res = await fetch('/api/github/sync-activity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ projectId })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || 'Failed to sync GitHub activity');
+            }
+
+            const data = await res.json();
+            setGithubNotice(data.insertedLogs > 0
+                ? `Synced ${data.insertedLogs} GitHub activity entries.`
+                : 'GitHub activity is up to date.');
+        } catch (error) {
+            console.error('Failed to sync automated logs', error);
+            setGithubNotice(error instanceof Error ? error.message : 'Failed to sync GitHub activity');
+        } finally {
+            setSyncingLogs(false);
+        }
+    };
+
+    const fetchLogs = async (projectId: string, syncFirst = false) => {
+        const project = projects.find((p) => p.id === projectId) || activeProject;
+
+        if (syncFirst && project?.github_repo_full_name) {
+            await syncAutomatedLogs(projectId);
+            await fetchPatterns();
+            await fetchInsight();
+            await fetchProfile();
+            await fetchDrift();
+        }
+
         const res = await fetch(`/api/logs?project_id=${projectId}`);
         if (res.ok) {
             const data = await res.json();
@@ -191,34 +226,10 @@ export default function ProjectsPage() {
             setShowNewProject(false);
             setNewProjectData({ name: '', description: '', audience: '', current_blockers: '', uncertainties: '' });
             setLogs([]);
+            if (project.github_repo_full_name) {
+                await fetchLogs(project.id, true);
+            }
         }
-    };
-
-    const submitLog = async () => {
-        if (!logContent.trim() || !activeProject) return;
-        setSavingLog(true);
-
-        const res = await fetch('/api/logs', {
-            method: 'POST',
-            body: JSON.stringify({
-                project_id: activeProject.id,
-                content: logContent,
-                log_type: logType
-            })
-        });
-
-        if (res.ok) {
-            const newLog = await res.json();
-            setLogs([newLog, ...logs]);
-            setLogContent('');
-            fetchPatterns();
-            setTimeout(() => {
-                fetchInsight();
-                fetchProfile();
-                fetchDrift();
-            }, 2000);
-        }
-        setSavingLog(false);
     };
 
     // GitHub Repo Handling
@@ -338,6 +349,8 @@ export default function ProjectsPage() {
         if (error) {
             console.error("Failed to update project repo", error);
         }
+
+        await fetchLogs(activeProject.id, true);
     };
 
     const buildIdeaLabAppendix = () => {
@@ -453,7 +466,7 @@ ${sources.length ? sources.map((source: any, index: number) => `${index + 1}. ${
                     {projects.map(p => (
                         <button
                             key={p.id}
-                            onClick={() => { setActiveProject(p); fetchLogs(p.id); setShowNewProject(false); }}
+                            onClick={() => { setActiveProject(p); fetchLogs(p.id, true); setShowNewProject(false); }}
                             className={cn(
                                 "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 transition-colors",
                                 activeProject?.id === p.id
@@ -668,40 +681,25 @@ ${sources.length ? sources.map((source: any, index: number) => `${index + 1}. ${
                                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                                             className="space-y-6"
                                         >
-                                            {/* Input Area */}
-                                            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm group focus-within:ring-2 focus-within:ring-[var(--foreground)]/10 transition-all">
-                                                <textarea
-                                                    className="w-full p-4 bg-transparent resize-none outline-none font-sans text-base min-h-[100px]"
-                                                    placeholder="What did you build today? Log your progress..."
-                                                    value={logContent}
-                                                    onChange={(e) => setLogContent(e.target.value)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                                                            submitLog();
-                                                        }
-                                                    }}
-                                                />
-                                                <div className="p-2 border-t border-[var(--border)] flex items-center justify-between bg-[var(--background)]/30 rounded-b-xl">
-                                                    <div className="flex gap-2">
-                                                        {['update', 'learning', 'blocker'].map(t => (
-                                                            <button
-                                                                key={t}
-                                                                onClick={() => setLogType(t as any)}
-                                                                className={cn(
-                                                                    "px-3 py-1 text-xs rounded-full border capitalize transition-all",
-                                                                    logType === t
-                                                                        ? "bg-[var(--foreground)] text-[var(--background)] border-[var(--foreground)]"
-                                                                        : "border-[var(--border)] text-[var(--muted)] hover:bg-[var(--background)]"
-                                                                )}
-                                                            >
-                                                                {t}
-                                                            </button>
-                                                        ))}
+                                            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm p-4 md:p-5 space-y-3">
+                                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                                    <div>
+                                                        <h3 className="font-semibold text-sm">Automated GitHub logs</h3>
+                                                        <p className="text-xs text-[var(--muted)]">FounderOS now syncs commits and insight signals from your connected GitHub repo.</p>
                                                     </div>
-                                                    <Button size="sm" onClick={submitLog} isLoading={savingLog} className="h-8 text-xs">
-                                                        Log Activity
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => activeProject && fetchLogs(activeProject.id, true)}
+                                                        isLoading={syncingLogs}
+                                                        className="h-8 text-xs"
+                                                        disabled={!activeProject?.github_repo_full_name}
+                                                    >
+                                                        Sync GitHub Now
                                                     </Button>
                                                 </div>
+                                                {githubNotice && (
+                                                    <p className="text-xs text-[var(--muted)]">{githubNotice}</p>
+                                                )}
                                             </div>
 
                                             {/* Logs List */}
