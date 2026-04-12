@@ -131,11 +131,13 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(100);
 
+    const normalizedLogsAfterCommits = (logsAfterCommits ?? []) as Array<{ content?: string } & Record<string, unknown>>;
+
     const patterns = [
-      analyzeMomentum(logsAfterCommits),
-      analyzeFocus(logsAfterCommits),
-      analyzeExecution(logsAfterCommits),
-      analyzeFriction(logsAfterCommits)
+      analyzeMomentum(normalizedLogsAfterCommits as any),
+      analyzeFocus(normalizedLogsAfterCommits as any),
+      analyzeExecution(normalizedLogsAfterCommits as any),
+      analyzeFriction(normalizedLogsAfterCommits as any)
     ];
 
     for (const pattern of patterns) {
@@ -158,12 +160,14 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('user_id', user.id);
 
-    if (latestPatterns.length > 0) {
-      const insightText = generateInsight(latestPatterns as any);
+    const normalizedLatestPatterns = (latestPatterns ?? []) as Array<Record<string, unknown>>;
+
+    if (normalizedLatestPatterns.length > 0) {
+      const insightText = generateInsight(normalizedLatestPatterns as any);
       const { error: insightError } = await supabase.from('builder_insights').upsert({
         user_id: user.id,
         insight_text: insightText,
-        generated_from_patterns: latestPatterns,
+        generated_from_patterns: normalizedLatestPatterns,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
 
