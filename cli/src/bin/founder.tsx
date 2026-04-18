@@ -1,28 +1,19 @@
 #!/usr/bin/env node
 /**
- * FounderOS CLI Executable Entry Point
- * 
- * This is the executable wrapper that Node invokes.
+ * FounderOS CLI executable entry point.
  */
 
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import React from 'react';
-import { render } from 'ink';
-import App from '../App.js';
+import { routeCommand } from '../lib/command-router.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Parse command-line arguments
-const args = process.argv.slice(2);
-const command = args[0] as any;
-
-// For now, we just render the main app
-const { unmount } = render(<App command={command} />);
-
-process.on('SIGINT', () => {
-  unmount();
-  process.exit(0);
-});
+routeCommand(process.argv.slice(2))
+  .then(({ exitCode, keepAlive }) => {
+    if (keepAlive) {
+      process.exitCode = exitCode;
+      return;
+    }
+    process.exit(exitCode);
+  })
+  .catch((err) => {
+    console.error(`Fatal error: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  });

@@ -1,41 +1,39 @@
 /**
  * Storage Layer
- * 
- * Persists ideas to ~/.founder/ideas/
+ *
+ * Persists ideas to ~/.founder/ideas/ by default. Tests can override the root
+ * with FOUNDER_HOME to avoid touching a real local workspace.
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { homedir } from 'os';
 import { randomUUID } from 'crypto';
 import type { Idea, CLIConfig } from './cli-types.js';
+import { getConfigFile, getFounderDir, getIdeasDir } from './storage-paths.js';
 
-const FOUNDER_DIR = path.join(homedir(), '.founder');
-const IDEAS_DIR = path.join(FOUNDER_DIR, 'ideas');
-const CONFIG_FILE = path.join(FOUNDER_DIR, 'config.json');
-
-// Ensure directories exist
 export const ensureStorageDir = async (): Promise<void> => {
-  try {
-    await fs.mkdir(IDEAS_DIR, { recursive: true });
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
-      throw err;
-    }
-  }
+  await fs.mkdir(getIdeasDir(), { recursive: true });
 };
 
-// Generate a new ID
 const generateId = (): string => {
   try {
     return `idea_${randomUUID()}`;
   } catch {
-    // Fallback: simple UUID-like string
     return `idea_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   }
 };
 
-// Create a new idea
+const assertSafeIdeaId = (id: string): void => {
+  if (!/^idea_[A-Za-z0-9_-]+$/.test(id)) {
+    throw new Error(`Invalid idea id: ${id}`);
+  }
+};
+
+const getIdeaPath = (id: string): string => {
+  assertSafeIdeaId(id);
+  return path.join(getIdeasDir(), `${id}.json`);
+};
+
 export const createIdea = async (
   title: string,
   problemStatement: string,
@@ -43,80 +41,104 @@ export const createIdea = async (
   differentiator: string,
 ): Promise<Idea> => {
   await ensureStorageDir();
+  const now = new Date().toISOString();
 
   const idea: Idea = {
     id: generateId(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
     title,
     problemStatement,
     targetUser,
     differentiator,
   };
 
-  const filePath = path.join(IDEAS_DIR, `${idea.id}.json`);
-  await fs.writeFile(filePath, JSON.stringify(idea, null, 2));
-
+  await fs.writeFile(getIdeaPath(idea.id), JSON.stringify(idea, null, 2));
   return idea;
 };
 
-// Load an idea by ID
 export const loadIdea = async (id: string): Promise<Idea> => {
-  const filePath = path.join(IDEAS_DIR, `${id}.json`);
-  const data = await fs.readFile(filePath, 'utf-8');
-  return JSON.parse(data);
+  const data = await fs.readFile(getIdeaPath(id), 'utf-8');
+  return JSON.parse(data) as Idea;
 };
 
-// List all ideas
-export const listIdeas = async (): Promise<Idea[]> => {
-  await ensureStorageDir();
-
+export const findIdea = async (id: string): Promise<Idea | null> => {
   try {
-    const files = await fs.readdir(IDEAS_DIR);
-    const ideas = await Promise.all(
-      files
-        .filter((f) => f.endsWith('.json'))
-        .map((f) => fs.readFile(path.join(IDEAS_DIR, f), 'utf-8').then(JSON.parse)),
-    );
-    return ideas.sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    );
+    return await loadIdea(id);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      return [];
+      return null;
     }
     throw err;
   }
 };
 
-// Update an idea
-export const updateIdea = async (idea: Idea): Promise<void> => {
-  idea.updatedAt = new Date().toISOString();
-  const filePath = path.join(IDEAS_DIR, `${idea.id}.json`);
-  await fs.writeFile(filePath, JSON.stringify(idea, null, 2));
+export const listIdeas = async (): Promise<Idea[]> => {
+  await ensureStorageDir();
+
+  const files = await fs.readdir(getIdeasDir());
+  const ideas = await Promise.all(
+    files
+      .filter((file) => file.endsWith('.json'))
+      .map(async (file) => {
+        const data = await fs.readFile(path.join(getIdeasDir(), file), 'utf-8');
+        return JSON.parse(data) as Idea;
+      }),
+  );
+
+  return ideas.sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  );
 };
 
-// Delete an idea
-export const deleteIdea = async (id: string): Promise<void> => {
-  const filePath = path.join(IDEAS_DIR, `${id}.json`);
-  await fs.unlink(filePath);
+export const updateIdea = async (idea: Idea): Promise<Idea> => {
+  await ensureStorageDir();
+  const updatedIdea: Idea = {
+    ...idea,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await fs.writeFile(getIdeaPath(updatedIdea.id), JSON.stringify(updatedIdea, null, 2));
+  return updatedIdea;
 };
 
-// Load or create config
+export const updateIdeaById = async (
+  id: string,
+  update: (idea: Idea) => Idea,
+): Promise<Idea | null> => {
+  const idea = await findIdea(id);
+  if (!idea) {
+    return null;
+  }
+
+  return updateIdea(update(idea));
+};
+
+export const deleteIdea = async (id: string): Promise<boolean> => {
+  try {
+    await fs.unlink(getIdeaPath(id));
+    return true;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return false;
+    }
+    throw err;
+  }
+};
+
 export const loadConfig = async (): Promise<CLIConfig> => {
   try {
-    const data = await fs.readFile(CONFIG_FILE, 'utf-8');
-    return JSON.parse(data);
+    const data = await fs.readFile(getConfigFile(), 'utf-8');
+    return JSON.parse(data) as CLIConfig;
   } catch {
     const config: CLIConfig = {
-      dataDir: IDEAS_DIR,
+      dataDir: getIdeasDir(),
       theme: 'dark',
     };
-    await fs.mkdir(FOUNDER_DIR, { recursive: true });
-    await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2));
+    await fs.mkdir(getFounderDir(), { recursive: true });
+    await fs.writeFile(getConfigFile(), JSON.stringify(config, null, 2));
     return config;
   }
 };
 
-export const getStoragePath = (): string => IDEAS_DIR;
+export const getStoragePath = (): string => getIdeasDir();
