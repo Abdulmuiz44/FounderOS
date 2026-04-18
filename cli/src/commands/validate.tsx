@@ -93,11 +93,10 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
 
     try {
       const result = calculateValidationScore(finalForm);
-      const updatedIdea = {
+      const updatedIdea = await updateIdea({
         ...state.selectedIdea!,
         validation: result,
-      };
-      await updateIdea(updatedIdea);
+      });
       setState((s) => ({
         ...s,
         result,
@@ -117,7 +116,7 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
     if (!state.ideas) {
       return (
         <Box flexDirection="column" padding={1}>
-          <Text color="yellow">⏳ Loading ideas...</Text>
+          <Text color="yellow">â³ Loading ideas...</Text>
         </Box>
       );
     }
@@ -125,7 +124,7 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
     if (state.ideas.length === 0) {
       return (
         <Box flexDirection="column" padding={1} borderStyle="round" borderColor="yellow">
-          <Text color="yellow">⚠ No ideas found</Text>
+          <Text color="yellow">âš  No ideas found</Text>
           <Text>Run <Text bold color="cyan">founder new</Text> to create one first</Text>
           <Box marginTop={1}>
             <Text dimColor>Press <Text bold color="cyan">Enter</Text> to return to menu</Text>
@@ -140,13 +139,13 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
         label: `${idea.title} (${idea.createdAt.split('T')[0]})`,
         value: idea,
       })),
-      { label: '← Back to menu', value: null as any }
+      { label: 'â† Back to menu', value: null as any }
     ];
 
     return (
       <Box flexDirection="column" padding={1}>
         <Text bold color="cyan">
-          ✦ Validate an Idea
+          âœ¦ Validate an Idea
         </Text>
         <Text dimColor>Select which idea to validate:</Text>
         <Box marginTop={1}>
@@ -178,7 +177,7 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
   ) => (
     <Box flexDirection="column" padding={1}>
       <Text bold color="cyan">
-        ✦ Validating: {state.selectedIdea?.title}
+        âœ¦ Validating: {state.selectedIdea?.title}
       </Text>
       <Box marginTop={1}>
         <Text bold>{title}</Text>
@@ -266,7 +265,7 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
   if (state.step === 'calculating') {
     return (
       <Box flexDirection="column" padding={1}>
-        <Text color="yellow">⏳ Calculating score...</Text>
+        <Text color="yellow">â³ Calculating score...</Text>
       </Box>
     );
   }
@@ -276,7 +275,7 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
     if (state.error) {
         return (
           <Box flexDirection="column" padding={1} borderStyle="round" borderColor="red">
-            <Text color="red">✗ Error</Text>
+            <Text color="red">âœ— Error</Text>
             <Text>{state.error}</Text>
             <Box marginTop={1}>
               <Text dimColor>Press <Text bold color="cyan">Enter</Text> to return to menu</Text>
@@ -290,7 +289,7 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
       return (
         <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan">
           <Text bold color="cyan">
-            ✦ Validation Summary: {state.selectedIdea?.title}
+            âœ¦ Validation Summary: {state.selectedIdea?.title}
           </Text>
           
           <Box marginTop={1} paddingX={1} borderStyle="double" borderColor="white">
@@ -304,14 +303,14 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
           <Box marginTop={1} flexDirection="column">
             <Text bold color="green">Strengths:</Text>
             {state.result.strengths.map((s, i) => (
-              <Text key={i}> • {s}</Text>
+              <Text key={i}> â€¢ {s}</Text>
             ))}
           </Box>
 
           <Box marginTop={1} flexDirection="column">
             <Text bold color="red">Risks:</Text>
             {state.result.risks.map((r, i) => (
-              <Text key={i}> • {r}</Text>
+              <Text key={i}> â€¢ {r}</Text>
             ))}
           </Box>
 
@@ -337,3 +336,4 @@ const ValidateCommand: React.FC<ValidateCommandProps> = ({ onDone }) => {
 };
 
 export default ValidateCommand;
+

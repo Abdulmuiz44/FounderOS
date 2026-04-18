@@ -1,50 +1,48 @@
 {
-    "name": "@founderos/cli",
-    "version": "0.1.0",
-    "description": "FounderOS CLI - Local-first startup idea validation and roadmapping",
-    "type": "module",
-    "bin": {
-        "founder": "./dist/bin/founder.js"
-    },
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "files": [
-        "dist",
-        "README.md"
-    ],
-    "scripts": {
-        "dev": "tsx watch src/index.tsx",
-        "build": "tsc",
-        "test": "vitest run",
-        "start": "node dist/index.js",
-        "founder": "tsx src/bin/founder.tsx",
-        "founder:build": "node dist/bin/founder.js",
-        "clean": "node -e \"const fs = require('fs'); if (fs.existsSync('dist')) fs.rmSync('dist', { recursive: true, force: true });\"",
-        "prebuild": "pnpm clean",
-        "install:local": "npm run build && npm link"
-    },
-    "keywords": [
-        "cli",
-        "startup",
-        "founder",
-        "idea-validation",
-        "terminal-ui"
-    ],
-    "author": "Abdulmuiz Adeyemo",
-    "license": "ISC",
-    "dependencies": {
-        "ink": "^5.0.1",
-        "ink-select-input": "^5.0.0",
-        "ink-spinner": "^5.0.0",
-        "ink-text-input": "^5.0.0",
-        "react": "^18.2.0"
-    },
-    "devDependencies": {
-        "@types/node": "^22.19.7",
-        "@types/react": "^18.2.0",
-        "@types/react-dom": "^18.2.0",
-        "typescript": "^5.7.3",
-        "tsx": "^4.7.0",
-        "vitest": "^1.2.0"
-    }
+  "name": "@founderos/cli",
+  "version": "0.1.0",
+  "description": "FounderOS CLI - Local-first startup idea validation and roadmapping",
+  "type": "module",
+  "bin": {
+    "founder": "./dist/bin/founder.js"
+  },
+  "main": "./dist/bin/founder.js",
+  "types": "./dist/bin/founder.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsx src/bin/founder.tsx",
+    "build": "tsc",
+    "test": "vitest run",
+    "start": "node dist/bin/founder.js",
+    "clean": "node -e \"const fs = require('fs'); if (fs.existsSync('dist')) fs.rmSync('dist', { recursive: true, force: true });\"",
+    "prebuild": "npm run clean",
+    "link:local": "npm run build && npm link"
+  },
+  "keywords": [
+    "cli",
+    "startup",
+    "founder",
+    "idea-validation",
+    "terminal-ui"
+  ],
+  "author": "Abdulmuiz Adeyemo",
+  "license": "ISC",
+  "dependencies": {
+    "ink": "^5.0.1",
+    "ink-select-input": "^5.0.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^5.0.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.7",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.7.3",
+    "tsx": "^4.7.0",
+    "vitest": "^1.2.0"
+  }
 }

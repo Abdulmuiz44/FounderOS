@@ -17,15 +17,15 @@ export interface Idea {
 export interface ValidationResult {
   scoredAt: string;
   dimensions: {
-    painIntensity: number;       // 1-10
-    urgency: number;             // 1-10
-    targetUserClarity: number;   // 1-10
-    willingnessToPay: number;    // 1-10
-    competitionSaturation: number; // 1-10 (higher is worse for score)
-    distributionDifficulty: number; // 1-10 (higher is worse for score)
-    founderAdvantage: number;    // 1-10
+    painIntensity: number;
+    urgency: number;
+    targetUserClarity: number;
+    willingnessToPay: number;
+    competitionSaturation: number;
+    distributionDifficulty: number;
+    founderAdvantage: number;
   };
-  score: number;                 // 0-100
+  score: number;
   strengths: string[];
   risks: string[];
   recommendation: string;
@@ -40,8 +40,9 @@ export interface RoadmapPhase {
 
 export interface RoadmapResult {
   generatedAt: string;
-  phases: RoadmapPhase[];
   estimatedTotalWeeks: number;
+  phases: RoadmapPhase[];
+  markdownPath: string;
 }
 
 export interface CLIConfig {

@@ -1,98 +1,98 @@
 # FounderOS CLI
 
-A local-first terminal UI for capturing, validating, and roadmapping startup ideas. Built with TypeScript and Ink.
+Local-first terminal tooling for capturing, validating, and roadmapping startup ideas.
 
-## Features
+## What it does
 
-- **founder new** - Capture startup ideas interactively
-- **founder validate** - Score ideas using a transparent validation framework
-- **founder roadmap** - Generate 3-phase MVP roadmaps
-- **Local-first** - All data stored in `~/.founder/`
-- **Offline-capable** - No internet required for core functionality
-- **TypeScript + Ink** - Type-safe, responsive terminal UI
+- `founder` opens the interactive menu
+- `founder new` captures a new idea
+- `founder validate` scores an idea and persists validation into JSON
+- `founder roadmap` exports markdown and persists roadmap metadata into JSON
+- `founder list` shows saved ideas
+- `founder show <idea-id>` shows full idea details
+- `founder delete <idea-id>` deletes an idea after confirmation
 
-## Installation (Windows)
+All CLI data stays local under `~/.founder/` by default.
 
-The easiest way to install on Windows is using the provided PowerShell script:
+## Install
 
-```powershell
-# In the FounderOS/cli directory
-.\install.ps1
-```
-
-This script will:
-1. Install dependencies
-2. Build the TypeScript project
-3. Link the `founder` command globally
-
-## Manual Installation
+From `FounderOS/cli`:
 
 ```bash
-# In the FounderOS/cli directory
-npm install
-npm run build
+pnpm install
+pnpm build
 npm link
 ```
 
-## Quick Start
+Then run:
 
 ```bash
-# Create a new idea
-founder new
-
-# Validate an idea
-founder validate
-
-# Generate a roadmap
-founder roadmap
+founder help
 ```
 
-## Data Storage
+## Run without linking
 
-All data is stored locally in your home directory at `~/.founder/`:
-
-- **Ideas**: `~/.founder/ideas/*.json`
-- **Roadmaps**: `~/.founder/*-ROADMAP.md`
-- **Config**: `~/.founder/config.json`
-
-## Commands
-
-### founder new
-Interactively capture a new startup idea (Title, Problem, Target User, Differentiator).
-
-### founder validate
-Score an idea across 7 critical dimensions:
-- **Pain Intensity** (20%)
-- **Willingness to Pay** (20%)
-- **Urgency** (15%)
-- **Founder Advantage** (15%)
-- **Target User Clarity** (10%)
-- **Competition Saturation** (10%)
-- **Distribution Difficulty** (10%)
-
-### founder roadmap
-Generate a 3-phase MVP roadmap (Discovery, Build, Polish) based on your validated idea.
-
-## Testing
-
-Run the automated test suite for scoring and core logic:
+From `FounderOS/cli`:
 
 ```bash
-npm test
+pnpm install
+pnpm build
+node dist/bin/founder.js help
 ```
 
-## Development
+## Command help
 
 ```bash
-# Run in watch mode
-npm run dev
-
-# Build TypeScript
-npm run build
-
-# Run CLI locally without linking
-node dist/bin/founder.js
+founder --help
+founder new --help
+founder validate --help
+founder roadmap --help
+founder list --help
+founder show --help
+founder delete --help
 ```
 
-## License
-ISC
+## Storage model
+
+Ideas are saved as JSON files in `~/.founder/ideas/`.
+
+Each idea can include:
+
+- core idea fields
+- `validation`
+- `roadmap`
+- `updatedAt`
+
+Roadmap markdown exports are written to:
+
+- `~/.founder/<idea-id>-ROADMAP.md`
+
+Roadmap JSON metadata includes:
+
+- `generatedAt`
+- `estimatedTotalWeeks`
+- `phases`
+- `markdownPath`
+
+## Scripts
+
+From `FounderOS/cli`:
+
+```bash
+pnpm dev
+pnpm test
+pnpm build
+pnpm start
+pnpm link:local
+```
+
+## Test
+
+```bash
+pnpm test
+```
+
+## Notes
+
+- CLI is local-first; no auth or cloud sync is part of this package yet.
+- For deterministic tests, set `FOUNDER_HOME` to a temp directory.
