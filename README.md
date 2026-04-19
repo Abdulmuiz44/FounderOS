@@ -98,6 +98,10 @@ CLI commands:
 - `founder list`
 - `founder show <idea-id>`
 - `founder delete <idea-id>`
+- `founder export --path <file.json>`
+- `founder import --path <file.json> --mode skip|overwrite|rename`
+
+For automation, add non-interactive flags and `--json` output to CLI commands.
 
 ## Deployment
 
