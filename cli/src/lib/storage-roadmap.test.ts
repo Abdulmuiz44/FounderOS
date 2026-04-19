@@ -2,7 +2,15 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createIdea, deleteIdea, findIdea, listIdeas, loadIdea, updateIdea } from './storage.js';
+import {
+  createIdea,
+  deleteIdea,
+  findIdea,
+  listIdeas,
+  loadIdea,
+  updateIdea,
+  getStoragePath,
+} from './storage.js';
 import { generateAndPersistRoadmap, generateRoadmap } from './roadmap-gen.js';
 import { calculateValidationScore } from './scoring.js';
 import { formatIdeaDetails, formatIdeaList } from './formatters.js';
@@ -40,6 +48,7 @@ describe('storage', () => {
     );
 
     expect(idea.id).toMatch(/^idea_/);
+    expect(idea.schemaVersion).toBe(2);
     expect(await findIdea(idea.id)).toMatchObject({ title: 'Workflow Copilot' });
 
     const ideas = await listIdeas();
@@ -57,11 +66,42 @@ describe('storage', () => {
     await expect(deleteIdea(idea.id)).resolves.toBe(false);
     await expect(listIdeas()).resolves.toEqual([]);
   });
+
+  it('migrates older idea records to latest schema on read', async () => {
+    const oldId = 'idea_migration_case';
+    const oldRecord = {
+      id: oldId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      title: 'Legacy Idea',
+      problemStatement: 'Legacy problem',
+      targetUser: 'Legacy user',
+      differentiator: 'Legacy differentiator',
+      roadmap: {
+        generatedAt: new Date().toISOString(),
+        estimatedTotalWeeks: 8,
+        phases: [],
+      },
+    };
+
+    const filePath = path.join(getStoragePath(), `${oldId}.json`);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify(oldRecord, null, 2));
+
+    const loaded = await loadIdea(oldId);
+    expect(loaded.schemaVersion).toBe(2);
+    expect(loaded.roadmap?.markdownPath).toContain(`${oldId}-ROADMAP.md`);
+
+    const persisted = JSON.parse(await fs.readFile(filePath, 'utf-8')) as Idea;
+    expect(persisted.schemaVersion).toBe(2);
+    expect(persisted.roadmap?.markdownPath).toContain(`${oldId}-ROADMAP.md`);
+  });
 });
 
 describe('roadmap generation', () => {
   it('returns the stable roadmap result shape', () => {
     const idea: Idea = {
+      schemaVersion: 2,
       id: 'idea_test',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

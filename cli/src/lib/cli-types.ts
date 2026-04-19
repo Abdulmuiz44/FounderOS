@@ -2,7 +2,10 @@
  * CLI Types and Interfaces
  */
 
+export const IDEA_SCHEMA_VERSION = 2;
+
 export interface Idea {
+  schemaVersion: number;
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -49,4 +52,10 @@ export interface CLIConfig {
   dataDir: string;
   editor?: string;
   theme?: 'dark' | 'light';
+}
+
+export interface IdeasExportBundle {
+  bundleVersion: 1;
+  exportedAt: string;
+  ideas: Idea[];
 }
