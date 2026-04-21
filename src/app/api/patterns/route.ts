@@ -1,15 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getServerUser } from '@/utils/supabase/auth';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/utils/supabase/service';
 import { analyzeMomentum, analyzeFocus, analyzeExecution, analyzeFriction } from '@/lib/patterns/engine';
 
-// Use service role client for database operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function GET(request: Request) {
+  const supabase = createServiceClient();
   const user = await getServerUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -30,6 +25,7 @@ export async function GET(request: Request) {
 
 // Internal trigger endpoint (called by log creation or cron)
 export async function POST(request: Request) {
+  const supabase = createServiceClient();
   const user = await getServerUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

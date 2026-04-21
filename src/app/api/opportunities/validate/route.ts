@@ -30,15 +30,16 @@ export async function POST(req: NextRequest) {
         }
 
         const validationResult = await validator.validate(opportunity);
+        const { validationMode, validationMessage, ...scores } = validationResult;
+        const validationReport = scores.analysis?.validationReport || null;
+
+        const [executionPlan, monetizationMap] = await Promise.all([
+            bridge.createPlan(opportunity),
+            monetizer.mapStrategies(opportunity)
+        ]);
 
         if (opportunityId) {
-            const { validationMode, validationMessage, ...scores } = validationResult;
             await opportunityService.saveScore({ ...scores, opportunity_id: opportunityId });
-
-            const [executionPlan, monetizationMap] = await Promise.all([
-                bridge.createPlan(opportunity),
-                monetizer.mapStrategies(opportunity)
-            ]);
 
             await Promise.all([
                 opportunityService.saveExecutionPlan({
@@ -55,13 +56,22 @@ export async function POST(req: NextRequest) {
 
             return NextResponse.json({
                 scores,
+                validationReport,
+                executionPlan,
+                monetizationMap,
                 validationMode,
                 validationMessage
             });
         }
 
-        const { validationMode, validationMessage, ...scores } = validationResult;
-        return NextResponse.json({ scores, validationMode, validationMessage });
+        return NextResponse.json({
+            scores,
+            validationReport,
+            executionPlan,
+            monetizationMap,
+            validationMode,
+            validationMessage
+        });
     } catch (error) {
         console.error('Error validating opportunity:', error);
         if (opportunityId) {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { getServerUser } from '@/utils/supabase/auth';
+import { requireGitHubAccessToken, ServerAuthError } from '@/lib/server-auth';
 
 type MasterPlanBody = {
   repoName?: string;
@@ -17,17 +16,17 @@ async function upsertMasterPlanFile(accessToken: string, fullName: string, conte
   const existingResponse = await fetch(fileUrl, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/vnd.github+json'
-    }
+      Accept: 'application/vnd.github+json',
+    },
   });
 
   const payload: Record<string, unknown> = {
     message: 'Add MASTER_PLAN.md from FounderOS',
-    content: Buffer.from(content, 'utf8').toString('base64')
+    content: Buffer.from(content, 'utf8').toString('base64'),
   };
 
   if (existingResponse.ok) {
-    const existingFile = await existingResponse.json() as { sha?: string };
+    const existingFile = (await existingResponse.json()) as { sha?: string };
     if (existingFile.sha) {
       payload.sha = existingFile.sha;
     }
@@ -38,9 +37,9 @@ async function upsertMasterPlanFile(accessToken: string, fullName: string, conte
     headers: {
       Authorization: `Bearer ${accessToken}`,
       Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   if (!fileResponse.ok) {
@@ -60,20 +59,9 @@ function sanitizeRepoName(name: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getServerUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user, accessToken } = await requireGitHubAccessToken();
 
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    const accessToken = session?.provider_token;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'GitHub not connected' }, { status: 401 });
-    }
-
-    const body = await req.json() as MasterPlanBody;
+    const body = (await req.json()) as MasterPlanBody;
     const content = body.content?.trim();
     const repoName = sanitizeRepoName(body.repoName || 'founderos-master-plan');
     const repoFullName = body.repoFullName?.trim();
@@ -86,15 +74,15 @@ export async function POST(req: NextRequest) {
     const profileResponse = await fetch('https://api.github.com/user', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json'
-      }
+        Accept: 'application/vnd.github+json',
+      },
     });
 
     if (!profileResponse.ok) {
-      return NextResponse.json({ error: 'Failed to load GitHub profile' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to load GitHub profile' }, { status: 502 });
     }
 
-    const profile = await profileResponse.json() as { login: string };
+    const profile = (await profileResponse.json()) as { login: string };
     const targetFullName = repoFullName || `${profile.login}/${repoName}`;
 
     if (!repoFullName && createIfMissing) {
@@ -103,7 +91,7 @@ export async function POST(req: NextRequest) {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           Accept: 'application/vnd.github+json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: repoName,
@@ -112,8 +100,8 @@ export async function POST(req: NextRequest) {
           auto_init: true,
           has_issues: true,
           has_projects: true,
-          has_wiki: false
-        })
+          has_wiki: false,
+        }),
       });
 
       if (!createRepoResponse.ok) {
@@ -121,21 +109,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `Failed to create repo: ${errorText}` }, { status: 500 });
       }
 
-      const repo = await createRepoResponse.json() as { full_name: string; html_url: string };
+      const repo = (await createRepoResponse.json()) as { full_name: string; html_url: string };
       await upsertMasterPlanFile(accessToken, repo.full_name, content);
+
 
       return NextResponse.json({
         success: true,
         repo: repo.full_name,
-        url: repo.html_url
+        url: repo.html_url,
       });
     }
 
     const repoInfoResponse = await fetch(`https://api.github.com/repos/${targetFullName}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json'
-      }
+        Accept: 'application/vnd.github+json',
+      },
     });
 
     if (!repoInfoResponse.ok) {
@@ -149,7 +138,7 @@ export async function POST(req: NextRequest) {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           Accept: 'application/vnd.github+json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: repoName,
@@ -158,8 +147,8 @@ export async function POST(req: NextRequest) {
           auto_init: true,
           has_issues: true,
           has_projects: true,
-          has_wiki: false
-        })
+          has_wiki: false,
+        }),
       });
 
       if (!createRepoResponse.ok) {
@@ -167,21 +156,24 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `Failed to create repo: ${errorText}` }, { status: 500 });
       }
 
-      const repo = await createRepoResponse.json() as { full_name: string; html_url: string };
+      const repo = (await createRepoResponse.json()) as { full_name: string; html_url: string };
       await upsertMasterPlanFile(accessToken, repo.full_name, content);
-
       return NextResponse.json({ success: true, repo: repo.full_name, url: repo.html_url });
     }
 
-    const repo = await repoInfoResponse.json() as { full_name: string; html_url: string };
+    const repo = (await repoInfoResponse.json()) as { full_name: string; html_url: string };
     await upsertMasterPlanFile(accessToken, repo.full_name, content);
 
     return NextResponse.json({
       success: true,
       repo: repo.full_name,
-      url: repo.html_url
+      url: repo.html_url,
     });
   } catch (error) {
+    if (error instanceof ServerAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
     console.error('Failed to create MASTER_PLAN repo:', error);
     return NextResponse.json({ error: 'Failed to create GitHub repository' }, { status: 500 });
   }

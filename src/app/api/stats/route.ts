@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Use service role client to access all data
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceClient } from '@/utils/supabase/service';
 
 export async function GET() {
     try {
+        const supabase = createServiceClient();
         // Get total users count
         const { count: usersCount, error: usersError } = await supabase
             .from('users')

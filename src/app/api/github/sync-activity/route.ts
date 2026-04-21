@@ -1,26 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { getServerUser } from '@/utils/supabase/auth';
 import { analyzeExecution, analyzeFocus, analyzeFriction, analyzeMomentum } from '@/lib/patterns/engine';
 import { generateInsight } from '@/lib/insights/generator';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceClient } from '@/utils/supabase/service';
+import { requireGitHubAccessToken, ServerAuthError } from '@/lib/server-auth';
 
 type SyncBody = {
   projectId?: string;
 };
 
+function classifyCommit(message: string): 'update' | 'learning' | 'blocker' {
+  const text = message.toLowerCase();
+
+  if (text.includes('fix') || text.includes('bug') || text.includes('error') || text.includes('block')) {
+    return 'blocker';
+  }
+
+  if (text.includes('test') || text.includes('learn') || text.includes('research') || text.includes('note')) {
+    return 'learning';
+  }
+
+  return 'update';
+}
 export async function POST(request: NextRequest) {
   try {
-    const user = await getServerUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const supabase = createServiceClient();
+    const { user, accessToken } = await requireGitHubAccessToken();
 
-    const { projectId } = await request.json() as SyncBody;
+    const { projectId } = (await request.json()) as SyncBody;
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
     }
@@ -40,13 +46,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ processed: false, reason: 'no_github_repo' });
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const accessToken = session?.provider_token;
-
-    if (!accessToken) {
-      return NextResponse.json({ error: 'GitHub not connected' }, { status: 401 });
-    }
-
     const [owner, repo] = project.github_repo_full_name.split('/');
     if (!owner || !repo) {
       return NextResponse.json({ error: 'Invalid repository name' }, { status: 400 });
@@ -55,31 +54,34 @@ export async function POST(request: NextRequest) {
     const repoInfoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json'
-      }
+        Accept: 'application/vnd.github+json',
+      },
     });
 
     if (!repoInfoResponse.ok) {
       const errorText = await repoInfoResponse.text();
-      return NextResponse.json({ error: `Failed to load repository: ${errorText}` }, { status: 500 });
+      return NextResponse.json({ error: `Failed to load repository: ${errorText}` }, { status: 502 });
     }
 
-    const repoInfo = await repoInfoResponse.json() as { default_branch?: string };
+    const repoInfo = (await repoInfoResponse.json()) as { default_branch?: string };
     const branch = repoInfo.default_branch || 'main';
 
-    const commitsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=20`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json'
-      }
-    });
+    const commitsResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=20`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github+json',
+        },
+      },
+    );
 
     if (!commitsResponse.ok) {
       const errorText = await commitsResponse.text();
-      return NextResponse.json({ error: `Failed to load commits: ${errorText}` }, { status: 500 });
+      return NextResponse.json({ error: `Failed to load commits: ${errorText}` }, { status: 502 });
     }
 
-    const commits = await commitsResponse.json() as Array<{
+    const commits = (await commitsResponse.json()) as Array<{
       sha: string;
       commit: { message?: string; author?: { name?: string; date?: string } };
       html_url?: string;
@@ -94,8 +96,9 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(100);
 
-    const existingContent = new Set((existingLogs as Array<{ content?: string }>)
-      .map((log) => log.content || ''));
+    const existingContent = new Set(
+      (existingLogs as Array<{ content?: string }>).map((log) => log.content || ''),
+    );
 
     const newLogs = commits
       .filter((commit) => Boolean(commit.sha) && Boolean(commit.commit?.message))
@@ -111,13 +114,15 @@ export async function POST(request: NextRequest) {
           project_id: projectId,
           content,
           log_type: classifyCommit(message),
-          source_key: `commit:${shortSha}`
+          source_key: `commit:${shortSha}`,
         };
       })
       .filter((entry) => !existingContent.has(entry.content));
 
     if (newLogs.length > 0) {
-      const { error: insertError } = await supabase.from('logs').insert(newLogs.map(({ source_key, ...entry }) => entry));
+      const { error: insertError } = await supabase
+        .from('logs')
+        .insert(newLogs.map(({ source_key, ...entry }) => entry));
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 });
       }
@@ -131,24 +136,28 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(100);
 
-    const normalizedLogsAfterCommits = (logsAfterCommits ?? []) as Array<{ content?: string } & Record<string, unknown>>;
+    const normalizedLogsAfterCommits =
+      (logsAfterCommits ?? []) as Array<{ content?: string } & Record<string, unknown>>;
 
     const patterns = [
-      analyzeMomentum(normalizedLogsAfterCommits as any),
-      analyzeFocus(normalizedLogsAfterCommits as any),
-      analyzeExecution(normalizedLogsAfterCommits as any),
-      analyzeFriction(normalizedLogsAfterCommits as any)
+      analyzeMomentum(normalizedLogsAfterCommits as never),
+      analyzeFocus(normalizedLogsAfterCommits as never),
+      analyzeExecution(normalizedLogsAfterCommits as never),
+      analyzeFriction(normalizedLogsAfterCommits as never),
     ];
 
     for (const pattern of patterns) {
-      const { error } = await supabase.from('builder_patterns').upsert({
-        user_id: user.id,
-        pattern_type: pattern.pattern_type,
-        pattern_label: pattern.pattern_label,
-        explanation: pattern.explanation,
-        confidence_score: pattern.confidence_score,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id, pattern_type' });
+      const { error } = await supabase.from('builder_patterns').upsert(
+        {
+          user_id: user.id,
+          pattern_type: pattern.pattern_type,
+          pattern_label: pattern.pattern_label,
+          explanation: pattern.explanation,
+          confidence_score: pattern.confidence_score,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id, pattern_type' },
+      );
 
       if (error) {
         console.error('Error upserting pattern:', error);
@@ -163,13 +172,16 @@ export async function POST(request: NextRequest) {
     const normalizedLatestPatterns = (latestPatterns ?? []) as Array<Record<string, unknown>>;
 
     if (normalizedLatestPatterns.length > 0) {
-      const insightText = generateInsight(normalizedLatestPatterns as any);
-      const { error: insightError } = await supabase.from('builder_insights').upsert({
-        user_id: user.id,
-        insight_text: insightText,
-        generated_from_patterns: normalizedLatestPatterns,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+      const insightText = generateInsight(normalizedLatestPatterns as never);
+      const { error: insightError } = await supabase.from('builder_insights').upsert(
+        {
+          user_id: user.id,
+          insight_text: insightText,
+          generated_from_patterns: normalizedLatestPatterns,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' },
+      );
 
       if (insightError) {
         console.error('Error saving insight:', insightError);
@@ -183,7 +195,7 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           project_id: projectId,
           content: insightLogContent,
-          log_type: 'learning'
+          log_type: 'learning',
         });
 
         if (insightLogError) {
@@ -195,24 +207,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       processed: true,
       insertedLogs: newLogs.length,
-      commits: commits.length
+      commits: commits.length,
     });
   } catch (error) {
+    if (error instanceof ServerAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
     console.error('Failed to sync GitHub activity:', error);
     return NextResponse.json({ error: 'Failed to sync GitHub activity' }, { status: 500 });
   }
 }
 
-function classifyCommit(message: string): 'update' | 'learning' | 'blocker' {
-  const text = message.toLowerCase();
 
-  if (text.includes('fix') || text.includes('bug') || text.includes('error') || text.includes('block')) {
-    return 'blocker';
-  }
-
-  if (text.includes('test') || text.includes('learn') || text.includes('research') || text.includes('note')) {
-    return 'learning';
-  }
-
-  return 'update';
-}

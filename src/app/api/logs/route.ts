@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerUser } from '@/utils/supabase/auth';
-import { createClient } from '@supabase/supabase-js';
-
-// Use service role client for database operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceClient } from '@/utils/supabase/service';
 
 export async function POST(request: Request) {
+  const supabase = createServiceClient();
   const user = await getServerUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -50,6 +45,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const supabase = createServiceClient();
   const user = await getServerUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
