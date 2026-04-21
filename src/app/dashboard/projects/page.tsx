@@ -69,6 +69,10 @@ export default function ProjectsPage() {
     const supabase = createClient();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const firstOrNull = <T,>(value: T | T[] | null | undefined): T | null => {
+        if (Array.isArray(value)) return value[0] ?? null;
+        return value ?? null;
+    };
 
     useEffect(() => {
         const init = async () => {
@@ -93,13 +97,12 @@ export default function ProjectsPage() {
         init();
     }, [router]);
 
-    // Handle initial selection via props or detailed check
+    // Keep active project data hydrated and resilient
     useEffect(() => {
-        if (activeProject && projects.length > 0) {
-            // Fetch linked opportunity plan if exists
-            fetchExecutionPlan(activeProject.id);
-        }
-    }, [activeProject]);
+        if (!activeProject) return;
+        fetchExecutionPlan(activeProject.id);
+        fetchLogs(activeProject.id, Boolean(activeProject.github_repo_full_name));
+    }, [activeProject?.id]);
 
 
     const fetchExecutionPlan = async (projectId: string) => {
@@ -108,12 +111,18 @@ export default function ProjectsPage() {
             try {
                 const res = await fetch(`/api/opportunities/${project.opportunity_id}`);
                 const data = await res.json();
-                setLinkedOpportunity(data);
-                if (data.execution_plans) {
-                    setExecutionPlan(data.execution_plans);
-                }
+                const normalizedOpportunity = {
+                    ...data,
+                    opportunity_scores: firstOrNull(data.opportunity_scores),
+                    monetization_maps: firstOrNull(data.monetization_maps),
+                    execution_plans: firstOrNull(data.execution_plans),
+                };
+                setLinkedOpportunity(normalizedOpportunity);
+                setExecutionPlan(normalizedOpportunity.execution_plans);
             } catch (e) {
                 console.error("Failed to fetch execution plan", e);
+                setLinkedOpportunity(null);
+                setExecutionPlan(null);
             }
         }
     }
@@ -642,7 +651,7 @@ ${sources.length ? sources.map((source: any, index: number) => `${index + 1}. ${
                                                     )}
                                                 </div>
                                                 <div className="text-sm text-[var(--muted)] bg-blue-500/5 p-4 rounded-xl border border-blue-500/10">
-                                                    <p className="font-semibold text-blue-500 mb-1">💡 Founder Tip</p>
+                                                    <p className="font-semibold text-blue-500 mb-1">Founder Tip</p>
                                                     Start by logging your first code session below. Tracking momentum is key.
                                                 </div>
                                             </div>
@@ -728,6 +737,11 @@ ${sources.length ? sources.map((source: any, index: number) => `${index + 1}. ${
                                                         </div>
                                                     </div>
                                                 ))}
+                                                {logs.length === 0 && (
+                                                    <div className="text-sm text-[var(--muted)] border border-dashed border-[var(--border)] rounded-lg p-4">
+                                                        No execution logs yet. Connect GitHub and run sync to generate activity automatically.
+                                                    </div>
+                                                )}
 
                                             </div>
                                         </motion.div>
