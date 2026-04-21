@@ -489,7 +489,7 @@ function buildFallbackMarketingCopy(opportunity: Opportunity): MarketingCopy {
             ]
         },
         dashboard_onboarding: {
-            welcome_message: 'Welcome — let’s validate the idea and turn it into a plan.',
+            welcome_message: "Welcome - let's validate the idea and turn it into a plan.",
             setup_steps: [
                 {
                     step: 'Add your idea',

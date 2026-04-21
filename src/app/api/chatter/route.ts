@@ -1,14 +1,8 @@
 // @ts-nocheck
 import { NextResponse } from 'next/server';
 import { getServerUser } from '@/utils/supabase/auth';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/utils/supabase/service';
 import { ChatterMetrics, BuilderModeType } from '@/types/schema_v2';
-
-// Use service role client for database operations
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // Calculate builder mode based on chatter ratio
 function calculateBuilderMode(ratio: number, recentTrend: number): BuilderModeType {
@@ -22,6 +16,7 @@ function calculateBuilderMode(ratio: number, recentTrend: number): BuilderModeTy
 // GET: Fetch chatter metrics for current user
 export async function GET() {
     try {
+        const supabase = createServiceClient();
         const user = await getServerUser();
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -142,6 +137,7 @@ export async function GET() {
 // POST: Log a new chatter session
 export async function POST(request: Request) {
     try {
+        const supabase = createServiceClient();
         const user = await getServerUser();
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
