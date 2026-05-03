@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/generate-blog-content.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
