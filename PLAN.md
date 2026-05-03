@@ -62,7 +62,17 @@ Build a founder operating system that:
 - `src/lib/patterns/engine.ts` and `src/lib/insights/generator.ts` convert raw activity into recurring signals.
 - The long-term goal is a self-improving system that predicts founder drift, focus, and momentum.
 
-### 8) Payments and Access
+### 8) Builder Agent Lite
+- `src/modules/builder-agent` contains the Builder Agent logic.
+- `src/app/api/builder-agent/generate` creates or retrieves builder plans.
+- Turns validated opportunities into MVP build plans.
+- Generates database schema, pages, API routes, env vars, GitHub issues.
+- Creates MASTER_PLAN.md.
+- Produces coding agent prompts for Codex, Gemini CLI, OpenCode, Claude Code, Cursor.
+- Uses OpenRouter with DeepSeek V4 Pro.
+- Saves to Supabase to avoid regenerating.
+
+### 9) Payments and Access
 - Lemon Squeezy routes in `src/app/api/checkout` and `src/app/api/webhook*` manage plan access.
 - Subscription state should gate premium automation and publishing features.
 
