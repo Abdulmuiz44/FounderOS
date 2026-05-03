@@ -44,6 +44,7 @@ Most founders fail because they build something nobody wants. FounderOS forces y
 - Generates prompts for coding agents: Codex, Gemini CLI, OpenCode, Claude Code, Cursor
 - Uses OpenRouter with DeepSeek V4 Pro
 - Saves plans to Supabase to avoid regenerating
+- One plan per opportunity per user (unique constraint enforced)
 
 ## Tech Stack
 

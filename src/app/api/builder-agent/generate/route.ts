@@ -42,49 +42,49 @@ export async function POST(req: NextRequest) {
             .from('opportunity_scores')
             .select('*')
             .eq('opportunity_id', opportunityId)
-            .single();
+            .maybeSingle();
 
         const { data: monetization } = await client
             .from('monetization_maps')
             .select('*')
             .eq('opportunity_id', opportunityId)
-            .single();
+            .maybeSingle();
 
         const { data: executionPlan } = await client
             .from('execution_plans')
             .select('*')
             .eq('opportunity_id', opportunityId)
-            .single();
+            .maybeSingle();
 
         const input: BuilderInput = {
             opportunity: {
                 id: opportunity.id,
-                title: opportunity.title,
-                problem_statement: opportunity.problem_statement,
-                target_niche: opportunity.target_niche,
-                market_gap: opportunity.market_gap,
-                why_now: opportunity.why_now,
-                buyer_persona: opportunity.buyer_persona
+                title: opportunity.title || 'Untitled',
+                problem_statement: opportunity.problem_statement || '',
+                target_niche: opportunity.target_niche || '',
+                market_gap: opportunity.market_gap || '',
+                why_now: opportunity.why_now || '',
+                buyer_persona: opportunity.buyer_persona || ''
             },
             scores: scores ? {
-                demand_score: scores.demand_score,
-                competition_score: scores.competition_score,
-                monetization_score: scores.monetization_score,
-                complexity_score: scores.complexity_score,
-                founder_fit_score: scores.founder_fit_score,
+                demand_score: scores.demand_score || 0,
+                competition_score: scores.competition_score || 0,
+                monetization_score: scores.monetization_score || 0,
+                complexity_score: scores.complexity_score || 0,
+                founder_fit_score: scores.founder_fit_score || 0,
                 verdict: scores.analysis?.validationReport?.verdict,
                 confidence: scores.analysis?.validationReport?.confidence
             } : undefined,
             executionPlan: executionPlan ? {
-                mvp_features: executionPlan.mvp_features,
-                tech_stack: executionPlan.tech_stack,
-                go_to_market: executionPlan.go_to_market
+                mvp_features: executionPlan.mvp_features || [],
+                tech_stack: executionPlan.tech_stack || [],
+                go_to_market: executionPlan.go_to_market || []
             } : undefined,
             monetization: monetization ? {
-                revenue_model: monetization.revenue_model,
-                pricing_strategy: monetization.pricing_strategy,
-                estimated_arpu: monetization.estimated_arpu,
-                time_to_revenue: monetization.time_to_revenue
+                revenue_model: monetization.revenue_model || 'Subscription',
+                pricing_strategy: monetization.pricing_strategy || '',
+                estimated_arpu: monetization.estimated_arpu || 0,
+                time_to_revenue: monetization.time_to_revenue || ''
             } : undefined
         };
 

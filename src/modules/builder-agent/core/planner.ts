@@ -46,9 +46,12 @@ export const builderService = {
             .select('*')
             .eq('opportunity_id', opportunityId)
             .eq('user_id', userId)
-            .single();
+            .maybeSingle();
 
-        if (error && error.code !== 'PGRD116') throw error;
+        if (error && error.code !== 'PGRST116') {
+            console.error('Error fetching builder plan:', error);
+            throw error;
+        }
         return data as PlanRow | null;
     },
 
@@ -56,11 +59,20 @@ export const builderService = {
         const client = createServiceClient();
         const { data, error } = await client
             .from('builder_agent_plans')
-            .insert(plan as any)
+            .upsert({
+                ...plan,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'user_id,opportunity_id',
+                ignoreDuplicates: false
+            })
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Error saving builder plan:', error);
+            throw error;
+        }
         return data as PlanRow;
     },
 

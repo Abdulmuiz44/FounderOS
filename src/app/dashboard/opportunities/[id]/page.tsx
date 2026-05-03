@@ -220,11 +220,15 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
 
     const handleGenerateBuilderPlan = async () => {
         setGeneratingPlan(true);
+        const isRegenerate = !!builderPlan;
         try {
             const res = await fetch('/api/builder-agent/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ opportunityId: id })
+                body: JSON.stringify({ 
+                    opportunityId: id,
+                    regenerate: isRegenerate
+                })
             });
             if (!res.ok) {
                 const text = await res.text();
