@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, CheckCircle, BarChart3, ChevronRight, Play, ArrowLeft, Layout, Sparkles, Copy, FileText, Star, HelpCircle, DollarSign, UserCheck } from 'lucide-react';
+import { Loader2, CheckCircle, BarChart3, ChevronRight, Play, ArrowLeft, Layout, Sparkles, Copy, FileText, Star, HelpCircle, DollarSign, UserCheck, Hammer, Code, Terminal, Github } from 'lucide-react';
 import { MomTestScript, CompetitorAnalysis, WaitlistContent, MarketingCopy, ValidationReport } from '@/modules/opportunity-intelligence/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -26,6 +26,9 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
     const [activeCopyTab, setActiveCopyTab] = useState<'homepage' | 'about' | 'pricing' | 'dashboard'>('homepage');
     const [validationMode, setValidationMode] = useState<'ai' | 'fallback' | null>(null);
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
+    const [builderPlan, setBuilderPlan] = useState<any>(null);
+    const [generatingPlan, setGeneratingPlan] = useState(false);
+    const [activePromptTab, setActivePromptTab] = useState<'codex' | 'gemini' | 'opencode' | 'claude' | 'cursor'>('codex');
 
     useEffect(() => {
         fetch(`/api/opportunities/${id}`)
@@ -34,6 +37,11 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                 if (!data.error) setOpportunity(data);
             })
             .finally(() => setLoading(false));
+
+        fetch(`/api/builder-agent/${id}`)
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => setBuilderPlan(data))
+            .catch(() => {});
     }, [id]);
 
     const validationReport: ValidationReport | undefined = opportunity?.opportunity_scores?.analysis?.validationReport;
@@ -207,6 +215,29 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
             console.error(e);
         } finally {
             setGeneratingCopy(false);
+        }
+    };
+
+    const handleGenerateBuilderPlan = async () => {
+        setGeneratingPlan(true);
+        try {
+            const res = await fetch('/api/builder-agent/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opportunityId: id })
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Server error: ${res.status} - ${text.substring(0, 100)}`);
+            }
+            const data = await res.json();
+            if (data.id) {
+                setBuilderPlan(data);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setGeneratingPlan(false);
         }
     };
 
@@ -858,10 +889,265 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                                                     </div>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
+)}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+
+                                {/* Builder Agent Section */}
+                                <div className="bg-[var(--card)] p-6 md:p-8 rounded-xl border border-[var(--border)] shadow-sm">
+                                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 pb-4 border-b border-[var(--border)]">
+                                        <h2 className="text-xl font-bold flex items-center gap-3 text-[var(--foreground)]">
+                                            <Hammer className="text-indigo-500 w-6 h-6" />
+                                            Builder Agent
+                                        </h2>
+                                        <Button
+                                            onClick={handleGenerateBuilderPlan}
+                                            disabled={generatingPlan}
+                                            className="gap-2"
+                                        >
+                                            {generatingPlan ? <Loader2 className="animate-spin w-4 h-4" /> : <Hammer className="w-4 h-4" />}
+                                            {builderPlan ? 'Regenerate Builder Plan' : 'Generate Builder Plan'}
+                                        </Button>
+                                    </div>
+
+                                    <p className="text-sm text-[var(--muted)] mb-6">
+                                        Turn this opportunity into a build-ready MVP plan, GitHub issues, MASTER_PLAN.md, and prompts for your coding agents.
+                                    </p>
+
+                                    {!builderPlan ? (
+                                        <div className="p-12 text-center bg-[var(--background)] rounded-xl border border-dashed border-[var(--border)]">
+                                            <Hammer className="w-12 h-12 mx-auto mb-4 text-[var(--muted)] opacity-50" />
+                                            <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Ready to Build?</h3>
+                                            <p className="text-[var(--muted)] max-w-sm mx-auto">
+                                                Generate a complete MVP build plan with database schema, API routes, pages, GitHub issues, and prompts for Codex, Gemini CLI, OpenCode, Claude Code, and Cursor.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-8">
+                                            {/* Product Summary */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                                    Product Summary
+                                                </h4>
+                                                <div className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]">
+                                                    <p className="text-sm text-[var(--foreground)] leading-relaxed">{builderPlan.product_summary}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* User Flows */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                                    User Flows
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {builderPlan.user_flows?.map((flow: string, i: number) => (
+                                                        <div key={i} className="flex items-start gap-3 p-3 bg-[var(--background)] rounded-lg border border-[var(--border)]">
+                                                            <span className="w-6 h-6 rounded-full bg-green-500/10 text-green-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                                                {i + 1}
+                                                            </span>
+                                                            <span className="text-sm text-[var(--foreground)]">{flow}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Database Schema */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                    Database Schema
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    {builderPlan.database_schema?.map((table: any, i: number) => (
+                                                        <div key={i} className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="font-mono font-bold text-sm">{table.table}</span>
+                                                                <span className="text-xs text-[var(--muted)]">{table.purpose}</span>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                {table.columns?.map((col: any, j: number) => (
+                                                                    <div key={j} className="flex items-center gap-2 text-xs">
+                                                                        <span className="font-mono text-indigo-500">{col.name}</span>
+                                                                        <span className="text-[var(--muted)]">({col.type})</span>
+                                                                        {col.required && <span className="text-red-500">*</span>}
+                                                                        {col.notes && <span className="text-[var(--muted)]">- {col.notes}</span>}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Pages and Routes */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                                    Pages & Routes
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {builderPlan.pages?.map((page: any, i: number) => (
+                                                        <div key={i} className="flex items-start gap-3 p-3 bg-[var(--background)] rounded-lg border border-[var(--border)]">
+                                                            <span className="font-mono text-sm bg-blue-500/10 text-blue-600 px-2 py-1 rounded">{page.route}</span>
+                                                            <div className="flex-1">
+                                                                <p className="text-sm font-medium">{page.purpose}</p>
+                                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                                    {page.components?.map((c: string, j: number) => (
+                                                                        <span key={j} className="text-xs bg-[var(--card)] px-2 py-0.5 rounded">{c}</span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* API Routes */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                                    API Routes
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {builderPlan.api_routes?.map((route: any, i: number) => (
+                                                        <div key={i} className="flex items-center gap-3 p-3 bg-[var(--background)] rounded-lg border border-[var(--border)]">
+                                                            <span className={`font-mono text-xs px-2 py-1 rounded ${
+                                                                route.method === 'GET' ? 'bg-green-500/10 text-green-600' :
+                                                                route.method === 'POST' ? 'bg-blue-500/10 text-blue-600' :
+                                                                route.method === 'PATCH' ? 'bg-amber-500/10 text-amber-600' :
+                                                                'bg-red-500/10 text-red-600'
+                                                            }`}>{route.method}</span>
+                                                            <span className="font-mono text-sm">{route.route}</span>
+                                                            <span className="text-sm text-[var(--muted)]">- {route.purpose}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Environment Variables */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                                                    Environment Variables
+                                                </h4>
+                                                <div className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]">
+                                                    <code className="text-sm font-mono text-cyan-600">
+                                                        {builderPlan.env_vars?.join('\n')}
+                                                    </code>
+                                                </div>
+                                            </div>
+
+                                            {/* GitHub Issues */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <Github className="w-4 h-4" />
+                                                    GitHub Issues
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    {builderPlan.github_issues?.map((issue: any, i: number) => (
+                                                        <div key={i} className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="font-bold text-sm">{issue.title}</span>
+                                                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                                                    issue.priority === 'HIGH' ? 'bg-red-500/10 text-red-500' :
+                                                                    issue.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-500' :
+                                                                    'bg-green-500/10 text-green-500'
+                                                                }`}>{issue.priority}</span>
+                                                            </div>
+                                                            <p className="text-sm text-[var(--muted)] mb-2">{issue.body}</p>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {issue.labels?.map((l: string, j: number) => (
+                                                                    <span key={j} className="text-xs bg-[var(--card)] px-2 py-0.5 rounded border border-[var(--border)]">{l}</span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* MASTER_PLAN.md */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="font-bold text-sm flex items-center gap-2">
+                                                        <FileText className="w-4 h-4" />
+                                                        MASTER_PLAN.md
+                                                    </h4>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => copyToClipboard(builderPlan.master_plan_markdown)}
+                                                    >
+                                                        <Copy className="w-3 h-3 mr-1" /> Copy
+                                                    </Button>
+                                                </div>
+                                                <div className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)] max-h-96 overflow-y-auto">
+                                                    <pre className="text-xs font-mono whitespace-pre-wrap">{builderPlan.master_plan_markdown}</pre>
+                                                </div>
+                                            </div>
+
+                                            {/* Coding Agent Prompts */}
+                                            <div>
+                                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                    <Code className="w-4 h-4" />
+                                                    Coding Agent Prompts
+                                                </h4>
+                                                <div className="flex gap-1 p-1 bg-[var(--background)] rounded-lg border border-[var(--border)] overflow-x-auto mb-4">
+                                                    {[
+                                                        { id: 'codex', label: 'Codex', icon: Code },
+                                                        { id: 'gemini', label: 'Gemini CLI', icon: terminal },
+                                                        { id: 'opencode', label: 'OpenCode', icon: Bot },
+                                                        { id: 'claude', label: 'Claude Code', icon: terminal },
+                                                        { id: 'cursor', label: 'Cursor', icon: Code },
+                                                    ].map((tab) => {
+                                                        const Icon = tab.icon;
+                                                        const active = activePromptTab === tab.id;
+                                                        return (
+                                                            <button
+                                                                key={tab.id}
+                                                                onClick={() => setActivePromptTab(tab.id as any)}
+                                                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
+                                                                    active
+                                                                        ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]'
+                                                                        : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                                                                }`}
+                                                            >
+                                                                <Icon className="w-4 h-4" />
+                                                                {tab.label}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                                <div className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)] relative group">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="absolute top-2 right-2"
+                                                        onClick={() => copyToClipboard(
+                                                            activePromptTab === 'codex' ? builderPlan.codex_prompt :
+                                                            activePromptTab === 'gemini' ? builderPlan.gemini_cli_prompt :
+                                                            activePromptTab === 'opencode' ? builderPlan.opencode_prompt :
+                                                            activePromptTab === 'claude' ? builderPlan.claude_code_prompt :
+                                                            builderPlan.cursor_prompt
+                                                        )}
+                                                    >
+                                                        <Copy className="w-3 h-3 mr-1" /> Copy
+                                                    </Button>
+                                                    <pre className="text-sm font-mono whitespace-pre-wrap max-h-64 overflow-y-auto">
+                                                        {activePromptTab === 'codex' ? builderPlan.codex_prompt :
+                                                         activePromptTab === 'gemini' ? builderPlan.gemini_cli_prompt :
+                                                         activePromptTab === 'opencode' ? builderPlan.opencode_prompt :
+                                                         activePromptTab === 'claude' ? builderPlan.claude_code_prompt :
+                                                         builderPlan.cursor_prompt}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

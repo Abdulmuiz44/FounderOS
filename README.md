@@ -35,13 +35,23 @@ Most founders fail because they build something nobody wants. FounderOS forces y
 - GitHub integration: Link your repositories to track real commit activity.
 - Project tracking: Move from idea to building to launched with clear milestones.
 
+### Builder Agent Lite
+
+- Turn validated opportunities into build-ready MVP plans
+- Generates: database schema, pages, API routes, environment variables
+- Creates GitHub issues with priorities
+- Produces MASTER_PLAN.md with implementation roadmap
+- Generates prompts for coding agents: Codex, Gemini CLI, OpenCode, Claude Code, Cursor
+- Uses OpenRouter with DeepSeek V4 Pro
+- Saves plans to Supabase to avoid regenerating
+
 ## Tech Stack
 
 - Framework: Next.js 14 (App Router)
 - Database: Supabase (PostgreSQL + Auth)
 - Styling: Tailwind CSS + Lucide Icons
 - Auth: NextAuth (Google + GitHub)
-- AI: Mistral AI Integration
+- AI: Mistral AI + OpenRouter (DeepSeek V4 Pro)
 
 ## Getting Started (Web)
 
@@ -64,6 +74,9 @@ pnpm install
 - `GITHUB_ID`
 - `GITHUB_SECRET`
 - `MISTRAL_API_KEY`
+- `OPENROUTER_API_KEY`
+- `OPENROUTER_MODEL` (optional, defaults to deepseek/deepseek-v4-pro)
+- `NEXT_PUBLIC_APP_URL` (optional, for OpenRouter Referer header)
 
 4. Run the web app:
 
